@@ -31,3 +31,45 @@
 //   )
 //   .style("text-anchor", "middle")
 //   .text(category); -->
+<!-- const popData = [
+    {
+      Country: "United States",
+      Population: "12394",
+    },
+    {
+      Country: "Russia",
+      Population: "6148",
+    },
+    {
+      Country: "Germany (FRG)",
+      Population: "1653",
+    },
+    {
+      Country: "France",
+      Population: "2162",
+    },
+    {
+      Country: "United Kingdom",
+      Population: "1214",
+    },
+    {
+      Country: "China",
+      Population: "1131",
+    },
+    {
+      Country: "Spain",
+      Population: "814",
+    },
+    {
+      Country: "Netherlands",
+      Population: "1167",
+    },
+    {
+      Country: "Italy",
+      Population: "660",
+    },
+    {
+      Country: "Israel",
+      Population: "1263",
+    },
+  ]; -->
