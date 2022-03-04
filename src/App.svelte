@@ -1,5 +1,6 @@
 <!--Load the AJAX API-->
 <script>
+  import ColumnChart from "../src/ColumnChart.svelte";
   // Load the Visualization API and the corechart package.
   google.charts.load("current", { packages: ["corechart"] });
 
@@ -35,9 +36,52 @@
     );
     chart.draw(data, options);
   }
+  const popData = [
+    {
+      Country: "United States",
+      Population: "12394",
+    },
+    {
+      Country: "Russia",
+      Population: "6148",
+    },
+    {
+      Country: "Germany (FRG)",
+      Population: "1653",
+    },
+    {
+      Country: "France",
+      Population: "2162",
+    },
+    {
+      Country: "United Kingdom",
+      Population: "1214",
+    },
+    {
+      Country: "China",
+      Population: "1131",
+    },
+    {
+      Country: "Spain",
+      Population: "814",
+    },
+    {
+      Country: "Netherlands",
+      Population: "1167",
+    },
+    {
+      Country: "Italy",
+      Population: "660",
+    },
+    {
+      Country: "Israel",
+      Population: "1263",
+    },
+  ];
 </script>
 
 <body>
   <!--Div that will hold the pie chart-->
+  <ColumnChart data={popData} />
   <div id="chart_div" />
 </body>
