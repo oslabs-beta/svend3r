@@ -3,7 +3,7 @@
   import * as d3 from "d3";
 
   export let data;
-  export let color = "black";
+  export let color = "red";
   export let width = 500;
   export let height = 500;
 
