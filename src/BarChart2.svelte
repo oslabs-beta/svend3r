@@ -1,5 +1,7 @@
 <script>
   import * as d3 from "d3";
+  import { fly } from "svelte/transition";
+
   const alphabet = [
     { letter: "A", frequency: 0.08167 },
     { letter: "B", frequency: 0.01492 },
@@ -29,7 +31,7 @@
     { letter: "Z", frequency: 0.00074 },
   ];
 
-  let data = alphabet;
+  $: data = alphabet;
   let marginTop = 20; // the top margin, in pixels
   let marginRight = 0; // the right margin, in pixels
   let marginBottom = 30; // the bottom margin, in pixels
@@ -41,6 +43,15 @@
   let yLabel = "↑ Frequency"; // a label for the y-axis
   let color = "steelblue"; // bar fill color
   let yScalefactor = 6; //y-axis number of values
+  let duration = 1000;
+
+  const sortedAsc = () => {
+    data = data.sort((a,b) => Object.values(alphabet[a])[1] - Object.values(alphabet[b])[1])
+  }
+
+  const sortedDesc = () => {
+    data = data.sort((a,b) => Object.values(alphabet[b])[1] - Object.values(alphabet[a])[1])
+  }
 
   // Compute values X and Y value of Arrays
   let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
@@ -72,6 +83,17 @@
   }
 </script>
 
+<label>
+	<input type="checkbox" bind:checked={sortedAsc}>
+	Sort By Ascending Order
+</label>
+
+<label>
+	<input type="checkbox" bind:checked={sortedDesc}>
+	Sort By Descending Order
+</label>
+
+
 <svg {width} {height} viewBox="0 0 {width} {height}">
   <g class="y-axis" transform="translate({marginLeft}, 0)">
     {#each yTicks as tick, i}
@@ -96,6 +118,7 @@
         width={xScale.bandwidth()}
         height={yScale(0) - yScale(Y[i])}
         fill={color}
+        in:fly={{ y: -200, duration: 1000, delay: i * 50 }}
       />
     {/each}
   </g>
