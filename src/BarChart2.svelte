@@ -1,7 +1,6 @@
 <script>
   import * as d3 from "d3";
-  import { tweened } from "svelte/motion";
-  import { fade, fly } from "svelte/transition";
+  import { fly } from "svelte/transition";
 
   const alphabet = [
     { letter: "A", frequency: 0.08167 },
