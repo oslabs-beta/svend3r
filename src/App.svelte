@@ -1,8 +1,9 @@
 <!--Load the AJAX API-->
 <script>
-  import ColumnChart from "../src/ColumnChart.svelte";
-  import DoughnutChart from '../src/DoughnutChart.svelte'
-  import AnimatedDoughnut from '../src/DoughnutAnim.svelte'
+  import BarChart2 from "./BarChart2.svelte";
+  // import ColumnChart from "../src/ColumnChart.svelte";
+  // import DoughnutChart from '../src/DoughnutChart.svelte'
+  // import AnimatedDoughnut from '../src/DoughnutAnim.svelte'
   // Load the Visualization API and the corechart package.
   google.charts.load("current", { packages: ["corechart"] });
 
@@ -90,12 +91,16 @@
       Population: "1263",
     },
   ];
+
 </script>
 
 <body>
-  <!--Div that will hold the pie chart-->
+  <!-- Div that will hold the pie chart
   <ColumnChart data={popData} />
   <DoughnutChart/>
   <!-- <AnimatedDoughnut/> -->
-  <div id="chart_div" />
+  <!-- <div id="chart_div" /> --> -->
+  <div>
+    <BarChart2/>
+  </div>
 </body>
