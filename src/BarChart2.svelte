@@ -31,7 +31,7 @@
     { letter: "Z", frequency: 0.00074 },
   ];
 
-  $: data = alphabet;
+  let data = alphabet;
   let marginTop = 20; // the top margin, in pixels
   let marginRight = 0; // the right margin, in pixels
   let marginBottom = 30; // the bottom margin, in pixels
@@ -43,57 +43,59 @@
   let yLabel = "↑ Frequency"; // a label for the y-axis
   let color = "steelblue"; // bar fill color
   let yScalefactor = 6; //y-axis number of values
-  let duration = 1000;
+  let duration = 1000; //animation transition duration
 
-  const sortedAsc = () => {
-    data = data.sort((a,b) => Object.values(alphabet[a])[1] - Object.values(alphabet[b])[1])
-  }
-
-  const sortedDesc = () => {
-    data = data.sort((a,b) => Object.values(alphabet[b])[1] - Object.values(alphabet[a])[1])
-  }
+  // Modify data based on default, ascending, descending sorts.  Input is based on selectedIndex
+  $: showSort = (input) => {
+    if (input === 1) {
+      return (data = data.sort(
+        (a, b) => a[x].charCodeAt(0) - b[x].charCodeAt(0)
+      ));
+    }
+    if (input === 2) {
+      return (data = data.sort((a, b) => a[y] - b[y]));
+    }
+    if (input === 3) {
+      return (data = data.sort((a, b) => b[y] - a[y]));
+    }
+  };
 
   // Compute values X and Y value of Arrays
   let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
   let y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
-  const X = data.map((el) => el[x]);
-  const Y = data.map((el) => el[y]);
+  $: X = data.map((el) => el[x]);
+  $: Y = data.map((el) => el[y]);
 
   // Compute default domains, and unique the x-domain.
-  let xDomain; // an array of (ordinal) x-values // sort by descending frequency
-  let yDomain; // [ymin, ymax]
-  if (xDomain === undefined) xDomain = X;
-  if (yDomain === undefined) yDomain = [0, d3.max(Y)];
-  xDomain = new d3.InternSet(xDomain);
-
-  // Omit any data not present in the x-domain.
-  const I = d3.range(X.length).filter((i) => xDomain.has(X[i]));
+  $: xDomain = X; // an array of (ordinal) x-values // sort by descending frequency
+  $: yDomain = [0, d3.max(Y)]; // [ymin, ymax]
 
   // Construct scales, axes, and formats.
   let xRange = [marginLeft, width - marginRight]; // [left, right]
-  let yRange = [height - marginBottom, marginTop]; // [bottom, top]
+  let yRange = [height - marginBottom, marginTop * 2]; // [bottom, top]
   let yType = d3.scaleLinear; // y-scale type
-  const xScale = d3.scaleBand(xDomain, xRange).padding(xPadding);
-  const yScale = yType(yDomain, yRange);
+  $: xScale = d3.scaleBand(xDomain, xRange).padding(xPadding);
+  $: yScale = yType(yDomain, yRange);
 
+  // Create Y-Axis ticks based on yScalefactor spacing
   let yTicks = [];
-  let unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
-  for (let i = 1; i < yScalefactor + 1; i++) {
-    yTicks.push(Math.floor(i * unit * 100));
+  $: unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
+  $: for (let i = 1; i < yScalefactor + 1; i++) {
+    yTicks = [...yTicks, Math.floor(i * unit * 100)];
   }
 </script>
 
-<label>
-	<input type="checkbox" bind:checked={sortedAsc}>
-	Sort By Ascending Order
-</label>
-
-<label>
-	<input type="checkbox" bind:checked={sortedDesc}>
-	Sort By Descending Order
-</label>
-
-
+<div class="selector-main" dir="auto">
+  <select
+    on:change={showSort(this.selectedIndex)}
+    onfocus={(this.selectedIndex = -1)}
+  >
+    <option disabled selected value> ---Sorting Method--- </option>
+    <option value="1">Default</option>
+    <option value="2">{y}, Ascending</option>
+    <option value="3">{y}, Descending</option>
+  </select>
+</div>
 <svg {width} {height} viewBox="0 0 {width} {height}">
   <g class="y-axis" transform="translate({marginLeft}, 0)">
     {#each yTicks as tick, i}
@@ -111,16 +113,18 @@
   </g>
 
   <g class="bars">
-    {#each Y as point, i}
-      <rect
-        x={xScale(X[i])}
-        y={yScale(Y[i])}
-        width={xScale.bandwidth()}
-        height={yScale(0) - yScale(Y[i])}
-        fill={color}
-        in:fly={{ y: -200, duration: 1000, delay: i * 50 }}
-      />
-    {/each}
+    {#key showSort}
+      {#each Y as point, i}
+        <rect
+          x={xScale(X[i])}
+          y={yScale(Y[i])}
+          width={xScale.bandwidth()}
+          height={yScale(0) - yScale(Y[i])}
+          fill={color}
+          in:fly={{ x: -200, duration: 1000, delay: i * 50 }}
+        />
+      {/each}
+    {/key}
   </g>
 
   <g class="x-axis" transform="translate(0,{height - marginBottom})">
