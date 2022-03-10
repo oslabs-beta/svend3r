@@ -1,6 +1,7 @@
 <!--Load the AJAX API-->
 <script>
   import BarChart2 from "./BarChart2.svelte";
+  import Bubble from "./Bubble.svelte"
   // import ColumnChart from "../src/ColumnChart.svelte";
   // import DoughnutChart from '../src/DoughnutChart.svelte'
   // import AnimatedDoughnut from '../src/DoughnutAnim.svelte'
@@ -98,9 +99,10 @@
   <!-- Div that will hold the pie chart -->
   <!-- <ColumnChart data={popData} />
   <DoughnutChart/> -->
-  <!-- <AnimatedDoughnut/> -->
+  <!-- <AnimatedDoughnut/> -->4
   <!-- <div id="chart_div" /> -->
   <div>
     <BarChart2/>
+    <Bubble/>
   </div>
 </body>
