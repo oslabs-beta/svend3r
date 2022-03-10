@@ -5,21 +5,30 @@
   export let chordData;
 
   const data = chordData,
-    // TODO: add margin vars
+    marginTop = 20, // the top margin, in pixels
+    marginRight = 0, // the right margin, in pixels
+    marginBottom = 30, // the bottom margin, in pixels
+    marginLeft = 40, // the left margin, in pixels
     width = 1152, // the outer width of the chart, in pixels
     height = 1152, // the outer height of the chart, in pixels
     scaleType = d3.scaleLinear, // type of scale
+    // xRange = [marginLeft, width - marginRight - insetRight], // [left, right]
     tickStep = 0.01,
-    scaleFormat = '%', // TODO: account for this
+    scaleFormat = '%',
     // number of names in array MUST match number of colors in array
     names = ['Apple', 'HTC', 'Huawei', 'LG', 'Nokia', 'Samsung', 'Sony', 'Other'], // section names
     colors = ['#c4c4c4', '#69b40f', '#ec1d25', '#c8125c', '#008fc8', '#10218b', '#134b24', '#737373'], // section colors
+    filled = false, // whether dots should be filled or outlined
     tooltipBackground = 'black', // background color of tooltip
     tooltipTextColor = 'white'; // text color of tooltip
 
   const outerRadius = Math.min(width, height) * 0.5 - 60, // should connect to margin
     innerRadius = outerRadius - 10; // should make adjustable
-  
+
+  let x, y, xVals = [], yVals = [], points = [],
+    filters = [...colors], selectedDot, dotInfo;
+  const subsets = [];
+
   let groupInfo, ribbonInfo;
 
   $: selectedChord = null;
@@ -50,6 +59,42 @@
   function formatValue(val) {
     return `${(val * 100).toFixed(2)}%`;
   }
+
+  console.log('chord', chord);
+  console.log('chords', chords);
+  console.log('chords.groups --> arc', arc(chords.groups[0]));
+  console.log('chords --> ribbon', ribbon(chords[0]));
+  console.log('colorScale', colorScale(names));
+  console.log('ticks', ticks(chords.groups[0]));
+  
+
+  // const xDomain = [0, Math.max(...xVals)];
+  // const yDomain = [0, Math.max(...yVals)];
+  // const xScale = xType(xDomain, xRange);
+  // const yScale = yType(yDomain, yRange);
+
+  // $: pointsScaled = points.map((el) => [xScale(el[0]), yScale(el[1]), el[2]])
+  //   .filter((el) => filters.includes(colors[el[2]]));
+  // $: delaunay = Delaunay.from(pointsScaled);
+  // $: voronoi = delaunay.voronoi([0, 0, width, height]);
+
+  // $: xTicks = [];
+  // $: unit = Math.round((xDomain[1] - xDomain[0]) / xScalefactor);
+  // $: for (let i = 1; i < xScalefactor + 1; i++) {
+  //   xTicks.push(i * unit);
+  // }
+
+  // $: yTicks = [];
+  // $: unit = Math.round((yDomain[1] - yDomain[0]) / yScalefactor);
+  // $: for (let i = 1; i < yScalefactor + 1; i++) {
+  //   yTicks.push(i * unit); // TODO make adjustable and account for optional %
+  // }
+
+  // Updates filter array according to input
+  // const filter = (color) => {
+  //   if (filters.includes(color)) filters = filters.filter((col) => col !== color);
+  //   else filters = [...filters, color];
+  // };
 </script>
 
 <svg {width} {height} viewBox="{-width / 2} {-height / 2} {width} {height}">
@@ -71,7 +116,13 @@
       </g>
     {/each}
   {/each}
-  
+  <!-- {#each chords as chord}
+    <path fill-opacity={selectedChord === chord ? '1' : '0.8'} fill={colors[chord.source.index]} d={ribbon(chord)} 
+    on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
+    on:focus="{(e) => ribbonInfo = [e, chord]}"
+    on:mouseout="{() => ribbonInfo = null}"
+    on:blur="{() => ribbonInfo = null}" />
+  {/each} -->
   {#each chords as chord}
     {#if selectedChord}
       <path fill-opacity={selectedChord === chord ? '1' : '0.4'} fill={colors[chord.source.index]} d={ribbon(chord)} 
@@ -113,4 +164,48 @@
   div {
     white-space: pre;
   }
+  
+  /* svg {
+    max-width: 100%;
+    height: auto;
+    height: "intrinsic";
+  }
+
+
+  path {
+    fill: "green"
+  }
+
+  .y-axis {
+    font-size: "10px";
+    font-family: sans-serif;
+    text-anchor: "end";
+  }
+
+  .x-axis {
+    font-size: "10px";
+    font-family: sans-serif;
+    text-anchor: "end";
+  }
+
+  .tick {
+    opacity: 1;
+  }
+
+  .tick-start {
+    stroke: black;
+    stroke-opacity: 1;
+  }
+
+  .tick-grid {
+    stroke: black;
+    stroke-opacity: 0.2;
+    font-size: "11px";
+    color: black;
+  }
+
+  .tick text {
+    fill: black;
+    text-anchor: start;
+  } */
 </style>
