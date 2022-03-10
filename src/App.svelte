@@ -95,11 +95,11 @@
 </script>
 
 <body>
-  <!-- Div that will hold the pie chart
-  <ColumnChart data={popData} />
-  <DoughnutChart/>
+  <!-- Div that will hold the pie chart -->
+  <!-- <ColumnChart data={popData} />
+  <DoughnutChart/> -->
   <!-- <AnimatedDoughnut/> -->
-  <!-- <div id="chart_div" /> --> -->
+  <!-- <div id="chart_div" /> -->
   <div>
     <BarChart2/>
   </div>

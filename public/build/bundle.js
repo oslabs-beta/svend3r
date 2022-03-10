@@ -4,6 +4,7 @@ var app = (function () {
     'use strict';
 
     function noop$4() { }
+    const identity$a = x => x;
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -27,8 +28,60 @@ var app = (function () {
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
+
+    const is_client = typeof window !== 'undefined';
+    let now$1 = is_client
+        ? () => window.performance.now()
+        : () => Date.now();
+    let raf = is_client ? cb => requestAnimationFrame(cb) : noop$4;
+
+    const tasks = new Set();
+    function run_tasks(now) {
+        tasks.forEach(task => {
+            if (!task.c(now)) {
+                tasks.delete(task);
+                task.f();
+            }
+        });
+        if (tasks.size !== 0)
+            raf(run_tasks);
+    }
+    /**
+     * Creates a new task that runs on each raf frame
+     * until it returns a falsy value or is aborted
+     */
+    function loop(callback) {
+        let task;
+        if (tasks.size === 0)
+            raf(run_tasks);
+        return {
+            promise: new Promise(fulfill => {
+                tasks.add(task = { c: callback, f: fulfill });
+            }),
+            abort() {
+                tasks.delete(task);
+            }
+        };
+    }
     function append(target, node) {
         target.appendChild(node);
+    }
+    function get_root_for_style(node) {
+        if (!node)
+            return document;
+        const root = node.getRootNode ? node.getRootNode() : node.ownerDocument;
+        if (root && root.host) {
+            return root;
+        }
+        return node.ownerDocument;
+    }
+    function append_empty_stylesheet(node) {
+        const style_element = element('style');
+        append_stylesheet(get_root_for_style(node), style_element);
+        return style_element.sheet;
+    }
+    function append_stylesheet(node, style) {
+        append(node.head || node, style);
     }
     function insert(target, node, anchor) {
         target.insertBefore(node, anchor || null);
@@ -51,6 +104,16 @@ var app = (function () {
     function text$1(data) {
         return document.createTextNode(data);
     }
+    function space() {
+        return text$1(' ');
+    }
+    function empty$3() {
+        return text$1('');
+    }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -64,6 +127,72 @@ var app = (function () {
         const e = document.createEvent('CustomEvent');
         e.initCustomEvent(type, bubbles, false, detail);
         return e;
+    }
+
+    // we need to store the information for multiple documents because a Svelte application could also contain iframes
+    // https://github.com/sveltejs/svelte/issues/3624
+    const managed_styles = new Map();
+    let active$1 = 0;
+    // https://github.com/darkskyapp/string-hash/blob/master/index.js
+    function hash(str) {
+        let hash = 5381;
+        let i = str.length;
+        while (i--)
+            hash = ((hash << 5) - hash) ^ str.charCodeAt(i);
+        return hash >>> 0;
+    }
+    function create_style_information(doc, node) {
+        const info = { stylesheet: append_empty_stylesheet(node), rules: {} };
+        managed_styles.set(doc, info);
+        return info;
+    }
+    function create_rule(node, a, b, duration, delay, ease, fn, uid = 0) {
+        const step = 16.666 / duration;
+        let keyframes = '{\n';
+        for (let p = 0; p <= 1; p += step) {
+            const t = a + (b - a) * ease(p);
+            keyframes += p * 100 + `%{${fn(t, 1 - t)}}\n`;
+        }
+        const rule = keyframes + `100% {${fn(b, 1 - b)}}\n}`;
+        const name = `__svelte_${hash(rule)}_${uid}`;
+        const doc = get_root_for_style(node);
+        const { stylesheet, rules } = managed_styles.get(doc) || create_style_information(doc, node);
+        if (!rules[name]) {
+            rules[name] = true;
+            stylesheet.insertRule(`@keyframes ${name} ${rule}`, stylesheet.cssRules.length);
+        }
+        const animation = node.style.animation || '';
+        node.style.animation = `${animation ? `${animation}, ` : ''}${name} ${duration}ms linear ${delay}ms 1 both`;
+        active$1 += 1;
+        return name;
+    }
+    function delete_rule(node, name) {
+        const previous = (node.style.animation || '').split(', ');
+        const next = previous.filter(name
+            ? anim => anim.indexOf(name) < 0 // remove specific animation
+            : anim => anim.indexOf('__svelte') === -1 // remove all Svelte animations
+        );
+        const deleted = previous.length - next.length;
+        if (deleted) {
+            node.style.animation = next.join(', ');
+            active$1 -= deleted;
+            if (!active$1)
+                clear_rules();
+        }
+    }
+    function clear_rules() {
+        raf(() => {
+            if (active$1)
+                return;
+            managed_styles.forEach(info => {
+                const { stylesheet } = info;
+                let i = stylesheet.cssRules.length;
+                while (i--)
+                    stylesheet.deleteRule(i);
+                info.rules = {};
+            });
+            managed_styles.clear();
+        });
     }
 
     let current_component;
@@ -152,8 +281,35 @@ var app = (function () {
             $$.after_update.forEach(add_render_callback);
         }
     }
+
+    let promise;
+    function wait() {
+        if (!promise) {
+            promise = Promise.resolve();
+            promise.then(() => {
+                promise = null;
+            });
+        }
+        return promise;
+    }
+    function dispatch$1(node, direction, kind) {
+        node.dispatchEvent(custom_event(`${direction ? 'intro' : 'outro'}${kind}`));
+    }
     const outroing = new Set();
     let outros;
+    function group_outros() {
+        outros = {
+            r: 0,
+            c: [],
+            p: outros // parent group
+        };
+    }
+    function check_outros() {
+        if (!outros.r) {
+            run_all(outros.c);
+        }
+        outros = outros.p;
+    }
     function transition_in(block, local) {
         if (block && block.i) {
             outroing.delete(block);
@@ -175,6 +331,70 @@ var app = (function () {
             });
             block.o(local);
         }
+    }
+    const null_transition = { duration: 0 };
+    function create_in_transition(node, fn, params) {
+        let config = fn(node, params);
+        let running = false;
+        let animation_name;
+        let task;
+        let uid = 0;
+        function cleanup() {
+            if (animation_name)
+                delete_rule(node, animation_name);
+        }
+        function go() {
+            const { delay = 0, duration = 300, easing = identity$a, tick = noop$4, css } = config || null_transition;
+            if (css)
+                animation_name = create_rule(node, 0, 1, duration, delay, easing, css, uid++);
+            tick(0, 1);
+            const start_time = now$1() + delay;
+            const end_time = start_time + duration;
+            if (task)
+                task.abort();
+            running = true;
+            add_render_callback(() => dispatch$1(node, true, 'start'));
+            task = loop(now => {
+                if (running) {
+                    if (now >= end_time) {
+                        tick(1, 0);
+                        dispatch$1(node, true, 'end');
+                        cleanup();
+                        return running = false;
+                    }
+                    if (now >= start_time) {
+                        const t = easing((now - start_time) / duration);
+                        tick(t, 1 - t);
+                    }
+                }
+                return running;
+            });
+        }
+        let started = false;
+        return {
+            start() {
+                if (started)
+                    return;
+                started = true;
+                delete_rule(node);
+                if (is_function(config)) {
+                    config = config();
+                    wait().then(go);
+                }
+                else {
+                    go();
+                }
+            },
+            invalidate() {
+                started = false;
+            },
+            end() {
+                if (running) {
+                    cleanup();
+                    running = false;
+                }
+            }
+        };
     }
 
     const globals = (typeof window !== 'undefined'
@@ -326,12 +546,32 @@ var app = (function () {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
     }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
         if (value == null)
             dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
         else
             dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
+    }
+    function set_data_dev(text, data) {
+        data = '' + data;
+        if (text.wholeText === data)
+            return;
+        dispatch_dev('SvelteDOMSetData', { node: text, data });
+        text.data = data;
     }
     function validate_each_argument(arg) {
         if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
@@ -5167,7 +5407,7 @@ var app = (function () {
       return t * t * t;
     }
 
-    function cubicOut(t) {
+    function cubicOut$1(t) {
       return --t * t * t + 1;
     }
 
@@ -20225,7 +20465,7 @@ var app = (function () {
         easeQuadInOut: quadInOut,
         easeCubic: cubicInOut,
         easeCubicIn: cubicIn,
-        easeCubicOut: cubicOut,
+        easeCubicOut: cubicOut$1,
         easeCubicInOut: cubicInOut,
         easePoly: polyInOut,
         easePolyIn: polyIn,
@@ -20667,6 +20907,26 @@ var app = (function () {
         ZoomTransform: Transform
     });
 
+    function cubicOut(t) {
+        const f = t - 1.0;
+        return f * f * f + 1.0;
+    }
+
+    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
+        const style = getComputedStyle(node);
+        const target_opacity = +style.opacity;
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const od = target_opacity * (1 - opacity);
+        return {
+            delay,
+            duration,
+            easing,
+            css: (t, u) => `
+			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
+			opacity: ${target_opacity - (od * u)}`
+        };
+    }
+
     /* src/BarChart2.svelte generated by Svelte v3.46.4 */
 
     const { Object: Object_1 } = globals;
@@ -20674,33 +20934,34 @@ var app = (function () {
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[27] = list[i];
-    	child_ctx[29] = i;
+    	child_ctx[28] = list[i];
+    	child_ctx[30] = i;
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[27] = list[i];
-    	child_ctx[29] = i;
+    	child_ctx[28] = list[i];
+    	child_ctx[30] = i;
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[31] = list[i];
-    	child_ctx[29] = i;
+    	child_ctx[32] = list[i];
+    	child_ctx[30] = i;
     	return child_ctx;
     }
 
-    // (77:4) {#each yTicks as tick, i}
+    // (101:4) {#each yTicks as tick, i}
     function create_each_block_2(ctx) {
     	let g;
     	let line0;
     	let line1;
     	let text_1;
-    	let t_value = /*tick*/ ctx[31] + /*yFormat*/ ctx[6] + "";
+    	let t_value = /*tick*/ ctx[32] + /*yFormat*/ ctx[12] + "";
     	let t;
+    	let g_transform_value;
 
     	const block = {
     		c: function create() {
@@ -20713,18 +20974,18 @@ var app = (function () {
     			attr_dev(line0, "stroke", "black");
     			attr_dev(line0, "stroke-opacity", "1");
     			attr_dev(line0, "x2", "-6");
-    			add_location(line0, file$1, 82, 8, 3277);
+    			add_location(line0, file$1, 106, 8, 3991);
     			attr_dev(line1, "class", "tick-grid svelte-nhi9tt");
-    			attr_dev(line1, "x2", /*width*/ ctx[4] - /*marginLeft*/ ctx[3] - /*marginRight*/ ctx[1]);
-    			add_location(line1, file$1, 83, 8, 3355);
-    			attr_dev(text_1, "x", -/*marginLeft*/ ctx[3]);
+    			attr_dev(line1, "x2", /*width*/ ctx[10] - /*marginLeft*/ ctx[9] - /*marginRight*/ ctx[7]);
+    			add_location(line1, file$1, 107, 8, 4069);
+    			attr_dev(text_1, "x", -/*marginLeft*/ ctx[9]);
     			attr_dev(text_1, "y", "10");
     			attr_dev(text_1, "class", "svelte-nhi9tt");
-    			add_location(text_1, file$1, 84, 8, 3428);
+    			add_location(text_1, file$1, 108, 8, 4142);
     			attr_dev(g, "class", "tick svelte-nhi9tt");
     			attr_dev(g, "opacity", "1");
-    			attr_dev(g, "transform", "translate(0, " + /*yScale*/ ctx[12](/*tick*/ ctx[31] / 100) + ")");
-    			add_location(g, file$1, 77, 6, 3162);
+    			attr_dev(g, "transform", g_transform_value = "translate(0, " + /*yScale*/ ctx[3](/*tick*/ ctx[32] / 100) + ")");
+    			add_location(g, file$1, 101, 6, 3876);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, g, anchor);
@@ -20733,7 +20994,13 @@ var app = (function () {
     			append_dev(g, text_1);
     			append_dev(text_1, t);
     		},
-    		p: noop$4,
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*yTicks*/ 1 && t_value !== (t_value = /*tick*/ ctx[32] + /*yFormat*/ ctx[12] + "")) set_data_dev(t, t_value);
+
+    			if (dirty[0] & /*yScale, yTicks*/ 9 && g_transform_value !== (g_transform_value = "translate(0, " + /*yScale*/ ctx[3](/*tick*/ ctx[32] / 100) + ")")) {
+    				attr_dev(g, "transform", g_transform_value);
+    			}
+    		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(g);
     		}
@@ -20743,31 +21010,66 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(77:4) {#each yTicks as tick, i}",
+    		source: "(101:4) {#each yTicks as tick, i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (92:4) {#each Y as point, i}
+    // (117:6) {#each Y as point, i}
     function create_each_block_1(ctx) {
     	let rect;
+    	let rect_x_value;
+    	let rect_y_value;
+    	let rect_width_value;
+    	let rect_height_value;
+    	let rect_intro;
 
     	const block = {
     		c: function create() {
     			rect = svg_element("rect");
-    			attr_dev(rect, "x", /*xScale*/ ctx[11](/*X*/ ctx[9][/*i*/ ctx[29]]));
-    			attr_dev(rect, "y", /*yScale*/ ctx[12](/*Y*/ ctx[10][/*i*/ ctx[29]]));
-    			attr_dev(rect, "width", /*xScale*/ ctx[11].bandwidth());
-    			attr_dev(rect, "height", /*yScale*/ ctx[12](0) - /*yScale*/ ctx[12](/*Y*/ ctx[10][/*i*/ ctx[29]]));
-    			attr_dev(rect, "fill", /*color*/ ctx[8]);
-    			add_location(rect, file$1, 92, 6, 3621);
+    			attr_dev(rect, "x", rect_x_value = /*xScale*/ ctx[4](/*X*/ ctx[2][/*i*/ ctx[30]]));
+    			attr_dev(rect, "y", rect_y_value = /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]));
+    			attr_dev(rect, "width", rect_width_value = /*xScale*/ ctx[4].bandwidth());
+    			attr_dev(rect, "height", rect_height_value = /*yScale*/ ctx[3](0) - /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]));
+    			attr_dev(rect, "fill", /*color*/ ctx[14]);
+    			add_location(rect, file$1, 117, 8, 4359);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, rect, anchor);
     		},
-    		p: noop$4,
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*xScale, X*/ 20 && rect_x_value !== (rect_x_value = /*xScale*/ ctx[4](/*X*/ ctx[2][/*i*/ ctx[30]]))) {
+    				attr_dev(rect, "x", rect_x_value);
+    			}
+
+    			if (dirty[0] & /*yScale, Y*/ 10 && rect_y_value !== (rect_y_value = /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]))) {
+    				attr_dev(rect, "y", rect_y_value);
+    			}
+
+    			if (dirty[0] & /*xScale*/ 16 && rect_width_value !== (rect_width_value = /*xScale*/ ctx[4].bandwidth())) {
+    				attr_dev(rect, "width", rect_width_value);
+    			}
+
+    			if (dirty[0] & /*yScale, Y*/ 10 && rect_height_value !== (rect_height_value = /*yScale*/ ctx[3](0) - /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]))) {
+    				attr_dev(rect, "height", rect_height_value);
+    			}
+    		},
+    		i: function intro(local) {
+    			if (!rect_intro) {
+    				add_render_callback(() => {
+    					rect_intro = create_in_transition(rect, fly, {
+    						x: -200,
+    						duration: 1000,
+    						delay: /*i*/ ctx[30] * 50
+    					});
+
+    					rect_intro.start();
+    				});
+    			}
+    		},
+    		o: noop$4,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(rect);
     		}
@@ -20777,20 +21079,100 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(92:4) {#each Y as point, i}",
+    		source: "(117:6) {#each Y as point, i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (105:4) {#each X as point, i}
+    // (116:4) {#key showSort}
+    function create_key_block(ctx) {
+    	let each_1_anchor;
+    	let each_value_1 = /*Y*/ ctx[1];
+    	validate_each_argument(each_value_1);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty$3();
+    		},
+    		m: function mount(target, anchor) {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*xScale, X, yScale, Y, color*/ 16414) {
+    				each_value_1 = /*Y*/ ctx[1];
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    						transition_in(each_blocks[i], 1);
+    					} else {
+    						each_blocks[i] = create_each_block_1(child_ctx);
+    						each_blocks[i].c();
+    						transition_in(each_blocks[i], 1);
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value_1.length;
+    			}
+    		},
+    		i: function intro(local) {
+    			for (let i = 0; i < each_value_1.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+    		},
+    		o: noop$4,
+    		d: function destroy(detaching) {
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(each_1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_key_block.name,
+    		type: "key",
+    		source: "(116:4) {#key showSort}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (132:4) {#each X as point, i}
     function create_each_block(ctx) {
     	let g;
     	let line;
+    	let line_x__value;
+    	let line_x__value_1;
     	let text_1;
-    	let t_value = /*X*/ ctx[9][/*i*/ ctx[29]] + "";
+    	let t_value = /*X*/ ctx[2][/*i*/ ctx[30]] + "";
     	let t;
+    	let text_1_dx_value;
+    	let g_transform_value;
 
     	const block = {
     		c: function create() {
@@ -20798,19 +21180,19 @@ var app = (function () {
     			line = svg_element("line");
     			text_1 = svg_element("text");
     			t = text$1(t_value);
-    			attr_dev(line, "x1", /*xScale*/ ctx[11].bandwidth() / 2);
-    			attr_dev(line, "x2", /*xScale*/ ctx[11].bandwidth() / 2);
+    			attr_dev(line, "x1", line_x__value = /*xScale*/ ctx[4].bandwidth() / 2);
+    			attr_dev(line, "x2", line_x__value_1 = /*xScale*/ ctx[4].bandwidth() / 2);
     			attr_dev(line, "stroke", "black");
     			attr_dev(line, "y2", "6");
-    			add_location(line, file$1, 106, 8, 4059);
-    			attr_dev(text_1, "y", /*marginBottom*/ ctx[2]);
-    			attr_dev(text_1, "dx", /*xScale*/ ctx[11].bandwidth() / 4);
+    			add_location(line, file$1, 133, 8, 4884);
+    			attr_dev(text_1, "y", /*marginBottom*/ ctx[8]);
+    			attr_dev(text_1, "dx", text_1_dx_value = /*xScale*/ ctx[4].bandwidth() / 4);
     			attr_dev(text_1, "class", "svelte-nhi9tt");
-    			add_location(text_1, file$1, 112, 8, 4202);
+    			add_location(text_1, file$1, 139, 8, 5027);
     			attr_dev(g, "class", "tick svelte-nhi9tt");
     			attr_dev(g, "opacity", "1");
-    			attr_dev(g, "transform", "translate(" + /*xScale*/ ctx[11](/*point*/ ctx[27]) + ",0)");
-    			add_location(g, file$1, 105, 6, 3981);
+    			attr_dev(g, "transform", g_transform_value = "translate(" + /*xScale*/ ctx[4](/*point*/ ctx[28]) + ",0)");
+    			add_location(g, file$1, 132, 6, 4806);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, g, anchor);
@@ -20818,7 +21200,25 @@ var app = (function () {
     			append_dev(g, text_1);
     			append_dev(text_1, t);
     		},
-    		p: noop$4,
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*xScale*/ 16 && line_x__value !== (line_x__value = /*xScale*/ ctx[4].bandwidth() / 2)) {
+    				attr_dev(line, "x1", line_x__value);
+    			}
+
+    			if (dirty[0] & /*xScale*/ 16 && line_x__value_1 !== (line_x__value_1 = /*xScale*/ ctx[4].bandwidth() / 2)) {
+    				attr_dev(line, "x2", line_x__value_1);
+    			}
+
+    			if (dirty[0] & /*X*/ 4 && t_value !== (t_value = /*X*/ ctx[2][/*i*/ ctx[30]] + "")) set_data_dev(t, t_value);
+
+    			if (dirty[0] & /*xScale*/ 16 && text_1_dx_value !== (text_1_dx_value = /*xScale*/ ctx[4].bandwidth() / 4)) {
+    				attr_dev(text_1, "dx", text_1_dx_value);
+    			}
+
+    			if (dirty[0] & /*xScale, X*/ 20 && g_transform_value !== (g_transform_value = "translate(" + /*xScale*/ ctx[4](/*point*/ ctx[28]) + ",0)")) {
+    				attr_dev(g, "transform", g_transform_value);
+    			}
+    		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(g);
     		}
@@ -20828,7 +21228,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(105:4) {#each X as point, i}",
+    		source: "(132:4) {#each X as point, i}",
     		ctx
     	});
 
@@ -20836,30 +21236,33 @@ var app = (function () {
     }
 
     function create_fragment$1(ctx) {
+    	let div;
+    	let select;
+    	let option0;
+    	let option1;
+    	let option2;
+    	let option3;
+    	let t6;
     	let svg;
     	let g0;
     	let text_1;
-    	let t;
+    	let t7;
     	let g1;
+    	let previous_key = /*showSort*/ ctx[5];
     	let g2;
     	let path;
-    	let each_value_2 = /*yTicks*/ ctx[13];
+    	let mounted;
+    	let dispose;
+    	let each_value_2 = /*yTicks*/ ctx[0];
     	validate_each_argument(each_value_2);
-    	let each_blocks_2 = [];
-
-    	for (let i = 0; i < each_value_2.length; i += 1) {
-    		each_blocks_2[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
-    	}
-
-    	let each_value_1 = /*Y*/ ctx[10];
-    	validate_each_argument(each_value_1);
     	let each_blocks_1 = [];
 
-    	for (let i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	for (let i = 0; i < each_value_2.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
     	}
 
-    	let each_value = /*X*/ ctx[9];
+    	let key_block = create_key_block(ctx);
+    	let each_value = /*X*/ ctx[2];
     	validate_each_argument(each_value);
     	let each_blocks = [];
 
@@ -20869,21 +21272,28 @@ var app = (function () {
 
     	const block = {
     		c: function create() {
+    			div = element("div");
+    			select = element("select");
+    			option0 = element("option");
+    			option0.textContent = "---Sorting Method--- ";
+    			option1 = element("option");
+    			option1.textContent = "Default";
+    			option2 = element("option");
+    			option2.textContent = `${/*y*/ ctx[15]}, Ascending`;
+    			option3 = element("option");
+    			option3.textContent = `${/*y*/ ctx[15]}, Descending`;
+    			t6 = space();
     			svg = svg_element("svg");
     			g0 = svg_element("g");
-
-    			for (let i = 0; i < each_blocks_2.length; i += 1) {
-    				each_blocks_2[i].c();
-    			}
-
-    			text_1 = svg_element("text");
-    			t = text$1(/*yLabel*/ ctx[7]);
-    			g1 = svg_element("g");
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
+    			text_1 = svg_element("text");
+    			t7 = text$1(/*yLabel*/ ctx[13]);
+    			g1 = svg_element("g");
+    			key_block.c();
     			g2 = svg_element("g");
     			path = svg_element("path");
 
@@ -20891,92 +21301,107 @@ var app = (function () {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(text_1, "x", "-" + /*marginLeft*/ ctx[3]);
-    			attr_dev(text_1, "y", /*marginTop*/ ctx[0]);
-    			add_location(text_1, file$1, 87, 4, 3508);
+    			option0.disabled = true;
+    			option0.selected = true;
+    			option0.__value = "";
+    			option0.value = option0.__value;
+    			add_location(option0, file$1, 92, 4, 3511);
+    			option1.__value = "1";
+    			option1.value = option1.__value;
+    			add_location(option1, file$1, 93, 4, 3579);
+    			option2.__value = "2";
+    			option2.value = option2.__value;
+    			add_location(option2, file$1, 94, 4, 3618);
+    			option3.__value = "3";
+    			option3.value = option3.__value;
+    			add_location(option3, file$1, 95, 4, 3664);
+    			attr_dev(select, "onfocus", this.selectedIndex = -1);
+    			add_location(select, file$1, 88, 2, 3410);
+    			attr_dev(div, "class", "selector-main");
+    			attr_dev(div, "dir", "auto");
+    			add_location(div, file$1, 87, 0, 3369);
+    			attr_dev(text_1, "x", "-" + /*marginLeft*/ ctx[9]);
+    			attr_dev(text_1, "y", /*marginTop*/ ctx[6]);
+    			add_location(text_1, file$1, 111, 4, 4222);
     			attr_dev(g0, "class", "y-axis svelte-nhi9tt");
-    			attr_dev(g0, "transform", "translate(" + /*marginLeft*/ ctx[3] + ", 0)");
-    			add_location(g0, file$1, 75, 2, 3068);
+    			attr_dev(g0, "transform", "translate(" + /*marginLeft*/ ctx[9] + ", 0)");
+    			add_location(g0, file$1, 99, 2, 3782);
     			attr_dev(g1, "class", "bars");
-    			add_location(g1, file$1, 90, 2, 3572);
+    			add_location(g1, file$1, 114, 2, 4286);
     			attr_dev(path, "class", "domain");
     			attr_dev(path, "stroke", "black");
-    			attr_dev(path, "d", "M" + /*marginLeft*/ ctx[3] + ", 0.5 H" + /*width*/ ctx[4]);
-    			add_location(path, file$1, 103, 4, 3878);
+    			attr_dev(path, "d", "M" + /*marginLeft*/ ctx[9] + ", 0.5 H" + /*width*/ ctx[10]);
+    			add_location(path, file$1, 130, 4, 4703);
     			attr_dev(g2, "class", "x-axis svelte-nhi9tt");
-    			attr_dev(g2, "transform", "translate(0," + (/*height*/ ctx[5] - /*marginBottom*/ ctx[2]) + ")");
-    			add_location(g2, file$1, 102, 2, 3806);
-    			attr_dev(svg, "width", /*width*/ ctx[4]);
-    			attr_dev(svg, "height", /*height*/ ctx[5]);
-    			attr_dev(svg, "viewBox", "0 0 " + /*width*/ ctx[4] + " " + /*height*/ ctx[5]);
+    			attr_dev(g2, "transform", "translate(0," + (/*height*/ ctx[11] - /*marginBottom*/ ctx[8]) + ")");
+    			add_location(g2, file$1, 129, 2, 4631);
+    			attr_dev(svg, "width", /*width*/ ctx[10]);
+    			attr_dev(svg, "height", /*height*/ ctx[11]);
+    			attr_dev(svg, "viewBox", "0 0 " + /*width*/ ctx[10] + " " + /*height*/ ctx[11]);
     			attr_dev(svg, "class", "svelte-nhi9tt");
-    			add_location(svg, file$1, 74, 0, 3012);
+    			add_location(svg, file$1, 98, 0, 3726);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, select);
+    			append_dev(select, option0);
+    			append_dev(select, option1);
+    			append_dev(select, option2);
+    			append_dev(select, option3);
+    			insert_dev(target, t6, anchor);
     			insert_dev(target, svg, anchor);
     			append_dev(svg, g0);
 
-    			for (let i = 0; i < each_blocks_2.length; i += 1) {
-    				each_blocks_2[i].m(g0, null);
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(g0, null);
     			}
 
     			append_dev(g0, text_1);
-    			append_dev(text_1, t);
+    			append_dev(text_1, t7);
     			append_dev(svg, g1);
-
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(g1, null);
-    			}
-
+    			key_block.m(g1, null);
     			append_dev(svg, g2);
     			append_dev(g2, path);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(g2, null);
     			}
+
+    			if (!mounted) {
+    				dispose = listen_dev(
+    					select,
+    					"change",
+    					function () {
+    						if (is_function(/*showSort*/ ctx[5](this.selectedIndex))) /*showSort*/ ctx[5](this.selectedIndex).apply(this, arguments);
+    					},
+    					false,
+    					false,
+    					false
+    				);
+
+    				mounted = true;
+    			}
     		},
-    		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*yScale, yTicks, marginLeft, yFormat, width, marginRight*/ 12378) {
-    				each_value_2 = /*yTicks*/ ctx[13];
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty[0] & /*yScale, yTicks, marginLeft, yFormat, width, marginRight*/ 5769) {
+    				each_value_2 = /*yTicks*/ ctx[0];
     				validate_each_argument(each_value_2);
     				let i;
 
     				for (i = 0; i < each_value_2.length; i += 1) {
     					const child_ctx = get_each_context_2(ctx, each_value_2, i);
 
-    					if (each_blocks_2[i]) {
-    						each_blocks_2[i].p(child_ctx, dirty);
-    					} else {
-    						each_blocks_2[i] = create_each_block_2(child_ctx);
-    						each_blocks_2[i].c();
-    						each_blocks_2[i].m(g0, text_1);
-    					}
-    				}
-
-    				for (; i < each_blocks_2.length; i += 1) {
-    					each_blocks_2[i].d(1);
-    				}
-
-    				each_blocks_2.length = each_value_2.length;
-    			}
-
-    			if (dirty[0] & /*xScale, X, yScale, Y, color*/ 7936) {
-    				each_value_1 = /*Y*/ ctx[10];
-    				validate_each_argument(each_value_1);
-    				let i;
-
-    				for (i = 0; i < each_value_1.length; i += 1) {
-    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
-
     					if (each_blocks_1[i]) {
     						each_blocks_1[i].p(child_ctx, dirty);
     					} else {
-    						each_blocks_1[i] = create_each_block_1(child_ctx);
+    						each_blocks_1[i] = create_each_block_2(child_ctx);
     						each_blocks_1[i].c();
-    						each_blocks_1[i].m(g1, null);
+    						each_blocks_1[i].m(g0, text_1);
     					}
     				}
 
@@ -20984,11 +21409,23 @@ var app = (function () {
     					each_blocks_1[i].d(1);
     				}
 
-    				each_blocks_1.length = each_value_1.length;
+    				each_blocks_1.length = each_value_2.length;
     			}
 
-    			if (dirty[0] & /*xScale, X, marginBottom*/ 2564) {
-    				each_value = /*X*/ ctx[9];
+    			if (dirty[0] & /*showSort*/ 32 && safe_not_equal(previous_key, previous_key = /*showSort*/ ctx[5])) {
+    				group_outros();
+    				transition_out(key_block, 1, 1, noop$4);
+    				check_outros();
+    				key_block = create_key_block(ctx);
+    				key_block.c();
+    				transition_in(key_block);
+    				key_block.m(g1, null);
+    			} else {
+    				key_block.p(ctx, dirty);
+    			}
+
+    			if (dirty[0] & /*xScale, X, marginBottom*/ 276) {
+    				each_value = /*X*/ ctx[2];
     				validate_each_argument(each_value);
     				let i;
 
@@ -21011,13 +21448,21 @@ var app = (function () {
     				each_blocks.length = each_value.length;
     			}
     		},
-    		i: noop$4,
-    		o: noop$4,
+    		i: function intro(local) {
+    			transition_in(key_block);
+    		},
+    		o: function outro(local) {
+    			transition_out(key_block);
+    		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(t6);
     			if (detaching) detach_dev(svg);
-    			destroy_each(each_blocks_2, detaching);
     			destroy_each(each_blocks_1, detaching);
+    			key_block.d(detaching);
     			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -21033,6 +21478,14 @@ var app = (function () {
     }
 
     function instance$1($$self, $$props, $$invalidate) {
+    	let showSort;
+    	let X;
+    	let Y;
+    	let xDomain;
+    	let yDomain;
+    	let xScale;
+    	let yScale;
+    	let unit;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('BarChart2', slots, []);
 
@@ -21077,38 +21530,21 @@ var app = (function () {
     	let yLabel = "↑ Frequency"; // a label for the y-axis
     	let color = "steelblue"; // bar fill color
     	let yScalefactor = 6; //y-axis number of values
+    	let duration = 1000; //animation transition duration
 
     	// Compute values X and Y value of Arrays
     	let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
 
     	let y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
-    	const X = data.map(el => el[x]);
-    	const Y = data.map(el => el[y]);
-
-    	// Compute default domains, and unique the x-domain.
-    	let xDomain; // an array of (ordinal) x-values // sort by descending frequency
-
-    	let yDomain; // [ymin, ymax]
-    	if (xDomain === undefined) xDomain = X;
-    	if (yDomain === undefined) yDomain = [0, max$3(Y)];
-    	xDomain = new InternSet(xDomain);
-
-    	// Omit any data not present in the x-domain.
-    	const I = range$2(X.length).filter(i => xDomain.has(X[i]));
 
     	// Construct scales, axes, and formats.
     	let xRange = [marginLeft, width - marginRight]; // [left, right]
 
-    	let yRange = [height - marginBottom, marginTop]; // [bottom, top]
+    	let yRange = [height - marginBottom, marginTop * 2]; // [bottom, top]
     	let yType = linear; // y-scale type
-    	const xScale = band(xDomain, xRange).padding(xPadding);
-    	const yScale = yType(yDomain, yRange);
-    	let yTicks = [];
-    	let unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
 
-    	for (let i = 1; i < yScalefactor + 1; i++) {
-    		yTicks.push(Math.floor(i * unit * 100));
-    	}
+    	// Create Y-Axis ticks based on yScalefactor spacing
+    	let yTicks = [];
 
     	const writable_props = [];
 
@@ -21118,6 +21554,7 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		d3,
+    		fly,
     		alphabet,
     		data,
     		marginTop,
@@ -21131,51 +21568,118 @@ var app = (function () {
     		yLabel,
     		color,
     		yScalefactor,
+    		duration,
     		x,
     		y,
-    		X,
-    		Y,
-    		xDomain,
-    		yDomain,
-    		I,
     		xRange,
     		yRange,
     		yType,
-    		xScale,
-    		yScale,
     		yTicks,
-    		unit
+    		unit,
+    		Y,
+    		yDomain,
+    		yScale,
+    		xDomain,
+    		xScale,
+    		X,
+    		showSort
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('data' in $$props) data = $$props.data;
-    		if ('marginTop' in $$props) $$invalidate(0, marginTop = $$props.marginTop);
-    		if ('marginRight' in $$props) $$invalidate(1, marginRight = $$props.marginRight);
-    		if ('marginBottom' in $$props) $$invalidate(2, marginBottom = $$props.marginBottom);
-    		if ('marginLeft' in $$props) $$invalidate(3, marginLeft = $$props.marginLeft);
-    		if ('width' in $$props) $$invalidate(4, width = $$props.width);
-    		if ('height' in $$props) $$invalidate(5, height = $$props.height);
-    		if ('xPadding' in $$props) xPadding = $$props.xPadding;
-    		if ('yFormat' in $$props) $$invalidate(6, yFormat = $$props.yFormat);
-    		if ('yLabel' in $$props) $$invalidate(7, yLabel = $$props.yLabel);
-    		if ('color' in $$props) $$invalidate(8, color = $$props.color);
-    		if ('yScalefactor' in $$props) yScalefactor = $$props.yScalefactor;
-    		if ('x' in $$props) x = $$props.x;
-    		if ('y' in $$props) y = $$props.y;
-    		if ('xDomain' in $$props) xDomain = $$props.xDomain;
-    		if ('yDomain' in $$props) yDomain = $$props.yDomain;
-    		if ('xRange' in $$props) xRange = $$props.xRange;
-    		if ('yRange' in $$props) yRange = $$props.yRange;
-    		if ('yType' in $$props) yType = $$props.yType;
-    		if ('yTicks' in $$props) $$invalidate(13, yTicks = $$props.yTicks);
-    		if ('unit' in $$props) unit = $$props.unit;
+    		if ('data' in $$props) $$invalidate(16, data = $$props.data);
+    		if ('marginTop' in $$props) $$invalidate(6, marginTop = $$props.marginTop);
+    		if ('marginRight' in $$props) $$invalidate(7, marginRight = $$props.marginRight);
+    		if ('marginBottom' in $$props) $$invalidate(8, marginBottom = $$props.marginBottom);
+    		if ('marginLeft' in $$props) $$invalidate(9, marginLeft = $$props.marginLeft);
+    		if ('width' in $$props) $$invalidate(10, width = $$props.width);
+    		if ('height' in $$props) $$invalidate(11, height = $$props.height);
+    		if ('xPadding' in $$props) $$invalidate(21, xPadding = $$props.xPadding);
+    		if ('yFormat' in $$props) $$invalidate(12, yFormat = $$props.yFormat);
+    		if ('yLabel' in $$props) $$invalidate(13, yLabel = $$props.yLabel);
+    		if ('color' in $$props) $$invalidate(14, color = $$props.color);
+    		if ('yScalefactor' in $$props) $$invalidate(22, yScalefactor = $$props.yScalefactor);
+    		if ('duration' in $$props) duration = $$props.duration;
+    		if ('x' in $$props) $$invalidate(24, x = $$props.x);
+    		if ('y' in $$props) $$invalidate(15, y = $$props.y);
+    		if ('xRange' in $$props) $$invalidate(25, xRange = $$props.xRange);
+    		if ('yRange' in $$props) $$invalidate(26, yRange = $$props.yRange);
+    		if ('yType' in $$props) $$invalidate(27, yType = $$props.yType);
+    		if ('yTicks' in $$props) $$invalidate(0, yTicks = $$props.yTicks);
+    		if ('unit' in $$props) $$invalidate(17, unit = $$props.unit);
+    		if ('Y' in $$props) $$invalidate(1, Y = $$props.Y);
+    		if ('yDomain' in $$props) $$invalidate(18, yDomain = $$props.yDomain);
+    		if ('yScale' in $$props) $$invalidate(3, yScale = $$props.yScale);
+    		if ('xDomain' in $$props) $$invalidate(19, xDomain = $$props.xDomain);
+    		if ('xScale' in $$props) $$invalidate(4, xScale = $$props.xScale);
+    		if ('X' in $$props) $$invalidate(2, X = $$props.X);
+    		if ('showSort' in $$props) $$invalidate(5, showSort = $$props.showSort);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty[0] & /*data*/ 65536) {
+    			// Modify data based on default, ascending, descending sorts.  Input is based on selectedIndex
+    			$$invalidate(5, showSort = input => {
+    				if (input === 1) {
+    					return $$invalidate(16, data = data.sort((a, b) => a[x].charCodeAt(0) - b[x].charCodeAt(0)));
+    				}
+
+    				if (input === 2) {
+    					return $$invalidate(16, data = data.sort((a, b) => a[y] - b[y]));
+    				}
+
+    				if (input === 3) {
+    					return $$invalidate(16, data = data.sort((a, b) => b[y] - a[y]));
+    				}
+    			});
+    		}
+
+    		if ($$self.$$.dirty[0] & /*data*/ 65536) {
+    			$$invalidate(2, X = data.map(el => el[x]));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*data*/ 65536) {
+    			$$invalidate(1, Y = data.map(el => el[y]));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*X*/ 4) {
+    			// Compute default domains, and unique the x-domain.
+    			$$invalidate(19, xDomain = X); // an array of (ordinal) x-values // sort by descending frequency
+    		}
+
+    		if ($$self.$$.dirty[0] & /*Y*/ 2) {
+    			$$invalidate(18, yDomain = [0, max$3(Y)]); // [ymin, ymax]
+    		}
+
+    		if ($$self.$$.dirty[0] & /*xDomain*/ 524288) {
+    			$$invalidate(4, xScale = band(xDomain, xRange).padding(xPadding));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*yDomain*/ 262144) {
+    			$$invalidate(3, yScale = yType(yDomain, yRange));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*Y*/ 2) {
+    			$$invalidate(17, unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor);
+    		}
+
+    		if ($$self.$$.dirty[0] & /*yTicks, unit*/ 131073) {
+    			for (let i = 1; i < yScalefactor + 1; i++) {
+    				$$invalidate(0, yTicks = [...yTicks, Math.floor(i * unit * 100)]);
+    			}
+    		}
+    	};
+
     	return [
+    		yTicks,
+    		Y,
+    		X,
+    		yScale,
+    		xScale,
+    		showSort,
     		marginTop,
     		marginRight,
     		marginBottom,
@@ -21185,11 +21689,11 @@ var app = (function () {
     		yFormat,
     		yLabel,
     		color,
-    		X,
-    		Y,
-    		xScale,
-    		yScale,
-    		yTicks
+    		y,
+    		data,
+    		unit,
+    		yDomain,
+    		xDomain
     	];
     }
 
@@ -21212,7 +21716,6 @@ var app = (function () {
 
     function create_fragment(ctx) {
     	let body;
-    	let t;
     	let div;
     	let barchart2;
     	let current;
@@ -21221,10 +21724,9 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			body = element("body");
-    			t = text$1("-->\n  ");
     			div = element("div");
     			create_component(barchart2.$$.fragment);
-    			add_location(div, file, 102, 2, 2464);
+    			add_location(div, file, 102, 2, 2473);
     			add_location(body, file, 96, 0, 2294);
     		},
     		l: function claim(nodes) {
@@ -21232,7 +21734,6 @@ var app = (function () {
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, body, anchor);
-    			append_dev(body, t);
     			append_dev(body, div);
     			mount_component(barchart2, div, null);
     			current = true;
