@@ -1,16 +1,10 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35732/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 var app = (function () {
     'use strict';
 
     function noop$4() { }
     const identity$a = x => x;
-    function assign(tar, src) {
-        // @ts-ignore
-        for (const k in src)
-            tar[k] = src[k];
-        return tar;
-    }
     function add_location(element, file, line, column, char) {
         element.__svelte_meta = {
             loc: { file, line, column, char }
@@ -33,6 +27,21 @@ var app = (function () {
     }
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
+    }
+    function validate_store(store, name) {
+        if (store != null && typeof store.subscribe !== 'function') {
+            throw new Error(`'${name}' is not a store with a 'subscribe' method`);
+        }
+    }
+    function subscribe(store, ...callbacks) {
+        if (store == null) {
+            return noop$4;
+        }
+        const unsub = store.subscribe(...callbacks);
+        return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+    }
+    function component_subscribe(component, store, callback) {
+        component.$$.on_destroy.push(subscribe(store, callback));
     }
 
     const is_client = typeof window !== 'undefined';
@@ -113,9 +122,6 @@ var app = (function () {
     function space() {
         return text$1(' ');
     }
-    function empty$3() {
-        return text$1('');
-    }
     function listen(node, event, handler, options) {
         node.addEventListener(event, handler, options);
         return () => node.removeEventListener(event, handler, options);
@@ -126,8 +132,22 @@ var app = (function () {
         else if (node.getAttribute(attribute) !== value)
             node.setAttribute(attribute, value);
     }
+    function to_number(value) {
+        return value === '' ? null : +value;
+    }
     function children$1(element) {
         return Array.from(element.childNodes);
+    }
+    function set_input_value(input, value) {
+        input.value = value == null ? '' : value;
+    }
+    function set_style(node, key, value, important) {
+        if (value === null) {
+            node.style.removeProperty(key);
+        }
+        else {
+            node.style.setProperty(key, value, important ? 'important' : '');
+        }
     }
     function custom_event(type, detail, bubbles = false) {
         const e = document.createEvent('CustomEvent');
@@ -199,6 +219,75 @@ var app = (function () {
             });
             managed_styles.clear();
         });
+    }
+
+    function create_animation(node, from, fn, params) {
+        if (!from)
+            return noop$4;
+        const to = node.getBoundingClientRect();
+        if (from.left === to.left && from.right === to.right && from.top === to.top && from.bottom === to.bottom)
+            return noop$4;
+        const { delay = 0, duration = 300, easing = identity$a, 
+        // @ts-ignore todo: should this be separated from destructuring? Or start/end added to public api and documentation?
+        start: start_time = now$1() + delay, 
+        // @ts-ignore todo:
+        end = start_time + duration, tick = noop$4, css } = fn(node, { from, to }, params);
+        let running = true;
+        let started = false;
+        let name;
+        function start() {
+            if (css) {
+                name = create_rule(node, 0, 1, duration, delay, easing, css);
+            }
+            if (!delay) {
+                started = true;
+            }
+        }
+        function stop() {
+            if (css)
+                delete_rule(node, name);
+            running = false;
+        }
+        loop(now => {
+            if (!started && now >= start_time) {
+                started = true;
+            }
+            if (started && now >= end) {
+                tick(1, 0);
+                stop();
+            }
+            if (!running) {
+                return false;
+            }
+            if (started) {
+                const p = now - start_time;
+                const t = 0 + 1 * easing(p / duration);
+                tick(t, 1 - t);
+            }
+            return true;
+        });
+        start();
+        tick(0, 1);
+        return stop;
+    }
+    function fix_position(node) {
+        const style = getComputedStyle(node);
+        if (style.position !== 'absolute' && style.position !== 'fixed') {
+            const { width, height } = style;
+            const a = node.getBoundingClientRect();
+            node.style.position = 'absolute';
+            node.style.width = width;
+            node.style.height = height;
+            add_transform(node, a);
+        }
+    }
+    function add_transform(node, a) {
+        const b = node.getBoundingClientRect();
+        if (a.left !== b.left || a.top !== b.top) {
+            const style = getComputedStyle(node);
+            const transform = style.transform === 'none' ? '' : style.transform;
+            node.style.transform = `${transform} translate(${a.left - b.left}px, ${a.top - b.top}px)`;
+        }
     }
 
     let current_component;
@@ -287,35 +376,8 @@ var app = (function () {
             $$.after_update.forEach(add_render_callback);
         }
     }
-
-    let promise;
-    function wait() {
-        if (!promise) {
-            promise = Promise.resolve();
-            promise.then(() => {
-                promise = null;
-            });
-        }
-        return promise;
-    }
-    function dispatch$1(node, direction, kind) {
-        node.dispatchEvent(custom_event(`${direction ? 'intro' : 'outro'}${kind}`));
-    }
     const outroing = new Set();
     let outros;
-    function group_outros() {
-        outros = {
-            r: 0,
-            c: [],
-            p: outros // parent group
-        };
-    }
-    function check_outros() {
-        if (!outros.r) {
-            run_all(outros.c);
-        }
-        outros = outros.p;
-    }
     function transition_in(block, local) {
         if (block && block.i) {
             outroing.delete(block);
@@ -338,76 +400,106 @@ var app = (function () {
             block.o(local);
         }
     }
-    const null_transition = { duration: 0 };
-    function create_in_transition(node, fn, params) {
-        let config = fn(node, params);
-        let running = false;
-        let animation_name;
-        let task;
-        let uid = 0;
-        function cleanup() {
-            if (animation_name)
-                delete_rule(node, animation_name);
-        }
-        function go() {
-            const { delay = 0, duration = 300, easing = identity$a, tick = noop$4, css } = config || null_transition;
-            if (css)
-                animation_name = create_rule(node, 0, 1, duration, delay, easing, css, uid++);
-            tick(0, 1);
-            const start_time = now$1() + delay;
-            const end_time = start_time + duration;
-            if (task)
-                task.abort();
-            running = true;
-            add_render_callback(() => dispatch$1(node, true, 'start'));
-            task = loop(now => {
-                if (running) {
-                    if (now >= end_time) {
-                        tick(1, 0);
-                        dispatch$1(node, true, 'end');
-                        cleanup();
-                        return running = false;
-                    }
-                    if (now >= start_time) {
-                        const t = easing((now - start_time) / duration);
-                        tick(t, 1 - t);
-                    }
-                }
-                return running;
-            });
-        }
-        let started = false;
-        return {
-            start() {
-                if (started)
-                    return;
-                started = true;
-                delete_rule(node);
-                if (is_function(config)) {
-                    config = config();
-                    wait().then(go);
-                }
-                else {
-                    go();
-                }
-            },
-            invalidate() {
-                started = false;
-            },
-            end() {
-                if (running) {
-                    cleanup();
-                    running = false;
-                }
-            }
-        };
-    }
 
     const globals = (typeof window !== 'undefined'
         ? window
         : typeof globalThis !== 'undefined'
             ? globalThis
             : global);
+
+    function destroy_block(block, lookup) {
+        block.d(1);
+        lookup.delete(block.key);
+    }
+    function fix_and_destroy_block(block, lookup) {
+        block.f();
+        destroy_block(block, lookup);
+    }
+    function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block, next, get_context) {
+        let o = old_blocks.length;
+        let n = list.length;
+        let i = o;
+        const old_indexes = {};
+        while (i--)
+            old_indexes[old_blocks[i].key] = i;
+        const new_blocks = [];
+        const new_lookup = new Map();
+        const deltas = new Map();
+        i = n;
+        while (i--) {
+            const child_ctx = get_context(ctx, list, i);
+            const key = get_key(child_ctx);
+            let block = lookup.get(key);
+            if (!block) {
+                block = create_each_block(key, child_ctx);
+                block.c();
+            }
+            else if (dynamic) {
+                block.p(child_ctx, dirty);
+            }
+            new_lookup.set(key, new_blocks[i] = block);
+            if (key in old_indexes)
+                deltas.set(key, Math.abs(i - old_indexes[key]));
+        }
+        const will_move = new Set();
+        const did_move = new Set();
+        function insert(block) {
+            transition_in(block, 1);
+            block.m(node, next);
+            lookup.set(block.key, block);
+            next = block.first;
+            n--;
+        }
+        while (o && n) {
+            const new_block = new_blocks[n - 1];
+            const old_block = old_blocks[o - 1];
+            const new_key = new_block.key;
+            const old_key = old_block.key;
+            if (new_block === old_block) {
+                // do nothing
+                next = new_block.first;
+                o--;
+                n--;
+            }
+            else if (!new_lookup.has(old_key)) {
+                // remove old block
+                destroy(old_block, lookup);
+                o--;
+            }
+            else if (!lookup.has(new_key) || will_move.has(new_key)) {
+                insert(new_block);
+            }
+            else if (did_move.has(old_key)) {
+                o--;
+            }
+            else if (deltas.get(new_key) > deltas.get(old_key)) {
+                did_move.add(new_key);
+                insert(new_block);
+            }
+            else {
+                will_move.add(old_key);
+                o--;
+            }
+        }
+        while (o--) {
+            const old_block = old_blocks[o];
+            if (!new_lookup.has(old_block.key))
+                destroy(old_block, lookup);
+        }
+        while (n)
+            insert(new_blocks[n - 1]);
+        return new_blocks;
+    }
+    function validate_each_keys(ctx, list, get_context, get_key) {
+        const keys = new Set();
+        for (let i = 0; i < list.length; i++) {
+            const key = get_key(get_context(ctx, list, i));
+            if (keys.has(key)) {
+                throw new Error('Cannot have duplicate keys in a keyed each');
+            }
+            keys.add(key);
+        }
+    }
     function create_component(block) {
         block && block.c();
     }
@@ -20913,6 +21005,61 @@ var app = (function () {
         ZoomTransform: Transform
     });
 
+    function cubicOut(t) {
+        const f = t - 1.0;
+        return f * f * f + 1.0;
+    }
+
+    function flip(node, { from, to }, params = {}) {
+        const style = getComputedStyle(node);
+        const transform = style.transform === 'none' ? '' : style.transform;
+        const [ox, oy] = style.transformOrigin.split(' ').map(parseFloat);
+        const dx = (from.left + from.width * ox / to.width) - (to.left + ox);
+        const dy = (from.top + from.height * oy / to.height) - (to.top + oy);
+        const { delay = 0, duration = (d) => Math.sqrt(d) * 120, easing = cubicOut } = params;
+        return {
+            delay,
+            duration: is_function(duration) ? duration(Math.sqrt(dx * dx + dy * dy)) : duration,
+            easing,
+            css: (t, u) => {
+                const x = u * dx;
+                const y = u * dy;
+                const sx = t + u * from.width / to.width;
+                const sy = t + u * from.height / to.height;
+                return `transform: ${transform} translate(${x}px, ${y}px) scale(${sx}, ${sy});`;
+            }
+        };
+    }
+
+    const sampleData = [
+        { letter: "A", frequency: 0.08167 },
+        { letter: "B", frequency: 0.01492 },
+        { letter: "C", frequency: 0.02782 },
+        { letter: "D", frequency: 0.04253 },
+        { letter: "E", frequency: 0.12702 },
+        { letter: "F", frequency: 0.02288 },
+        { letter: "G", frequency: 0.02015 },
+        { letter: "H", frequency: 0.06094 },
+        { letter: "I", frequency: 0.06966 },
+        { letter: "J", frequency: 0.00153 },
+        { letter: "K", frequency: 0.00772 },
+        { letter: "L", frequency: 0.04025 },
+        { letter: "M", frequency: 0.02406 },
+        { letter: "N", frequency: 0.06749 },
+        { letter: "O", frequency: 0.07507 },
+        { letter: "P", frequency: 0.01929 },
+        { letter: "Q", frequency: 0.00095 },
+        { letter: "R", frequency: 0.05987 },
+        { letter: "S", frequency: 0.06327 },
+        { letter: "T", frequency: 0.09056 },
+        { letter: "U", frequency: 0.02758 },
+        { letter: "V", frequency: 0.00978 },
+        { letter: "W", frequency: 0.0236 },
+        { letter: "X", frequency: 0.0015 },
+        { letter: "Y", frequency: 0.01974 },
+        { letter: "Z", frequency: 0.00074 },
+      ];
+
     const subscriber_queue = [];
     /**
      * Create a `Writable` store that allows both updating and reading by subscription.
@@ -20961,168 +21108,137 @@ var app = (function () {
         return { set, update, subscribe };
     }
 
-    function cubicOut(t) {
-        const f = t - 1.0;
-        return f * f * f + 1.0;
-    }
+    const BarChartDocs = writable([
+        {
+            variable: "data",
+            value: "sampleData",
+            dataType: "Array",
+            description: "An array of objects with x-axis and y-axis key value pairs.",
+            defaultValue: "sampleData"  
+        },
+        {
+            variable: "marginTop",
+            value: 20,
+            dataType: "Number",
+            description: "The top margin, in pixels.",
+            defaultValue: 0,
+            max: 100
+        },
+        {
+            variable: "marginRight",
+            value: 0,
+            dataType: "Number",
+            description: "The right margin, in pixels.",
+            defaultValue: 0,
+            max: 250
+        },
+        {
+            variable: "marginBottom",
+            value: 30,
+            dataType: "Number",
+            description: "The bottom margin, in pixels.",
+            defaultValue: 30,
+            max: 50
+        },
+        {
+            variable: "marginLeft",
+            value: 40,
+            dataType: "Number",
+            description: "The left margin, in pixels.",
+            defaultValue: 40,
+            max: 100
+        },
+        {
+            variable: "width",
+            value: 600,
+            dataType: "Number",
+            description: "The outer width of the chart, in pixels.",
+            defaultValue: 600,
+            max: 700
+        },
+        {
+            variable: "height",
+            value: 300,
+            dataType: "Number",
+            description: "The outer height of the chart, in pixels.",
+            defaultValue: 300,
+            max: 400
+        },
+        {
+            variable: "xPadding",
+            value: 0.2,
+            dataType: "Number",
+            description: "The amount of seperation in the x-range between each bar.",
+            defaultValue: 0.2,
+            max: 1
+        },
+        {
+            variable: "yFormat",
+            value: "%",
+            dataType: "String",
+            description: "The format specifier string attached to the end of each y-axis value.",
+            defaultValue: "%",
+        },
+        {
+            variable: "yLabel",
+            value: "↑ Frequency",
+            dataType: "String",
+            description: "The label for the y-axis.",
+            defaultValue: "↑ Frequency",
+        },
+        {
+            variable: "color",
+            value: "steelblue",
+            dataType: "String | Number",
+            description: "The left margin, in pixels.",
+            defaultValue: "steelblue",
+        },
+        {
+            variable: "yScalefactor",
+            value: 6,
+            dataType: "Number",
+            description: "The number of y-axis values.",
+            defaultValue: 6,
+            max: 12
+        }
+    ]);
 
-    function is_date(obj) {
-        return Object.prototype.toString.call(obj) === '[object Date]';
-    }
-
-    function get_interpolator(a, b) {
-        if (a === b || a !== a)
-            return () => a;
-        const type = typeof a;
-        if (type !== typeof b || Array.isArray(a) !== Array.isArray(b)) {
-            throw new Error('Cannot interpolate values of different type');
-        }
-        if (Array.isArray(a)) {
-            const arr = b.map((bi, i) => {
-                return get_interpolator(a[i], bi);
-            });
-            return t => arr.map(fn => fn(t));
-        }
-        if (type === 'object') {
-            if (!a || !b)
-                throw new Error('Object cannot be null');
-            if (is_date(a) && is_date(b)) {
-                a = a.getTime();
-                b = b.getTime();
-                const delta = b - a;
-                return t => new Date(a + t * delta);
-            }
-            const keys = Object.keys(b);
-            const interpolators = {};
-            keys.forEach(key => {
-                interpolators[key] = get_interpolator(a[key], b[key]);
-            });
-            return t => {
-                const result = {};
-                keys.forEach(key => {
-                    result[key] = interpolators[key](t);
-                });
-                return result;
-            };
-        }
-        if (type === 'number') {
-            const delta = b - a;
-            return t => a + t * delta;
-        }
-        throw new Error(`Cannot interpolate ${type} values`);
-    }
-    function tweened(value, defaults = {}) {
-        const store = writable(value);
-        let task;
-        let target_value = value;
-        function set(new_value, opts) {
-            if (value == null) {
-                store.set(value = new_value);
-                return Promise.resolve();
-            }
-            target_value = new_value;
-            let previous_task = task;
-            let started = false;
-            let { delay = 0, duration = 400, easing = identity$a, interpolate = get_interpolator } = assign(assign({}, defaults), opts);
-            if (duration === 0) {
-                if (previous_task) {
-                    previous_task.abort();
-                    previous_task = null;
-                }
-                store.set(value = target_value);
-                return Promise.resolve();
-            }
-            const start = now$1() + delay;
-            let fn;
-            task = loop(now => {
-                if (now < start)
-                    return true;
-                if (!started) {
-                    fn = interpolate(value, new_value);
-                    if (typeof duration === 'function')
-                        duration = duration(value, new_value);
-                    started = true;
-                }
-                if (previous_task) {
-                    previous_task.abort();
-                    previous_task = null;
-                }
-                const elapsed = now - start;
-                if (elapsed > duration) {
-                    store.set(value = new_value);
-                    return false;
-                }
-                // @ts-ignore
-                store.set(value = fn(easing(elapsed / duration)));
-                return true;
-            });
-            return task.promise;
-        }
-        return {
-            set,
-            update: (fn, opts) => set(fn(target_value, value), opts),
-            subscribe: store.subscribe
-        };
-    }
-
-    function fade(node, { delay = 0, duration = 400, easing = identity$a } = {}) {
-        const o = +getComputedStyle(node).opacity;
-        return {
-            delay,
-            duration,
-            easing,
-            css: t => `opacity: ${t * o}`
-        };
-    }
-    function fly(node, { delay = 0, duration = 400, easing = cubicOut, x = 0, y = 0, opacity = 0 } = {}) {
-        const style = getComputedStyle(node);
-        const target_opacity = +style.opacity;
-        const transform = style.transform === 'none' ? '' : style.transform;
-        const od = target_opacity * (1 - opacity);
-        return {
-            delay,
-            duration,
-            easing,
-            css: (t, u) => `
-			transform: ${transform} translate(${(1 - t) * x}px, ${(1 - t) * y}px);
-			opacity: ${target_opacity - (od * u)}`
-        };
-    }
-
-    /* src/BarChart2.svelte generated by Svelte v3.46.4 */
+    /* src/BarChart/BarChart2_Chart.svelte generated by Svelte v3.46.4 */
 
     const { Object: Object_1 } = globals;
-    const file$1 = "src/BarChart2.svelte";
+    const file$4 = "src/BarChart/BarChart2_Chart.svelte";
 
-    function get_each_context(ctx, list, i) {
+    function get_each_context$1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[28] = list[i];
-    	child_ctx[30] = i;
+    	child_ctx[27] = list[i];
+    	child_ctx[29] = i;
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[28] = list[i];
-    	child_ctx[30] = i;
+    	child_ctx[27] = list[i];
+    	child_ctx[29] = i;
     	return child_ctx;
     }
 
     function get_each_context_2(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[32] = list[i];
-    	child_ctx[30] = i;
+    	child_ctx[31] = list[i];
+    	child_ctx[29] = i;
     	return child_ctx;
     }
 
-    // (102:4) {#each yTicks as tick, i}
+    // (72:6) {#each yTicks as tick, i}
     function create_each_block_2(ctx) {
     	let g;
     	let line0;
     	let line1;
+    	let line1_x__value;
     	let text_1;
-    	let t_value = /*tick*/ ctx[32] + /*yFormat*/ ctx[12] + "";
+    	let t_value = /*tick*/ ctx[31] + /*yFormat*/ ctx[14] + "";
     	let t;
+    	let text_1_x_value;
     	let g_transform_value;
 
     	const block = {
@@ -21132,22 +21248,22 @@ var app = (function () {
     			line1 = svg_element("line");
     			text_1 = svg_element("text");
     			t = text$1(t_value);
-    			attr_dev(line0, "class", "tick-start svelte-nhi9tt");
+    			attr_dev(line0, "class", "tick-start svelte-6vzo20");
     			attr_dev(line0, "stroke", "black");
     			attr_dev(line0, "stroke-opacity", "1");
     			attr_dev(line0, "x2", "-6");
-    			add_location(line0, file$1, 107, 8, 4040);
-    			attr_dev(line1, "class", "tick-grid svelte-nhi9tt");
-    			attr_dev(line1, "x2", /*width*/ ctx[10] - /*marginLeft*/ ctx[9] - /*marginRight*/ ctx[7]);
-    			add_location(line1, file$1, 108, 8, 4118);
-    			attr_dev(text_1, "x", -/*marginLeft*/ ctx[9]);
+    			add_location(line0, file$4, 77, 10, 3884);
+    			attr_dev(line1, "class", "tick-grid svelte-6vzo20");
+    			attr_dev(line1, "x2", line1_x__value = /*width*/ ctx[6] - /*marginLeft*/ ctx[7] - /*marginRight*/ ctx[5]);
+    			add_location(line1, file$4, 78, 10, 3964);
+    			attr_dev(text_1, "x", text_1_x_value = -/*marginLeft*/ ctx[7]);
     			attr_dev(text_1, "y", "10");
-    			attr_dev(text_1, "class", "svelte-nhi9tt");
-    			add_location(text_1, file$1, 109, 8, 4191);
-    			attr_dev(g, "class", "tick svelte-nhi9tt");
+    			attr_dev(text_1, "class", "svelte-6vzo20");
+    			add_location(text_1, file$4, 79, 10, 4039);
+    			attr_dev(g, "class", "tick svelte-6vzo20");
     			attr_dev(g, "opacity", "1");
-    			attr_dev(g, "transform", g_transform_value = "translate(0, " + /*yScale*/ ctx[3](/*tick*/ ctx[32] / 100) + ")");
-    			add_location(g, file$1, 102, 6, 3925);
+    			attr_dev(g, "transform", g_transform_value = "translate(0, " + /*yScale*/ ctx[9](/*tick*/ ctx[31] / 100) + ")");
+    			add_location(g, file$4, 72, 8, 3759);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, g, anchor);
@@ -21157,9 +21273,17 @@ var app = (function () {
     			append_dev(text_1, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*yTicks*/ 1 && t_value !== (t_value = /*tick*/ ctx[32] + /*yFormat*/ ctx[12] + "")) set_data_dev(t, t_value);
+    			if (dirty[0] & /*width, marginLeft, marginRight*/ 224 && line1_x__value !== (line1_x__value = /*width*/ ctx[6] - /*marginLeft*/ ctx[7] - /*marginRight*/ ctx[5])) {
+    				attr_dev(line1, "x2", line1_x__value);
+    			}
 
-    			if (dirty[0] & /*yScale, yTicks*/ 9 && g_transform_value !== (g_transform_value = "translate(0, " + /*yScale*/ ctx[3](/*tick*/ ctx[32] / 100) + ")")) {
+    			if (dirty[0] & /*yTicks, yFormat*/ 16385 && t_value !== (t_value = /*tick*/ ctx[31] + /*yFormat*/ ctx[14] + "")) set_data_dev(t, t_value);
+
+    			if (dirty[0] & /*marginLeft*/ 128 && text_1_x_value !== (text_1_x_value = -/*marginLeft*/ ctx[7])) {
+    				attr_dev(text_1, "x", text_1_x_value);
+    			}
+
+    			if (dirty[0] & /*yScale, yTicks*/ 513 && g_transform_value !== (g_transform_value = "translate(0, " + /*yScale*/ ctx[9](/*tick*/ ctx[31] / 100) + ")")) {
     				attr_dev(g, "transform", g_transform_value);
     			}
     		},
@@ -21172,66 +21296,73 @@ var app = (function () {
     		block,
     		id: create_each_block_2.name,
     		type: "each",
-    		source: "(102:4) {#each yTicks as tick, i}",
+    		source: "(72:6) {#each yTicks as tick, i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (118:6) {#each Y as point, i}
-    function create_each_block_1(ctx) {
+    // (88:6) {#each Y as point, i (point)}
+    function create_each_block_1(key_1, ctx) {
     	let rect;
     	let rect_x_value;
     	let rect_y_value;
     	let rect_width_value;
     	let rect_height_value;
-    	let rect_intro;
+    	let rect_1;
+    	let stop_animation = noop$4;
 
     	const block = {
+    		key: key_1,
+    		first: null,
     		c: function create() {
     			rect = svg_element("rect");
-    			attr_dev(rect, "x", rect_x_value = /*xScale*/ ctx[4](/*X*/ ctx[2][/*i*/ ctx[30]]));
-    			attr_dev(rect, "y", rect_y_value = /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]));
-    			attr_dev(rect, "width", rect_width_value = /*xScale*/ ctx[4].bandwidth());
-    			attr_dev(rect, "height", rect_height_value = /*yScale*/ ctx[3](0) - /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]));
-    			attr_dev(rect, "fill", /*color*/ ctx[14]);
-    			add_location(rect, file$1, 118, 8, 4408);
+    			attr_dev(rect, "x", rect_x_value = /*xScale*/ ctx[10](/*X*/ ctx[8][/*i*/ ctx[29]]));
+    			attr_dev(rect, "y", rect_y_value = /*yScale*/ ctx[9](/*Y*/ ctx[1][/*i*/ ctx[29]]));
+    			attr_dev(rect, "width", rect_width_value = /*xScale*/ ctx[10].bandwidth());
+    			attr_dev(rect, "height", rect_height_value = /*yScale*/ ctx[9](0) - /*yScale*/ ctx[9](/*Y*/ ctx[1][/*i*/ ctx[29]]));
+    			attr_dev(rect, "fill", /*color*/ ctx[12]);
+    			add_location(rect, file$4, 88, 8, 4285);
+    			this.first = rect;
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, rect, anchor);
     		},
-    		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*xScale, X*/ 20 && rect_x_value !== (rect_x_value = /*xScale*/ ctx[4](/*X*/ ctx[2][/*i*/ ctx[30]]))) {
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty[0] & /*xScale, X, Y*/ 1282 && rect_x_value !== (rect_x_value = /*xScale*/ ctx[10](/*X*/ ctx[8][/*i*/ ctx[29]]))) {
     				attr_dev(rect, "x", rect_x_value);
     			}
 
-    			if (dirty[0] & /*yScale, Y*/ 10 && rect_y_value !== (rect_y_value = /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]))) {
+    			if (dirty[0] & /*yScale, Y*/ 514 && rect_y_value !== (rect_y_value = /*yScale*/ ctx[9](/*Y*/ ctx[1][/*i*/ ctx[29]]))) {
     				attr_dev(rect, "y", rect_y_value);
     			}
 
-    			if (dirty[0] & /*xScale*/ 16 && rect_width_value !== (rect_width_value = /*xScale*/ ctx[4].bandwidth())) {
+    			if (dirty[0] & /*xScale*/ 1024 && rect_width_value !== (rect_width_value = /*xScale*/ ctx[10].bandwidth())) {
     				attr_dev(rect, "width", rect_width_value);
     			}
 
-    			if (dirty[0] & /*yScale, Y*/ 10 && rect_height_value !== (rect_height_value = /*yScale*/ ctx[3](0) - /*yScale*/ ctx[3](/*Y*/ ctx[1][/*i*/ ctx[30]]))) {
+    			if (dirty[0] & /*yScale, Y*/ 514 && rect_height_value !== (rect_height_value = /*yScale*/ ctx[9](0) - /*yScale*/ ctx[9](/*Y*/ ctx[1][/*i*/ ctx[29]]))) {
     				attr_dev(rect, "height", rect_height_value);
     			}
-    		},
-    		i: function intro(local) {
-    			if (!rect_intro) {
-    				add_render_callback(() => {
-    					rect_intro = create_in_transition(rect, fly, {
-    						x: -200,
-    						duration: 1000,
-    						delay: /*i*/ ctx[30] * 50
-    					});
 
-    					rect_intro.start();
-    				});
+    			if (dirty[0] & /*color*/ 4096) {
+    				attr_dev(rect, "fill", /*color*/ ctx[12]);
     			}
     		},
-    		o: noop$4,
+    		r: function measure() {
+    			rect_1 = rect.getBoundingClientRect();
+    		},
+    		f: function fix() {
+    			fix_position(rect);
+    			stop_animation();
+    		},
+    		a: function animate() {
+    			stop_animation();
+    			stop_animation = create_animation(rect, rect_1, flip, {});
+    		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(rect);
     		}
@@ -21241,97 +21372,21 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(118:6) {#each Y as point, i}",
+    		source: "(88:6) {#each Y as point, i (point)}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (117:4) {#key showSort}
-    function create_key_block(ctx) {
-    	let each_1_anchor;
-    	let each_value_1 = /*Y*/ ctx[1];
-    	validate_each_argument(each_value_1);
-    	let each_blocks = [];
-
-    	for (let i = 0; i < each_value_1.length; i += 1) {
-    		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
-    	}
-
-    	const block = {
-    		c: function create() {
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].c();
-    			}
-
-    			each_1_anchor = empty$3();
-    		},
-    		m: function mount(target, anchor) {
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(target, anchor);
-    			}
-
-    			insert_dev(target, each_1_anchor, anchor);
-    		},
-    		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*xScale, X, yScale, Y, color*/ 16414) {
-    				each_value_1 = /*Y*/ ctx[1];
-    				validate_each_argument(each_value_1);
-    				let i;
-
-    				for (i = 0; i < each_value_1.length; i += 1) {
-    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
-
-    					if (each_blocks[i]) {
-    						each_blocks[i].p(child_ctx, dirty);
-    						transition_in(each_blocks[i], 1);
-    					} else {
-    						each_blocks[i] = create_each_block_1(child_ctx);
-    						each_blocks[i].c();
-    						transition_in(each_blocks[i], 1);
-    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
-    					}
-    				}
-
-    				for (; i < each_blocks.length; i += 1) {
-    					each_blocks[i].d(1);
-    				}
-
-    				each_blocks.length = each_value_1.length;
-    			}
-    		},
-    		i: function intro(local) {
-    			for (let i = 0; i < each_value_1.length; i += 1) {
-    				transition_in(each_blocks[i]);
-    			}
-    		},
-    		o: noop$4,
-    		d: function destroy(detaching) {
-    			destroy_each(each_blocks, detaching);
-    			if (detaching) detach_dev(each_1_anchor);
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_key_block.name,
-    		type: "key",
-    		source: "(117:4) {#key showSort}",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (133:4) {#each X as point, i}
-    function create_each_block(ctx) {
+    // (103:6) {#each X as point, i}
+    function create_each_block$1(ctx) {
     	let g;
     	let line;
     	let line_x__value;
     	let line_x__value_1;
     	let text_1;
-    	let t_value = /*X*/ ctx[2][/*i*/ ctx[30]] + "";
+    	let t_value = /*X*/ ctx[8][/*i*/ ctx[29]] + "";
     	let t;
     	let text_1_dx_value;
     	let g_transform_value;
@@ -21342,19 +21397,19 @@ var app = (function () {
     			line = svg_element("line");
     			text_1 = svg_element("text");
     			t = text$1(t_value);
-    			attr_dev(line, "x1", line_x__value = /*xScale*/ ctx[4].bandwidth() / 2);
-    			attr_dev(line, "x2", line_x__value_1 = /*xScale*/ ctx[4].bandwidth() / 2);
+    			attr_dev(line, "x1", line_x__value = /*xScale*/ ctx[10].bandwidth() / 2);
+    			attr_dev(line, "x2", line_x__value_1 = /*xScale*/ ctx[10].bandwidth() / 2);
     			attr_dev(line, "stroke", "black");
     			attr_dev(line, "y2", "6");
-    			add_location(line, file$1, 134, 8, 4933);
-    			attr_dev(text_1, "y", /*marginBottom*/ ctx[8]);
-    			attr_dev(text_1, "dx", text_1_dx_value = /*xScale*/ ctx[4].bandwidth() / 4);
-    			attr_dev(text_1, "class", "svelte-nhi9tt");
-    			add_location(text_1, file$1, 140, 8, 5076);
-    			attr_dev(g, "class", "tick svelte-nhi9tt");
+    			add_location(line, file$4, 104, 10, 4794);
+    			attr_dev(text_1, "y", /*marginBottom*/ ctx[3]);
+    			attr_dev(text_1, "dx", text_1_dx_value = /*xScale*/ ctx[10].bandwidth() / 4);
+    			attr_dev(text_1, "class", "svelte-6vzo20");
+    			add_location(text_1, file$4, 110, 10, 4949);
+    			attr_dev(g, "class", "tick svelte-6vzo20");
     			attr_dev(g, "opacity", "1");
-    			attr_dev(g, "transform", g_transform_value = "translate(" + /*xScale*/ ctx[4](/*point*/ ctx[28]) + ",0)");
-    			add_location(g, file$1, 133, 6, 4855);
+    			attr_dev(g, "transform", g_transform_value = "translate(" + /*xScale*/ ctx[10](/*point*/ ctx[27]) + ",0)");
+    			add_location(g, file$4, 103, 8, 4714);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, g, anchor);
@@ -21363,21 +21418,25 @@ var app = (function () {
     			append_dev(text_1, t);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty[0] & /*xScale*/ 16 && line_x__value !== (line_x__value = /*xScale*/ ctx[4].bandwidth() / 2)) {
+    			if (dirty[0] & /*xScale*/ 1024 && line_x__value !== (line_x__value = /*xScale*/ ctx[10].bandwidth() / 2)) {
     				attr_dev(line, "x1", line_x__value);
     			}
 
-    			if (dirty[0] & /*xScale*/ 16 && line_x__value_1 !== (line_x__value_1 = /*xScale*/ ctx[4].bandwidth() / 2)) {
+    			if (dirty[0] & /*xScale*/ 1024 && line_x__value_1 !== (line_x__value_1 = /*xScale*/ ctx[10].bandwidth() / 2)) {
     				attr_dev(line, "x2", line_x__value_1);
     			}
 
-    			if (dirty[0] & /*X*/ 4 && t_value !== (t_value = /*X*/ ctx[2][/*i*/ ctx[30]] + "")) set_data_dev(t, t_value);
+    			if (dirty[0] & /*X*/ 256 && t_value !== (t_value = /*X*/ ctx[8][/*i*/ ctx[29]] + "")) set_data_dev(t, t_value);
 
-    			if (dirty[0] & /*xScale*/ 16 && text_1_dx_value !== (text_1_dx_value = /*xScale*/ ctx[4].bandwidth() / 4)) {
+    			if (dirty[0] & /*marginBottom*/ 8) {
+    				attr_dev(text_1, "y", /*marginBottom*/ ctx[3]);
+    			}
+
+    			if (dirty[0] & /*xScale*/ 1024 && text_1_dx_value !== (text_1_dx_value = /*xScale*/ ctx[10].bandwidth() / 4)) {
     				attr_dev(text_1, "dx", text_1_dx_value);
     			}
 
-    			if (dirty[0] & /*xScale, X*/ 20 && g_transform_value !== (g_transform_value = "translate(" + /*xScale*/ ctx[4](/*point*/ ctx[28]) + ",0)")) {
+    			if (dirty[0] & /*xScale, X*/ 1280 && g_transform_value !== (g_transform_value = "translate(" + /*xScale*/ ctx[10](/*point*/ ctx[27]) + ",0)")) {
     				attr_dev(g, "transform", g_transform_value);
     			}
     		},
@@ -21388,16 +21447,16 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_each_block.name,
+    		id: create_each_block$1.name,
     		type: "each",
-    		source: "(133:4) {#each X as point, i}",
+    		source: "(103:6) {#each X as point, i}",
     		ctx
     	});
 
     	return block;
     }
 
-    function create_fragment$1(ctx) {
+    function create_fragment$4(ctx) {
     	let div;
     	let select;
     	let option0;
@@ -21409,27 +21468,43 @@ var app = (function () {
     	let g0;
     	let text_1;
     	let t7;
+    	let text_1_x_value;
+    	let g0_transform_value;
     	let g1;
-    	let previous_key = /*showSort*/ ctx[5];
+    	let each_blocks_1 = [];
+    	let each1_lookup = new Map();
     	let g2;
     	let path;
+    	let path_d_value;
+    	let g2_transform_value;
+    	let svg_viewBox_value;
     	let mounted;
     	let dispose;
     	let each_value_2 = /*yTicks*/ ctx[0];
     	validate_each_argument(each_value_2);
-    	let each_blocks_1 = [];
+    	let each_blocks_2 = [];
 
     	for (let i = 0; i < each_value_2.length; i += 1) {
-    		each_blocks_1[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+    		each_blocks_2[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
     	}
 
-    	let key_block = create_key_block(ctx);
-    	let each_value = /*X*/ ctx[2];
+    	let each_value_1 = /*Y*/ ctx[1];
+    	validate_each_argument(each_value_1);
+    	const get_key = ctx => /*point*/ ctx[27];
+    	validate_each_keys(ctx, each_value_1, get_each_context_1, get_key);
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		let child_ctx = get_each_context_1(ctx, each_value_1, i);
+    		let key = get_key(child_ctx);
+    		each1_lookup.set(key, each_blocks_1[i] = create_each_block_1(key, child_ctx));
+    	}
+
+    	let each_value = /*X*/ ctx[8];
     	validate_each_argument(each_value);
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
     	}
 
     	const block = {
@@ -21448,14 +21523,18 @@ var app = (function () {
     			svg = svg_element("svg");
     			g0 = svg_element("g");
 
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].c();
+    			for (let i = 0; i < each_blocks_2.length; i += 1) {
+    				each_blocks_2[i].c();
     			}
 
     			text_1 = svg_element("text");
     			t7 = text$1(/*yLabel*/ ctx[13]);
     			g1 = svg_element("g");
-    			key_block.c();
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
     			g2 = svg_element("g");
     			path = svg_element("path");
 
@@ -21467,41 +21546,41 @@ var app = (function () {
     			option0.selected = true;
     			option0.__value = "";
     			option0.value = option0.__value;
-    			add_location(option0, file$1, 93, 4, 3560);
+    			add_location(option0, file$4, 64, 4, 3393);
     			option1.__value = "1";
     			option1.value = option1.__value;
-    			add_location(option1, file$1, 94, 4, 3628);
+    			add_location(option1, file$4, 65, 4, 3461);
     			option2.__value = "2";
     			option2.value = option2.__value;
-    			add_location(option2, file$1, 95, 4, 3667);
+    			add_location(option2, file$4, 66, 4, 3500);
     			option3.__value = "3";
     			option3.value = option3.__value;
-    			add_location(option3, file$1, 96, 4, 3713);
+    			add_location(option3, file$4, 67, 4, 3546);
     			attr_dev(select, "onfocus", this.selectedIndex = -1);
-    			add_location(select, file$1, 89, 2, 3459);
-    			attr_dev(div, "class", "selector-main");
-    			attr_dev(div, "dir", "auto");
-    			add_location(div, file$1, 88, 0, 3418);
-    			attr_dev(text_1, "x", "-" + /*marginLeft*/ ctx[9]);
-    			attr_dev(text_1, "y", /*marginTop*/ ctx[6]);
-    			add_location(text_1, file$1, 112, 4, 4271);
-    			attr_dev(g0, "class", "y-axis svelte-nhi9tt");
-    			attr_dev(g0, "transform", "translate(" + /*marginLeft*/ ctx[9] + ", 0)");
-    			add_location(g0, file$1, 100, 2, 3831);
+    			add_location(select, file$4, 60, 2, 3292);
+    			attr_dev(text_1, "x", text_1_x_value = "-" + /*marginLeft*/ ctx[7]);
+    			attr_dev(text_1, "y", /*marginTop*/ ctx[2]);
+    			add_location(text_1, file$4, 82, 6, 4125);
+    			attr_dev(g0, "class", "y-axis svelte-6vzo20");
+    			attr_dev(g0, "transform", g0_transform_value = "translate(" + /*marginLeft*/ ctx[7] + ", 0)");
+    			add_location(g0, file$4, 70, 4, 3661);
     			attr_dev(g1, "class", "bars");
-    			add_location(g1, file$1, 115, 2, 4335);
+    			add_location(g1, file$4, 85, 4, 4193);
     			attr_dev(path, "class", "domain");
     			attr_dev(path, "stroke", "black");
-    			attr_dev(path, "d", "M" + /*marginLeft*/ ctx[9] + ", 0.5 H" + /*width*/ ctx[10]);
-    			add_location(path, file$1, 131, 4, 4752);
-    			attr_dev(g2, "class", "x-axis svelte-nhi9tt");
-    			attr_dev(g2, "transform", "translate(0," + (/*height*/ ctx[11] - /*marginBottom*/ ctx[8]) + ")");
-    			add_location(g2, file$1, 130, 2, 4680);
-    			attr_dev(svg, "width", /*width*/ ctx[10]);
-    			attr_dev(svg, "height", /*height*/ ctx[11]);
-    			attr_dev(svg, "viewBox", "0 0 " + /*width*/ ctx[10] + " " + /*height*/ ctx[11]);
-    			attr_dev(svg, "class", "svelte-nhi9tt");
-    			add_location(svg, file$1, 99, 0, 3775);
+    			attr_dev(path, "d", path_d_value = "M" + /*marginLeft*/ ctx[7] + ", 0.5 H" + /*width*/ ctx[6]);
+    			add_location(path, file$4, 101, 6, 4607);
+    			attr_dev(g2, "class", "x-axis svelte-6vzo20");
+    			attr_dev(g2, "transform", g2_transform_value = "translate(0," + (/*height*/ ctx[4] - /*marginBottom*/ ctx[3]) + ")");
+    			add_location(g2, file$4, 100, 4, 4533);
+    			attr_dev(svg, "width", /*width*/ ctx[6]);
+    			attr_dev(svg, "height", /*height*/ ctx[4]);
+    			attr_dev(svg, "viewBox", svg_viewBox_value = "0 0 " + /*width*/ ctx[6] + " " + /*height*/ ctx[4]);
+    			attr_dev(svg, "class", "svelte-6vzo20");
+    			add_location(svg, file$4, 69, 2, 3603);
+    			attr_dev(div, "class", "selector-main");
+    			attr_dev(div, "dir", "auto");
+    			add_location(div, file$4, 59, 0, 3251);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -21513,18 +21592,22 @@ var app = (function () {
     			append_dev(select, option1);
     			append_dev(select, option2);
     			append_dev(select, option3);
-    			insert_dev(target, t6, anchor);
-    			insert_dev(target, svg, anchor);
+    			append_dev(div, t6);
+    			append_dev(div, svg);
     			append_dev(svg, g0);
 
-    			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(g0, null);
+    			for (let i = 0; i < each_blocks_2.length; i += 1) {
+    				each_blocks_2[i].m(g0, null);
     			}
 
     			append_dev(g0, text_1);
     			append_dev(text_1, t7);
     			append_dev(svg, g1);
-    			key_block.m(g1, null);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(g1, null);
+    			}
+
     			append_dev(svg, g2);
     			append_dev(g2, path);
 
@@ -21537,7 +21620,7 @@ var app = (function () {
     					select,
     					"change",
     					function () {
-    						if (is_function(/*showSort*/ ctx[5](this.selectedIndex))) /*showSort*/ ctx[5](this.selectedIndex).apply(this, arguments);
+    						if (is_function(/*showSort*/ ctx[11](this.selectedIndex))) /*showSort*/ ctx[11](this.selectedIndex).apply(this, arguments);
     					},
     					false,
     					false,
@@ -21550,7 +21633,7 @@ var app = (function () {
     		p: function update(new_ctx, dirty) {
     			ctx = new_ctx;
 
-    			if (dirty[0] & /*yScale, yTicks, marginLeft, yFormat, width, marginRight*/ 5769) {
+    			if (dirty[0] & /*yScale, yTicks, marginLeft, yFormat, width, marginRight*/ 17121) {
     				each_value_2 = /*yTicks*/ ctx[0];
     				validate_each_argument(each_value_2);
     				let i;
@@ -21558,46 +21641,61 @@ var app = (function () {
     				for (i = 0; i < each_value_2.length; i += 1) {
     					const child_ctx = get_each_context_2(ctx, each_value_2, i);
 
-    					if (each_blocks_1[i]) {
-    						each_blocks_1[i].p(child_ctx, dirty);
+    					if (each_blocks_2[i]) {
+    						each_blocks_2[i].p(child_ctx, dirty);
     					} else {
-    						each_blocks_1[i] = create_each_block_2(child_ctx);
-    						each_blocks_1[i].c();
-    						each_blocks_1[i].m(g0, text_1);
+    						each_blocks_2[i] = create_each_block_2(child_ctx);
+    						each_blocks_2[i].c();
+    						each_blocks_2[i].m(g0, text_1);
     					}
     				}
 
-    				for (; i < each_blocks_1.length; i += 1) {
-    					each_blocks_1[i].d(1);
+    				for (; i < each_blocks_2.length; i += 1) {
+    					each_blocks_2[i].d(1);
     				}
 
-    				each_blocks_1.length = each_value_2.length;
+    				each_blocks_2.length = each_value_2.length;
     			}
 
-    			if (dirty[0] & /*showSort*/ 32 && safe_not_equal(previous_key, previous_key = /*showSort*/ ctx[5])) {
-    				group_outros();
-    				transition_out(key_block, 1, 1, noop$4);
-    				check_outros();
-    				key_block = create_key_block(ctx);
-    				key_block.c();
-    				transition_in(key_block);
-    				key_block.m(g1, null);
-    			} else {
-    				key_block.p(ctx, dirty);
+    			if (dirty[0] & /*yLabel*/ 8192) set_data_dev(t7, /*yLabel*/ ctx[13]);
+
+    			if (dirty[0] & /*marginLeft*/ 128 && text_1_x_value !== (text_1_x_value = "-" + /*marginLeft*/ ctx[7])) {
+    				attr_dev(text_1, "x", text_1_x_value);
     			}
 
-    			if (dirty[0] & /*xScale, X, marginBottom*/ 276) {
-    				each_value = /*X*/ ctx[2];
+    			if (dirty[0] & /*marginTop*/ 4) {
+    				attr_dev(text_1, "y", /*marginTop*/ ctx[2]);
+    			}
+
+    			if (dirty[0] & /*marginLeft*/ 128 && g0_transform_value !== (g0_transform_value = "translate(" + /*marginLeft*/ ctx[7] + ", 0)")) {
+    				attr_dev(g0, "transform", g0_transform_value);
+    			}
+
+    			if (dirty[0] & /*xScale, X, Y, yScale, color*/ 5890) {
+    				each_value_1 = /*Y*/ ctx[1];
+    				validate_each_argument(each_value_1);
+    				for (let i = 0; i < each_blocks_1.length; i += 1) each_blocks_1[i].r();
+    				validate_each_keys(ctx, each_value_1, get_each_context_1, get_key);
+    				each_blocks_1 = update_keyed_each(each_blocks_1, dirty, get_key, 1, ctx, each_value_1, each1_lookup, g1, fix_and_destroy_block, create_each_block_1, null, get_each_context_1);
+    				for (let i = 0; i < each_blocks_1.length; i += 1) each_blocks_1[i].a();
+    			}
+
+    			if (dirty[0] & /*marginLeft, width*/ 192 && path_d_value !== (path_d_value = "M" + /*marginLeft*/ ctx[7] + ", 0.5 H" + /*width*/ ctx[6])) {
+    				attr_dev(path, "d", path_d_value);
+    			}
+
+    			if (dirty[0] & /*xScale, X, marginBottom*/ 1288) {
+    				each_value = /*X*/ ctx[8];
     				validate_each_argument(each_value);
     				let i;
 
     				for (i = 0; i < each_value.length; i += 1) {
-    					const child_ctx = get_each_context(ctx, each_value, i);
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
 
     					if (each_blocks[i]) {
     						each_blocks[i].p(child_ctx, dirty);
     					} else {
-    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i] = create_each_block$1(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].m(g2, null);
     					}
@@ -21609,19 +21707,33 @@ var app = (function () {
 
     				each_blocks.length = each_value.length;
     			}
+
+    			if (dirty[0] & /*height, marginBottom*/ 24 && g2_transform_value !== (g2_transform_value = "translate(0," + (/*height*/ ctx[4] - /*marginBottom*/ ctx[3]) + ")")) {
+    				attr_dev(g2, "transform", g2_transform_value);
+    			}
+
+    			if (dirty[0] & /*width*/ 64) {
+    				attr_dev(svg, "width", /*width*/ ctx[6]);
+    			}
+
+    			if (dirty[0] & /*height*/ 16) {
+    				attr_dev(svg, "height", /*height*/ ctx[4]);
+    			}
+
+    			if (dirty[0] & /*width, height*/ 80 && svg_viewBox_value !== (svg_viewBox_value = "0 0 " + /*width*/ ctx[6] + " " + /*height*/ ctx[4])) {
+    				attr_dev(svg, "viewBox", svg_viewBox_value);
+    			}
     		},
-    		i: function intro(local) {
-    			transition_in(key_block);
-    		},
-    		o: function outro(local) {
-    			transition_out(key_block);
-    		},
+    		i: noop$4,
+    		o: noop$4,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
-    			if (detaching) detach_dev(t6);
-    			if (detaching) detach_dev(svg);
-    			destroy_each(each_blocks_1, detaching);
-    			key_block.d(detaching);
+    			destroy_each(each_blocks_2, detaching);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].d();
+    			}
+
     			destroy_each(each_blocks, detaching);
     			mounted = false;
     			dispose();
@@ -21630,7 +21742,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$1.name,
+    		id: create_fragment$4.name,
     		type: "component",
     		source: "",
     		ctx
@@ -21639,70 +21751,39 @@ var app = (function () {
     	return block;
     }
 
-    function instance$1($$self, $$props, $$invalidate) {
+    function instance$4($$self, $$props, $$invalidate) {
+    	let marginTop;
+    	let marginRight;
+    	let marginBottom;
+    	let marginLeft;
+    	let width;
+    	let height;
+    	let xPadding;
+    	let yFormat;
+    	let yLabel;
+    	let color;
+    	let yScalefactor;
     	let showSort;
     	let X;
     	let Y;
     	let xDomain;
     	let yDomain;
+    	let xRange;
+    	let yRange;
     	let xScale;
     	let yScale;
     	let unit;
+    	let $BarChartDocs;
+    	validate_store(BarChartDocs, 'BarChartDocs');
+    	component_subscribe($$self, BarChartDocs, $$value => $$invalidate(24, $BarChartDocs = $$value));
     	let { $$slots: slots = {}, $$scope } = $$props;
-    	validate_slots('BarChart2', slots, []);
-
-    	const alphabet = [
-    		{ letter: "A", frequency: 0.08167 },
-    		{ letter: "B", frequency: 0.01492 },
-    		{ letter: "C", frequency: 0.02782 },
-    		{ letter: "D", frequency: 0.04253 },
-    		{ letter: "E", frequency: 0.12702 },
-    		{ letter: "F", frequency: 0.02288 },
-    		{ letter: "G", frequency: 0.02015 },
-    		{ letter: "H", frequency: 0.06094 },
-    		{ letter: "I", frequency: 0.06966 },
-    		{ letter: "J", frequency: 0.00153 },
-    		{ letter: "K", frequency: 0.00772 },
-    		{ letter: "L", frequency: 0.04025 },
-    		{ letter: "M", frequency: 0.02406 },
-    		{ letter: "N", frequency: 0.06749 },
-    		{ letter: "O", frequency: 0.07507 },
-    		{ letter: "P", frequency: 0.01929 },
-    		{ letter: "Q", frequency: 0.00095 },
-    		{ letter: "R", frequency: 0.05987 },
-    		{ letter: "S", frequency: 0.06327 },
-    		{ letter: "T", frequency: 0.09056 },
-    		{ letter: "U", frequency: 0.02758 },
-    		{ letter: "V", frequency: 0.00978 },
-    		{ letter: "W", frequency: 0.0236 },
-    		{ letter: "X", frequency: 0.0015 },
-    		{ letter: "Y", frequency: 0.01974 },
-    		{ letter: "Z", frequency: 0.00074 }
-    	];
-
-    	let data = alphabet;
-    	let marginTop = 20; // the top margin, in pixels
-    	let marginRight = 0; // the right margin, in pixels
-    	let marginBottom = 30; // the bottom margin, in pixels
-    	let marginLeft = 40; // the left margin, in pixels
-    	let width = 900; // the outer width of the chart, in pixels
-    	let height = 600; // the outer height of the chart, in pixels
-    	let xPadding = 0.2; // amount of x-range to reserve to separate bars
-    	let yFormat = "%"; // a format specifier string for the y-axis
-    	let yLabel = "↑ Frequency"; // a label for the y-axis
-    	let color = "steelblue"; // bar fill color
-    	let yScalefactor = 6; //y-axis number of values
-    	let duration = 1000; //animation transition duration
+    	validate_slots('BarChart2_Chart', slots, []);
+    	let data = sampleData;
 
     	// Compute values X and Y value of Arrays
     	let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
 
     	let y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
-
-    	// Construct scales, axes, and formats.
-    	let xRange = [marginLeft, width - marginRight]; // [left, right]
-
-    	let yRange = [height - marginBottom, marginTop * 2]; // [bottom, top]
     	let yType = linear; // y-scale type
 
     	// Create Y-Axis ticks based on yScalefactor spacing
@@ -21711,72 +21792,70 @@ var app = (function () {
     	const writable_props = [];
 
     	Object_1.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<BarChart2> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<BarChart2_Chart> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$capture_state = () => ({
     		d3,
-    		tweened,
-    		fade,
-    		fly,
-    		alphabet,
+    		flip,
+    		sampleData,
+    		BarChartDocs,
     		data,
-    		marginTop,
-    		marginRight,
-    		marginBottom,
-    		marginLeft,
-    		width,
-    		height,
-    		xPadding,
-    		yFormat,
-    		yLabel,
-    		color,
-    		yScalefactor,
-    		duration,
     		x,
     		y,
-    		xRange,
-    		yRange,
     		yType,
     		yTicks,
     		unit,
+    		yScalefactor,
     		Y,
+    		yRange,
     		yDomain,
     		yScale,
+    		xPadding,
+    		xRange,
     		xDomain,
     		xScale,
+    		marginTop,
+    		marginBottom,
+    		height,
+    		marginRight,
+    		width,
+    		marginLeft,
     		X,
-    		showSort
+    		showSort,
+    		color,
+    		yLabel,
+    		yFormat,
+    		$BarChartDocs
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('data' in $$props) $$invalidate(16, data = $$props.data);
-    		if ('marginTop' in $$props) $$invalidate(6, marginTop = $$props.marginTop);
-    		if ('marginRight' in $$props) $$invalidate(7, marginRight = $$props.marginRight);
-    		if ('marginBottom' in $$props) $$invalidate(8, marginBottom = $$props.marginBottom);
-    		if ('marginLeft' in $$props) $$invalidate(9, marginLeft = $$props.marginLeft);
-    		if ('width' in $$props) $$invalidate(10, width = $$props.width);
-    		if ('height' in $$props) $$invalidate(11, height = $$props.height);
-    		if ('xPadding' in $$props) $$invalidate(21, xPadding = $$props.xPadding);
-    		if ('yFormat' in $$props) $$invalidate(12, yFormat = $$props.yFormat);
-    		if ('yLabel' in $$props) $$invalidate(13, yLabel = $$props.yLabel);
-    		if ('color' in $$props) $$invalidate(14, color = $$props.color);
-    		if ('yScalefactor' in $$props) $$invalidate(22, yScalefactor = $$props.yScalefactor);
-    		if ('duration' in $$props) duration = $$props.duration;
-    		if ('x' in $$props) $$invalidate(24, x = $$props.x);
+    		if ('x' in $$props) $$invalidate(25, x = $$props.x);
     		if ('y' in $$props) $$invalidate(15, y = $$props.y);
-    		if ('xRange' in $$props) $$invalidate(25, xRange = $$props.xRange);
-    		if ('yRange' in $$props) $$invalidate(26, yRange = $$props.yRange);
-    		if ('yType' in $$props) $$invalidate(27, yType = $$props.yType);
+    		if ('yType' in $$props) $$invalidate(26, yType = $$props.yType);
     		if ('yTicks' in $$props) $$invalidate(0, yTicks = $$props.yTicks);
     		if ('unit' in $$props) $$invalidate(17, unit = $$props.unit);
+    		if ('yScalefactor' in $$props) $$invalidate(18, yScalefactor = $$props.yScalefactor);
     		if ('Y' in $$props) $$invalidate(1, Y = $$props.Y);
-    		if ('yDomain' in $$props) $$invalidate(18, yDomain = $$props.yDomain);
-    		if ('yScale' in $$props) $$invalidate(3, yScale = $$props.yScale);
-    		if ('xDomain' in $$props) $$invalidate(19, xDomain = $$props.xDomain);
-    		if ('xScale' in $$props) $$invalidate(4, xScale = $$props.xScale);
-    		if ('X' in $$props) $$invalidate(2, X = $$props.X);
-    		if ('showSort' in $$props) $$invalidate(5, showSort = $$props.showSort);
+    		if ('yRange' in $$props) $$invalidate(19, yRange = $$props.yRange);
+    		if ('yDomain' in $$props) $$invalidate(20, yDomain = $$props.yDomain);
+    		if ('yScale' in $$props) $$invalidate(9, yScale = $$props.yScale);
+    		if ('xPadding' in $$props) $$invalidate(21, xPadding = $$props.xPadding);
+    		if ('xRange' in $$props) $$invalidate(22, xRange = $$props.xRange);
+    		if ('xDomain' in $$props) $$invalidate(23, xDomain = $$props.xDomain);
+    		if ('xScale' in $$props) $$invalidate(10, xScale = $$props.xScale);
+    		if ('marginTop' in $$props) $$invalidate(2, marginTop = $$props.marginTop);
+    		if ('marginBottom' in $$props) $$invalidate(3, marginBottom = $$props.marginBottom);
+    		if ('height' in $$props) $$invalidate(4, height = $$props.height);
+    		if ('marginRight' in $$props) $$invalidate(5, marginRight = $$props.marginRight);
+    		if ('width' in $$props) $$invalidate(6, width = $$props.width);
+    		if ('marginLeft' in $$props) $$invalidate(7, marginLeft = $$props.marginLeft);
+    		if ('X' in $$props) $$invalidate(8, X = $$props.X);
+    		if ('showSort' in $$props) $$invalidate(11, showSort = $$props.showSort);
+    		if ('color' in $$props) $$invalidate(12, color = $$props.color);
+    		if ('yLabel' in $$props) $$invalidate(13, yLabel = $$props.yLabel);
+    		if ('yFormat' in $$props) $$invalidate(14, yFormat = $$props.yFormat);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -21784,9 +21863,53 @@ var app = (function () {
     	}
 
     	$$self.$$.update = () => {
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(2, marginTop = $BarChartDocs[1].value); // the top margin, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(5, marginRight = $BarChartDocs[2].value); // the right margin, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(3, marginBottom = $BarChartDocs[3].value); // the bottom margin, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(7, marginLeft = $BarChartDocs[4].value); // the left margin, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(6, width = $BarChartDocs[5].value); // the outer width of the chart, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(4, height = $BarChartDocs[6].value); // the outer height of the chart, in pixels //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(21, xPadding = $BarChartDocs[7].value); // amount of x-range to reserve to separate bars //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(14, yFormat = $BarChartDocs[8].value); // a format specifier string for the y-axis //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(13, yLabel = $BarChartDocs[9].value); // a label for the y-axis //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(12, color = $BarChartDocs[10].value); // bar fill color //*****Remove reactivepermalink for production use
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$BarChartDocs*/ 16777216) {
+    			$$invalidate(18, yScalefactor = $BarChartDocs[11].value); //y-axis number of values //*****Remove reactivepermalink for production use
+    		}
+
     		if ($$self.$$.dirty[0] & /*data*/ 65536) {
     			// Modify data based on default, ascending, descending sorts.  Input is based on selectedIndex
-    			$$invalidate(5, showSort = input => {
+    			$$invalidate(11, showSort = input => {
     				if (input === 1) {
     					return $$invalidate(16, data = data.sort((a, b) => a[x].charCodeAt(0) - b[x].charCodeAt(0)));
     				}
@@ -21802,35 +21925,44 @@ var app = (function () {
     		}
 
     		if ($$self.$$.dirty[0] & /*data*/ 65536) {
-    			$$invalidate(2, X = data.map(el => el[x]));
+    			$$invalidate(8, X = data.map(el => el[x]));
     		}
 
     		if ($$self.$$.dirty[0] & /*data*/ 65536) {
     			$$invalidate(1, Y = data.map(el => el[y]));
     		}
 
-    		if ($$self.$$.dirty[0] & /*X*/ 4) {
+    		if ($$self.$$.dirty[0] & /*X*/ 256) {
     			// Compute default domains, and unique the x-domain.
-    			$$invalidate(19, xDomain = X); // an array of (ordinal) x-values // sort by descending frequency
+    			$$invalidate(23, xDomain = X); // an array of (ordinal) x-values // sort by descending frequency
     		}
 
     		if ($$self.$$.dirty[0] & /*Y*/ 2) {
-    			$$invalidate(18, yDomain = [0, max$3(Y)]); // [ymin, ymax]
+    			$$invalidate(20, yDomain = [0, max$3(Y)]); // [ymin, ymax]
     		}
 
-    		if ($$self.$$.dirty[0] & /*xDomain*/ 524288) {
-    			$$invalidate(4, xScale = band(xDomain, xRange).padding(xPadding));
+    		if ($$self.$$.dirty[0] & /*marginLeft, width, marginRight*/ 224) {
+    			// Construct scales, axes, and formats.
+    			$$invalidate(22, xRange = [marginLeft, width - marginRight]); // [left, right] //*****Remove reactivepermalink for production use
     		}
 
-    		if ($$self.$$.dirty[0] & /*yDomain*/ 262144) {
-    			$$invalidate(3, yScale = yType(yDomain, yRange));
+    		if ($$self.$$.dirty[0] & /*height, marginBottom, marginTop*/ 28) {
+    			$$invalidate(19, yRange = [height - marginBottom, marginTop * 2]); // [bottom, top] //*****Remove reactivepermalink for production use
     		}
 
-    		if ($$self.$$.dirty[0] & /*Y*/ 2) {
+    		if ($$self.$$.dirty[0] & /*xDomain, xRange, xPadding*/ 14680064) {
+    			$$invalidate(10, xScale = band(xDomain, xRange).padding(xPadding));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*yDomain, yRange*/ 1572864) {
+    			$$invalidate(9, yScale = yType(yDomain, yRange));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*Y, yScalefactor*/ 262146) {
     			$$invalidate(17, unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor);
     		}
 
-    		if ($$self.$$.dirty[0] & /*yTicks, unit*/ 131073) {
+    		if ($$self.$$.dirty[0] & /*yScalefactor, yTicks, unit*/ 393217) {
     			for (let i = 1; i < yScalefactor + 1; i++) {
     				$$invalidate(0, yTicks = [...yTicks, Math.floor(i * unit * 100)]);
     			}
@@ -21840,35 +21972,2963 @@ var app = (function () {
     	return [
     		yTicks,
     		Y,
+    		marginTop,
+    		marginBottom,
+    		height,
+    		marginRight,
+    		width,
+    		marginLeft,
     		X,
     		yScale,
     		xScale,
     		showSort,
-    		marginTop,
-    		marginRight,
-    		marginBottom,
-    		marginLeft,
-    		width,
-    		height,
-    		yFormat,
-    		yLabel,
     		color,
+    		yLabel,
+    		yFormat,
     		y,
     		data,
     		unit,
+    		yScalefactor,
+    		yRange,
     		yDomain,
-    		xDomain
+    		xPadding,
+    		xRange,
+    		xDomain,
+    		$BarChartDocs
     	];
     }
 
-    class BarChart2 extends SvelteComponentDev {
+    class BarChart2_Chart extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init$1(this, options, instance$1, create_fragment$1, safe_not_equal, {}, null, [-1, -1]);
+    		init$1(this, options, instance$4, create_fragment$4, safe_not_equal, {}, null, [-1, -1]);
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
-    			tagName: "BarChart2",
+    			tagName: "BarChart2_Chart",
+    			options,
+    			id: create_fragment$4.name
+    		});
+    	}
+    }
+
+    var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+    function createCommonjsModule(fn) {
+      var module = { exports: {} };
+    	return fn(module, module.exports), module.exports;
+    }
+
+    var prism = createCommonjsModule(function (module) {
+    /* **********************************************
+         Begin prism-core.js
+    ********************************************** */
+
+    /// <reference lib="WebWorker"/>
+
+    var _self = (typeof window !== 'undefined')
+    	? window   // if in browser
+    	: (
+    		(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+    			? self // if in worker
+    			: {}   // if in node js
+    	);
+
+    /**
+     * Prism: Lightweight, robust, elegant syntax highlighting
+     *
+     * @license MIT <https://opensource.org/licenses/MIT>
+     * @author Lea Verou <https://lea.verou.me>
+     * @namespace
+     * @public
+     */
+    var Prism = (function (_self) {
+
+    	// Private helper vars
+    	var lang = /(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i;
+    	var uniqueId = 0;
+
+    	// The grammar object for plaintext
+    	var plainTextGrammar = {};
+
+
+    	var _ = {
+    		/**
+    		 * By default, Prism will attempt to highlight all code elements (by calling {@link Prism.highlightAll}) on the
+    		 * current page after the page finished loading. This might be a problem if e.g. you wanted to asynchronously load
+    		 * additional languages or plugins yourself.
+    		 *
+    		 * By setting this value to `true`, Prism will not automatically highlight all code elements on the page.
+    		 *
+    		 * You obviously have to change this value before the automatic highlighting started. To do this, you can add an
+    		 * empty Prism object into the global scope before loading the Prism script like this:
+    		 *
+    		 * ```js
+    		 * window.Prism = window.Prism || {};
+    		 * Prism.manual = true;
+    		 * // add a new <script> to load Prism's script
+    		 * ```
+    		 *
+    		 * @default false
+    		 * @type {boolean}
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		manual: _self.Prism && _self.Prism.manual,
+    		/**
+    		 * By default, if Prism is in a web worker, it assumes that it is in a worker it created itself, so it uses
+    		 * `addEventListener` to communicate with its parent instance. However, if you're using Prism manually in your
+    		 * own worker, you don't want it to do this.
+    		 *
+    		 * By setting this value to `true`, Prism will not add its own listeners to the worker.
+    		 *
+    		 * You obviously have to change this value before Prism executes. To do this, you can add an
+    		 * empty Prism object into the global scope before loading the Prism script like this:
+    		 *
+    		 * ```js
+    		 * window.Prism = window.Prism || {};
+    		 * Prism.disableWorkerMessageHandler = true;
+    		 * // Load Prism's script
+    		 * ```
+    		 *
+    		 * @default false
+    		 * @type {boolean}
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
+
+    		/**
+    		 * A namespace for utility methods.
+    		 *
+    		 * All function in this namespace that are not explicitly marked as _public_ are for __internal use only__ and may
+    		 * change or disappear at any time.
+    		 *
+    		 * @namespace
+    		 * @memberof Prism
+    		 */
+    		util: {
+    			encode: function encode(tokens) {
+    				if (tokens instanceof Token) {
+    					return new Token(tokens.type, encode(tokens.content), tokens.alias);
+    				} else if (Array.isArray(tokens)) {
+    					return tokens.map(encode);
+    				} else {
+    					return tokens.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\u00a0/g, ' ');
+    				}
+    			},
+
+    			/**
+    			 * Returns the name of the type of the given value.
+    			 *
+    			 * @param {any} o
+    			 * @returns {string}
+    			 * @example
+    			 * type(null)      === 'Null'
+    			 * type(undefined) === 'Undefined'
+    			 * type(123)       === 'Number'
+    			 * type('foo')     === 'String'
+    			 * type(true)      === 'Boolean'
+    			 * type([1, 2])    === 'Array'
+    			 * type({})        === 'Object'
+    			 * type(String)    === 'Function'
+    			 * type(/abc+/)    === 'RegExp'
+    			 */
+    			type: function (o) {
+    				return Object.prototype.toString.call(o).slice(8, -1);
+    			},
+
+    			/**
+    			 * Returns a unique number for the given object. Later calls will still return the same number.
+    			 *
+    			 * @param {Object} obj
+    			 * @returns {number}
+    			 */
+    			objId: function (obj) {
+    				if (!obj['__id']) {
+    					Object.defineProperty(obj, '__id', { value: ++uniqueId });
+    				}
+    				return obj['__id'];
+    			},
+
+    			/**
+    			 * Creates a deep clone of the given object.
+    			 *
+    			 * The main intended use of this function is to clone language definitions.
+    			 *
+    			 * @param {T} o
+    			 * @param {Record<number, any>} [visited]
+    			 * @returns {T}
+    			 * @template T
+    			 */
+    			clone: function deepClone(o, visited) {
+    				visited = visited || {};
+
+    				var clone; var id;
+    				switch (_.util.type(o)) {
+    					case 'Object':
+    						id = _.util.objId(o);
+    						if (visited[id]) {
+    							return visited[id];
+    						}
+    						clone = /** @type {Record<string, any>} */ ({});
+    						visited[id] = clone;
+
+    						for (var key in o) {
+    							if (o.hasOwnProperty(key)) {
+    								clone[key] = deepClone(o[key], visited);
+    							}
+    						}
+
+    						return /** @type {any} */ (clone);
+
+    					case 'Array':
+    						id = _.util.objId(o);
+    						if (visited[id]) {
+    							return visited[id];
+    						}
+    						clone = [];
+    						visited[id] = clone;
+
+    						(/** @type {Array} */(/** @type {any} */(o))).forEach(function (v, i) {
+    							clone[i] = deepClone(v, visited);
+    						});
+
+    						return /** @type {any} */ (clone);
+
+    					default:
+    						return o;
+    				}
+    			},
+
+    			/**
+    			 * Returns the Prism language of the given element set by a `language-xxxx` or `lang-xxxx` class.
+    			 *
+    			 * If no language is set for the element or the element is `null` or `undefined`, `none` will be returned.
+    			 *
+    			 * @param {Element} element
+    			 * @returns {string}
+    			 */
+    			getLanguage: function (element) {
+    				while (element) {
+    					var m = lang.exec(element.className);
+    					if (m) {
+    						return m[1].toLowerCase();
+    					}
+    					element = element.parentElement;
+    				}
+    				return 'none';
+    			},
+
+    			/**
+    			 * Sets the Prism `language-xxxx` class of the given element.
+    			 *
+    			 * @param {Element} element
+    			 * @param {string} language
+    			 * @returns {void}
+    			 */
+    			setLanguage: function (element, language) {
+    				// remove all `language-xxxx` classes
+    				// (this might leave behind a leading space)
+    				element.className = element.className.replace(RegExp(lang, 'gi'), '');
+
+    				// add the new `language-xxxx` class
+    				// (using `classList` will automatically clean up spaces for us)
+    				element.classList.add('language-' + language);
+    			},
+
+    			/**
+    			 * Returns the script element that is currently executing.
+    			 *
+    			 * This does __not__ work for line script element.
+    			 *
+    			 * @returns {HTMLScriptElement | null}
+    			 */
+    			currentScript: function () {
+    				if (typeof document === 'undefined') {
+    					return null;
+    				}
+    				if ('currentScript' in document && 1 < 2 /* hack to trip TS' flow analysis */) {
+    					return /** @type {any} */ (document.currentScript);
+    				}
+
+    				// IE11 workaround
+    				// we'll get the src of the current script by parsing IE11's error stack trace
+    				// this will not work for inline scripts
+
+    				try {
+    					throw new Error();
+    				} catch (err) {
+    					// Get file src url from stack. Specifically works with the format of stack traces in IE.
+    					// A stack will look like this:
+    					//
+    					// Error
+    					//    at _.util.currentScript (http://localhost/components/prism-core.js:119:5)
+    					//    at Global code (http://localhost/components/prism-core.js:606:1)
+
+    					var src = (/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(err.stack) || [])[1];
+    					if (src) {
+    						var scripts = document.getElementsByTagName('script');
+    						for (var i in scripts) {
+    							if (scripts[i].src == src) {
+    								return scripts[i];
+    							}
+    						}
+    					}
+    					return null;
+    				}
+    			},
+
+    			/**
+    			 * Returns whether a given class is active for `element`.
+    			 *
+    			 * The class can be activated if `element` or one of its ancestors has the given class and it can be deactivated
+    			 * if `element` or one of its ancestors has the negated version of the given class. The _negated version_ of the
+    			 * given class is just the given class with a `no-` prefix.
+    			 *
+    			 * Whether the class is active is determined by the closest ancestor of `element` (where `element` itself is
+    			 * closest ancestor) that has the given class or the negated version of it. If neither `element` nor any of its
+    			 * ancestors have the given class or the negated version of it, then the default activation will be returned.
+    			 *
+    			 * In the paradoxical situation where the closest ancestor contains __both__ the given class and the negated
+    			 * version of it, the class is considered active.
+    			 *
+    			 * @param {Element} element
+    			 * @param {string} className
+    			 * @param {boolean} [defaultActivation=false]
+    			 * @returns {boolean}
+    			 */
+    			isActive: function (element, className, defaultActivation) {
+    				var no = 'no-' + className;
+
+    				while (element) {
+    					var classList = element.classList;
+    					if (classList.contains(className)) {
+    						return true;
+    					}
+    					if (classList.contains(no)) {
+    						return false;
+    					}
+    					element = element.parentElement;
+    				}
+    				return !!defaultActivation;
+    			}
+    		},
+
+    		/**
+    		 * This namespace contains all currently loaded languages and the some helper functions to create and modify languages.
+    		 *
+    		 * @namespace
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		languages: {
+    			/**
+    			 * The grammar for plain, unformatted text.
+    			 */
+    			plain: plainTextGrammar,
+    			plaintext: plainTextGrammar,
+    			text: plainTextGrammar,
+    			txt: plainTextGrammar,
+
+    			/**
+    			 * Creates a deep copy of the language with the given id and appends the given tokens.
+    			 *
+    			 * If a token in `redef` also appears in the copied language, then the existing token in the copied language
+    			 * will be overwritten at its original position.
+    			 *
+    			 * ## Best practices
+    			 *
+    			 * Since the position of overwriting tokens (token in `redef` that overwrite tokens in the copied language)
+    			 * doesn't matter, they can technically be in any order. However, this can be confusing to others that trying to
+    			 * understand the language definition because, normally, the order of tokens matters in Prism grammars.
+    			 *
+    			 * Therefore, it is encouraged to order overwriting tokens according to the positions of the overwritten tokens.
+    			 * Furthermore, all non-overwriting tokens should be placed after the overwriting ones.
+    			 *
+    			 * @param {string} id The id of the language to extend. This has to be a key in `Prism.languages`.
+    			 * @param {Grammar} redef The new tokens to append.
+    			 * @returns {Grammar} The new language created.
+    			 * @public
+    			 * @example
+    			 * Prism.languages['css-with-colors'] = Prism.languages.extend('css', {
+    			 *     // Prism.languages.css already has a 'comment' token, so this token will overwrite CSS' 'comment' token
+    			 *     // at its original position
+    			 *     'comment': { ... },
+    			 *     // CSS doesn't have a 'color' token, so this token will be appended
+    			 *     'color': /\b(?:red|green|blue)\b/
+    			 * });
+    			 */
+    			extend: function (id, redef) {
+    				var lang = _.util.clone(_.languages[id]);
+
+    				for (var key in redef) {
+    					lang[key] = redef[key];
+    				}
+
+    				return lang;
+    			},
+
+    			/**
+    			 * Inserts tokens _before_ another token in a language definition or any other grammar.
+    			 *
+    			 * ## Usage
+    			 *
+    			 * This helper method makes it easy to modify existing languages. For example, the CSS language definition
+    			 * not only defines CSS highlighting for CSS documents, but also needs to define highlighting for CSS embedded
+    			 * in HTML through `<style>` elements. To do this, it needs to modify `Prism.languages.markup` and add the
+    			 * appropriate tokens. However, `Prism.languages.markup` is a regular JavaScript object literal, so if you do
+    			 * this:
+    			 *
+    			 * ```js
+    			 * Prism.languages.markup.style = {
+    			 *     // token
+    			 * };
+    			 * ```
+    			 *
+    			 * then the `style` token will be added (and processed) at the end. `insertBefore` allows you to insert tokens
+    			 * before existing tokens. For the CSS example above, you would use it like this:
+    			 *
+    			 * ```js
+    			 * Prism.languages.insertBefore('markup', 'cdata', {
+    			 *     'style': {
+    			 *         // token
+    			 *     }
+    			 * });
+    			 * ```
+    			 *
+    			 * ## Special cases
+    			 *
+    			 * If the grammars of `inside` and `insert` have tokens with the same name, the tokens in `inside`'s grammar
+    			 * will be ignored.
+    			 *
+    			 * This behavior can be used to insert tokens after `before`:
+    			 *
+    			 * ```js
+    			 * Prism.languages.insertBefore('markup', 'comment', {
+    			 *     'comment': Prism.languages.markup.comment,
+    			 *     // tokens after 'comment'
+    			 * });
+    			 * ```
+    			 *
+    			 * ## Limitations
+    			 *
+    			 * The main problem `insertBefore` has to solve is iteration order. Since ES2015, the iteration order for object
+    			 * properties is guaranteed to be the insertion order (except for integer keys) but some browsers behave
+    			 * differently when keys are deleted and re-inserted. So `insertBefore` can't be implemented by temporarily
+    			 * deleting properties which is necessary to insert at arbitrary positions.
+    			 *
+    			 * To solve this problem, `insertBefore` doesn't actually insert the given tokens into the target object.
+    			 * Instead, it will create a new object and replace all references to the target object with the new one. This
+    			 * can be done without temporarily deleting properties, so the iteration order is well-defined.
+    			 *
+    			 * However, only references that can be reached from `Prism.languages` or `insert` will be replaced. I.e. if
+    			 * you hold the target object in a variable, then the value of the variable will not change.
+    			 *
+    			 * ```js
+    			 * var oldMarkup = Prism.languages.markup;
+    			 * var newMarkup = Prism.languages.insertBefore('markup', 'comment', { ... });
+    			 *
+    			 * assert(oldMarkup !== Prism.languages.markup);
+    			 * assert(newMarkup === Prism.languages.markup);
+    			 * ```
+    			 *
+    			 * @param {string} inside The property of `root` (e.g. a language id in `Prism.languages`) that contains the
+    			 * object to be modified.
+    			 * @param {string} before The key to insert before.
+    			 * @param {Grammar} insert An object containing the key-value pairs to be inserted.
+    			 * @param {Object<string, any>} [root] The object containing `inside`, i.e. the object that contains the
+    			 * object to be modified.
+    			 *
+    			 * Defaults to `Prism.languages`.
+    			 * @returns {Grammar} The new grammar object.
+    			 * @public
+    			 */
+    			insertBefore: function (inside, before, insert, root) {
+    				root = root || /** @type {any} */ (_.languages);
+    				var grammar = root[inside];
+    				/** @type {Grammar} */
+    				var ret = {};
+
+    				for (var token in grammar) {
+    					if (grammar.hasOwnProperty(token)) {
+
+    						if (token == before) {
+    							for (var newToken in insert) {
+    								if (insert.hasOwnProperty(newToken)) {
+    									ret[newToken] = insert[newToken];
+    								}
+    							}
+    						}
+
+    						// Do not insert token which also occur in insert. See #1525
+    						if (!insert.hasOwnProperty(token)) {
+    							ret[token] = grammar[token];
+    						}
+    					}
+    				}
+
+    				var old = root[inside];
+    				root[inside] = ret;
+
+    				// Update references in other language definitions
+    				_.languages.DFS(_.languages, function (key, value) {
+    					if (value === old && key != inside) {
+    						this[key] = ret;
+    					}
+    				});
+
+    				return ret;
+    			},
+
+    			// Traverse a language definition with Depth First Search
+    			DFS: function DFS(o, callback, type, visited) {
+    				visited = visited || {};
+
+    				var objId = _.util.objId;
+
+    				for (var i in o) {
+    					if (o.hasOwnProperty(i)) {
+    						callback.call(o, i, o[i], type || i);
+
+    						var property = o[i];
+    						var propertyType = _.util.type(property);
+
+    						if (propertyType === 'Object' && !visited[objId(property)]) {
+    							visited[objId(property)] = true;
+    							DFS(property, callback, null, visited);
+    						} else if (propertyType === 'Array' && !visited[objId(property)]) {
+    							visited[objId(property)] = true;
+    							DFS(property, callback, i, visited);
+    						}
+    					}
+    				}
+    			}
+    		},
+
+    		plugins: {},
+
+    		/**
+    		 * This is the most high-level function in Prism’s API.
+    		 * It fetches all the elements that have a `.language-xxxx` class and then calls {@link Prism.highlightElement} on
+    		 * each one of them.
+    		 *
+    		 * This is equivalent to `Prism.highlightAllUnder(document, async, callback)`.
+    		 *
+    		 * @param {boolean} [async=false] Same as in {@link Prism.highlightAllUnder}.
+    		 * @param {HighlightCallback} [callback] Same as in {@link Prism.highlightAllUnder}.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightAll: function (async, callback) {
+    			_.highlightAllUnder(document, async, callback);
+    		},
+
+    		/**
+    		 * Fetches all the descendants of `container` that have a `.language-xxxx` class and then calls
+    		 * {@link Prism.highlightElement} on each one of them.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-highlightall`
+    		 * 2. `before-all-elements-highlight`
+    		 * 3. All hooks of {@link Prism.highlightElement} for each element.
+    		 *
+    		 * @param {ParentNode} container The root element, whose descendants that have a `.language-xxxx` class will be highlighted.
+    		 * @param {boolean} [async=false] Whether each element is to be highlighted asynchronously using Web Workers.
+    		 * @param {HighlightCallback} [callback] An optional callback to be invoked on each element after its highlighting is done.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightAllUnder: function (container, async, callback) {
+    			var env = {
+    				callback: callback,
+    				container: container,
+    				selector: 'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'
+    			};
+
+    			_.hooks.run('before-highlightall', env);
+
+    			env.elements = Array.prototype.slice.apply(env.container.querySelectorAll(env.selector));
+
+    			_.hooks.run('before-all-elements-highlight', env);
+
+    			for (var i = 0, element; (element = env.elements[i++]);) {
+    				_.highlightElement(element, async === true, env.callback);
+    			}
+    		},
+
+    		/**
+    		 * Highlights the code inside a single element.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-sanity-check`
+    		 * 2. `before-highlight`
+    		 * 3. All hooks of {@link Prism.highlight}. These hooks will be run by an asynchronous worker if `async` is `true`.
+    		 * 4. `before-insert`
+    		 * 5. `after-highlight`
+    		 * 6. `complete`
+    		 *
+    		 * Some the above hooks will be skipped if the element doesn't contain any text or there is no grammar loaded for
+    		 * the element's language.
+    		 *
+    		 * @param {Element} element The element containing the code.
+    		 * It must have a class of `language-xxxx` to be processed, where `xxxx` is a valid language identifier.
+    		 * @param {boolean} [async=false] Whether the element is to be highlighted asynchronously using Web Workers
+    		 * to improve performance and avoid blocking the UI when highlighting very large chunks of code. This option is
+    		 * [disabled by default](https://prismjs.com/faq.html#why-is-asynchronous-highlighting-disabled-by-default).
+    		 *
+    		 * Note: All language definitions required to highlight the code must be included in the main `prism.js` file for
+    		 * asynchronous highlighting to work. You can build your own bundle on the
+    		 * [Download page](https://prismjs.com/download.html).
+    		 * @param {HighlightCallback} [callback] An optional callback to be invoked after the highlighting is done.
+    		 * Mostly useful when `async` is `true`, since in that case, the highlighting is done asynchronously.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightElement: function (element, async, callback) {
+    			// Find language
+    			var language = _.util.getLanguage(element);
+    			var grammar = _.languages[language];
+
+    			// Set language on the element, if not present
+    			_.util.setLanguage(element, language);
+
+    			// Set language on the parent, for styling
+    			var parent = element.parentElement;
+    			if (parent && parent.nodeName.toLowerCase() === 'pre') {
+    				_.util.setLanguage(parent, language);
+    			}
+
+    			var code = element.textContent;
+
+    			var env = {
+    				element: element,
+    				language: language,
+    				grammar: grammar,
+    				code: code
+    			};
+
+    			function insertHighlightedCode(highlightedCode) {
+    				env.highlightedCode = highlightedCode;
+
+    				_.hooks.run('before-insert', env);
+
+    				env.element.innerHTML = env.highlightedCode;
+
+    				_.hooks.run('after-highlight', env);
+    				_.hooks.run('complete', env);
+    				callback && callback.call(env.element);
+    			}
+
+    			_.hooks.run('before-sanity-check', env);
+
+    			// plugins may change/add the parent/element
+    			parent = env.element.parentElement;
+    			if (parent && parent.nodeName.toLowerCase() === 'pre' && !parent.hasAttribute('tabindex')) {
+    				parent.setAttribute('tabindex', '0');
+    			}
+
+    			if (!env.code) {
+    				_.hooks.run('complete', env);
+    				callback && callback.call(env.element);
+    				return;
+    			}
+
+    			_.hooks.run('before-highlight', env);
+
+    			if (!env.grammar) {
+    				insertHighlightedCode(_.util.encode(env.code));
+    				return;
+    			}
+
+    			if (async && _self.Worker) {
+    				var worker = new Worker(_.filename);
+
+    				worker.onmessage = function (evt) {
+    					insertHighlightedCode(evt.data);
+    				};
+
+    				worker.postMessage(JSON.stringify({
+    					language: env.language,
+    					code: env.code,
+    					immediateClose: true
+    				}));
+    			} else {
+    				insertHighlightedCode(_.highlight(env.code, env.grammar, env.language));
+    			}
+    		},
+
+    		/**
+    		 * Low-level function, only use if you know what you’re doing. It accepts a string of text as input
+    		 * and the language definitions to use, and returns a string with the HTML produced.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-tokenize`
+    		 * 2. `after-tokenize`
+    		 * 3. `wrap`: On each {@link Token}.
+    		 *
+    		 * @param {string} text A string with the code to be highlighted.
+    		 * @param {Grammar} grammar An object containing the tokens to use.
+    		 *
+    		 * Usually a language definition like `Prism.languages.markup`.
+    		 * @param {string} language The name of the language definition passed to `grammar`.
+    		 * @returns {string} The highlighted HTML.
+    		 * @memberof Prism
+    		 * @public
+    		 * @example
+    		 * Prism.highlight('var foo = true;', Prism.languages.javascript, 'javascript');
+    		 */
+    		highlight: function (text, grammar, language) {
+    			var env = {
+    				code: text,
+    				grammar: grammar,
+    				language: language
+    			};
+    			_.hooks.run('before-tokenize', env);
+    			if (!env.grammar) {
+    				throw new Error('The language "' + env.language + '" has no grammar.');
+    			}
+    			env.tokens = _.tokenize(env.code, env.grammar);
+    			_.hooks.run('after-tokenize', env);
+    			return Token.stringify(_.util.encode(env.tokens), env.language);
+    		},
+
+    		/**
+    		 * This is the heart of Prism, and the most low-level function you can use. It accepts a string of text as input
+    		 * and the language definitions to use, and returns an array with the tokenized code.
+    		 *
+    		 * When the language definition includes nested tokens, the function is called recursively on each of these tokens.
+    		 *
+    		 * This method could be useful in other contexts as well, as a very crude parser.
+    		 *
+    		 * @param {string} text A string with the code to be highlighted.
+    		 * @param {Grammar} grammar An object containing the tokens to use.
+    		 *
+    		 * Usually a language definition like `Prism.languages.markup`.
+    		 * @returns {TokenStream} An array of strings and tokens, a token stream.
+    		 * @memberof Prism
+    		 * @public
+    		 * @example
+    		 * let code = `var foo = 0;`;
+    		 * let tokens = Prism.tokenize(code, Prism.languages.javascript);
+    		 * tokens.forEach(token => {
+    		 *     if (token instanceof Prism.Token && token.type === 'number') {
+    		 *         console.log(`Found numeric literal: ${token.content}`);
+    		 *     }
+    		 * });
+    		 */
+    		tokenize: function (text, grammar) {
+    			var rest = grammar.rest;
+    			if (rest) {
+    				for (var token in rest) {
+    					grammar[token] = rest[token];
+    				}
+
+    				delete grammar.rest;
+    			}
+
+    			var tokenList = new LinkedList();
+    			addAfter(tokenList, tokenList.head, text);
+
+    			matchGrammar(text, tokenList, grammar, tokenList.head, 0);
+
+    			return toArray(tokenList);
+    		},
+
+    		/**
+    		 * @namespace
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		hooks: {
+    			all: {},
+
+    			/**
+    			 * Adds the given callback to the list of callbacks for the given hook.
+    			 *
+    			 * The callback will be invoked when the hook it is registered for is run.
+    			 * Hooks are usually directly run by a highlight function but you can also run hooks yourself.
+    			 *
+    			 * One callback function can be registered to multiple hooks and the same hook multiple times.
+    			 *
+    			 * @param {string} name The name of the hook.
+    			 * @param {HookCallback} callback The callback function which is given environment variables.
+    			 * @public
+    			 */
+    			add: function (name, callback) {
+    				var hooks = _.hooks.all;
+
+    				hooks[name] = hooks[name] || [];
+
+    				hooks[name].push(callback);
+    			},
+
+    			/**
+    			 * Runs a hook invoking all registered callbacks with the given environment variables.
+    			 *
+    			 * Callbacks will be invoked synchronously and in the order in which they were registered.
+    			 *
+    			 * @param {string} name The name of the hook.
+    			 * @param {Object<string, any>} env The environment variables of the hook passed to all callbacks registered.
+    			 * @public
+    			 */
+    			run: function (name, env) {
+    				var callbacks = _.hooks.all[name];
+
+    				if (!callbacks || !callbacks.length) {
+    					return;
+    				}
+
+    				for (var i = 0, callback; (callback = callbacks[i++]);) {
+    					callback(env);
+    				}
+    			}
+    		},
+
+    		Token: Token
+    	};
+    	_self.Prism = _;
+
+
+    	// Typescript note:
+    	// The following can be used to import the Token type in JSDoc:
+    	//
+    	//   @typedef {InstanceType<import("./prism-core")["Token"]>} Token
+
+    	/**
+    	 * Creates a new token.
+    	 *
+    	 * @param {string} type See {@link Token#type type}
+    	 * @param {string | TokenStream} content See {@link Token#content content}
+    	 * @param {string|string[]} [alias] The alias(es) of the token.
+    	 * @param {string} [matchedStr=""] A copy of the full string this token was created from.
+    	 * @class
+    	 * @global
+    	 * @public
+    	 */
+    	function Token(type, content, alias, matchedStr) {
+    		/**
+    		 * The type of the token.
+    		 *
+    		 * This is usually the key of a pattern in a {@link Grammar}.
+    		 *
+    		 * @type {string}
+    		 * @see GrammarToken
+    		 * @public
+    		 */
+    		this.type = type;
+    		/**
+    		 * The strings or tokens contained by this token.
+    		 *
+    		 * This will be a token stream if the pattern matched also defined an `inside` grammar.
+    		 *
+    		 * @type {string | TokenStream}
+    		 * @public
+    		 */
+    		this.content = content;
+    		/**
+    		 * The alias(es) of the token.
+    		 *
+    		 * @type {string|string[]}
+    		 * @see GrammarToken
+    		 * @public
+    		 */
+    		this.alias = alias;
+    		// Copy of the full string this token was created from
+    		this.length = (matchedStr || '').length | 0;
+    	}
+
+    	/**
+    	 * A token stream is an array of strings and {@link Token Token} objects.
+    	 *
+    	 * Token streams have to fulfill a few properties that are assumed by most functions (mostly internal ones) that process
+    	 * them.
+    	 *
+    	 * 1. No adjacent strings.
+    	 * 2. No empty strings.
+    	 *
+    	 *    The only exception here is the token stream that only contains the empty string and nothing else.
+    	 *
+    	 * @typedef {Array<string | Token>} TokenStream
+    	 * @global
+    	 * @public
+    	 */
+
+    	/**
+    	 * Converts the given token or token stream to an HTML representation.
+    	 *
+    	 * The following hooks will be run:
+    	 * 1. `wrap`: On each {@link Token}.
+    	 *
+    	 * @param {string | Token | TokenStream} o The token or token stream to be converted.
+    	 * @param {string} language The name of current language.
+    	 * @returns {string} The HTML representation of the token or token stream.
+    	 * @memberof Token
+    	 * @static
+    	 */
+    	Token.stringify = function stringify(o, language) {
+    		if (typeof o == 'string') {
+    			return o;
+    		}
+    		if (Array.isArray(o)) {
+    			var s = '';
+    			o.forEach(function (e) {
+    				s += stringify(e, language);
+    			});
+    			return s;
+    		}
+
+    		var env = {
+    			type: o.type,
+    			content: stringify(o.content, language),
+    			tag: 'span',
+    			classes: ['token', o.type],
+    			attributes: {},
+    			language: language
+    		};
+
+    		var aliases = o.alias;
+    		if (aliases) {
+    			if (Array.isArray(aliases)) {
+    				Array.prototype.push.apply(env.classes, aliases);
+    			} else {
+    				env.classes.push(aliases);
+    			}
+    		}
+
+    		_.hooks.run('wrap', env);
+
+    		var attributes = '';
+    		for (var name in env.attributes) {
+    			attributes += ' ' + name + '="' + (env.attributes[name] || '').replace(/"/g, '&quot;') + '"';
+    		}
+
+    		return '<' + env.tag + ' class="' + env.classes.join(' ') + '"' + attributes + '>' + env.content + '</' + env.tag + '>';
+    	};
+
+    	/**
+    	 * @param {RegExp} pattern
+    	 * @param {number} pos
+    	 * @param {string} text
+    	 * @param {boolean} lookbehind
+    	 * @returns {RegExpExecArray | null}
+    	 */
+    	function matchPattern(pattern, pos, text, lookbehind) {
+    		pattern.lastIndex = pos;
+    		var match = pattern.exec(text);
+    		if (match && lookbehind && match[1]) {
+    			// change the match to remove the text matched by the Prism lookbehind group
+    			var lookbehindLength = match[1].length;
+    			match.index += lookbehindLength;
+    			match[0] = match[0].slice(lookbehindLength);
+    		}
+    		return match;
+    	}
+
+    	/**
+    	 * @param {string} text
+    	 * @param {LinkedList<string | Token>} tokenList
+    	 * @param {any} grammar
+    	 * @param {LinkedListNode<string | Token>} startNode
+    	 * @param {number} startPos
+    	 * @param {RematchOptions} [rematch]
+    	 * @returns {void}
+    	 * @private
+    	 *
+    	 * @typedef RematchOptions
+    	 * @property {string} cause
+    	 * @property {number} reach
+    	 */
+    	function matchGrammar(text, tokenList, grammar, startNode, startPos, rematch) {
+    		for (var token in grammar) {
+    			if (!grammar.hasOwnProperty(token) || !grammar[token]) {
+    				continue;
+    			}
+
+    			var patterns = grammar[token];
+    			patterns = Array.isArray(patterns) ? patterns : [patterns];
+
+    			for (var j = 0; j < patterns.length; ++j) {
+    				if (rematch && rematch.cause == token + ',' + j) {
+    					return;
+    				}
+
+    				var patternObj = patterns[j];
+    				var inside = patternObj.inside;
+    				var lookbehind = !!patternObj.lookbehind;
+    				var greedy = !!patternObj.greedy;
+    				var alias = patternObj.alias;
+
+    				if (greedy && !patternObj.pattern.global) {
+    					// Without the global flag, lastIndex won't work
+    					var flags = patternObj.pattern.toString().match(/[imsuy]*$/)[0];
+    					patternObj.pattern = RegExp(patternObj.pattern.source, flags + 'g');
+    				}
+
+    				/** @type {RegExp} */
+    				var pattern = patternObj.pattern || patternObj;
+
+    				for ( // iterate the token list and keep track of the current token/string position
+    					var currentNode = startNode.next, pos = startPos;
+    					currentNode !== tokenList.tail;
+    					pos += currentNode.value.length, currentNode = currentNode.next
+    				) {
+
+    					if (rematch && pos >= rematch.reach) {
+    						break;
+    					}
+
+    					var str = currentNode.value;
+
+    					if (tokenList.length > text.length) {
+    						// Something went terribly wrong, ABORT, ABORT!
+    						return;
+    					}
+
+    					if (str instanceof Token) {
+    						continue;
+    					}
+
+    					var removeCount = 1; // this is the to parameter of removeBetween
+    					var match;
+
+    					if (greedy) {
+    						match = matchPattern(pattern, pos, text, lookbehind);
+    						if (!match || match.index >= text.length) {
+    							break;
+    						}
+
+    						var from = match.index;
+    						var to = match.index + match[0].length;
+    						var p = pos;
+
+    						// find the node that contains the match
+    						p += currentNode.value.length;
+    						while (from >= p) {
+    							currentNode = currentNode.next;
+    							p += currentNode.value.length;
+    						}
+    						// adjust pos (and p)
+    						p -= currentNode.value.length;
+    						pos = p;
+
+    						// the current node is a Token, then the match starts inside another Token, which is invalid
+    						if (currentNode.value instanceof Token) {
+    							continue;
+    						}
+
+    						// find the last node which is affected by this match
+    						for (
+    							var k = currentNode;
+    							k !== tokenList.tail && (p < to || typeof k.value === 'string');
+    							k = k.next
+    						) {
+    							removeCount++;
+    							p += k.value.length;
+    						}
+    						removeCount--;
+
+    						// replace with the new match
+    						str = text.slice(pos, p);
+    						match.index -= pos;
+    					} else {
+    						match = matchPattern(pattern, 0, str, lookbehind);
+    						if (!match) {
+    							continue;
+    						}
+    					}
+
+    					// eslint-disable-next-line no-redeclare
+    					var from = match.index;
+    					var matchStr = match[0];
+    					var before = str.slice(0, from);
+    					var after = str.slice(from + matchStr.length);
+
+    					var reach = pos + str.length;
+    					if (rematch && reach > rematch.reach) {
+    						rematch.reach = reach;
+    					}
+
+    					var removeFrom = currentNode.prev;
+
+    					if (before) {
+    						removeFrom = addAfter(tokenList, removeFrom, before);
+    						pos += before.length;
+    					}
+
+    					removeRange(tokenList, removeFrom, removeCount);
+
+    					var wrapped = new Token(token, inside ? _.tokenize(matchStr, inside) : matchStr, alias, matchStr);
+    					currentNode = addAfter(tokenList, removeFrom, wrapped);
+
+    					if (after) {
+    						addAfter(tokenList, currentNode, after);
+    					}
+
+    					if (removeCount > 1) {
+    						// at least one Token object was removed, so we have to do some rematching
+    						// this can only happen if the current pattern is greedy
+
+    						/** @type {RematchOptions} */
+    						var nestedRematch = {
+    							cause: token + ',' + j,
+    							reach: reach
+    						};
+    						matchGrammar(text, tokenList, grammar, currentNode.prev, pos, nestedRematch);
+
+    						// the reach might have been extended because of the rematching
+    						if (rematch && nestedRematch.reach > rematch.reach) {
+    							rematch.reach = nestedRematch.reach;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+
+    	/**
+    	 * @typedef LinkedListNode
+    	 * @property {T} value
+    	 * @property {LinkedListNode<T> | null} prev The previous node.
+    	 * @property {LinkedListNode<T> | null} next The next node.
+    	 * @template T
+    	 * @private
+    	 */
+
+    	/**
+    	 * @template T
+    	 * @private
+    	 */
+    	function LinkedList() {
+    		/** @type {LinkedListNode<T>} */
+    		var head = { value: null, prev: null, next: null };
+    		/** @type {LinkedListNode<T>} */
+    		var tail = { value: null, prev: head, next: null };
+    		head.next = tail;
+
+    		/** @type {LinkedListNode<T>} */
+    		this.head = head;
+    		/** @type {LinkedListNode<T>} */
+    		this.tail = tail;
+    		this.length = 0;
+    	}
+
+    	/**
+    	 * Adds a new node with the given value to the list.
+    	 *
+    	 * @param {LinkedList<T>} list
+    	 * @param {LinkedListNode<T>} node
+    	 * @param {T} value
+    	 * @returns {LinkedListNode<T>} The added node.
+    	 * @template T
+    	 */
+    	function addAfter(list, node, value) {
+    		// assumes that node != list.tail && values.length >= 0
+    		var next = node.next;
+
+    		var newNode = { value: value, prev: node, next: next };
+    		node.next = newNode;
+    		next.prev = newNode;
+    		list.length++;
+
+    		return newNode;
+    	}
+    	/**
+    	 * Removes `count` nodes after the given node. The given node will not be removed.
+    	 *
+    	 * @param {LinkedList<T>} list
+    	 * @param {LinkedListNode<T>} node
+    	 * @param {number} count
+    	 * @template T
+    	 */
+    	function removeRange(list, node, count) {
+    		var next = node.next;
+    		for (var i = 0; i < count && next !== list.tail; i++) {
+    			next = next.next;
+    		}
+    		node.next = next;
+    		next.prev = node;
+    		list.length -= i;
+    	}
+    	/**
+    	 * @param {LinkedList<T>} list
+    	 * @returns {T[]}
+    	 * @template T
+    	 */
+    	function toArray(list) {
+    		var array = [];
+    		var node = list.head.next;
+    		while (node !== list.tail) {
+    			array.push(node.value);
+    			node = node.next;
+    		}
+    		return array;
+    	}
+
+
+    	if (!_self.document) {
+    		if (!_self.addEventListener) {
+    			// in Node.js
+    			return _;
+    		}
+
+    		if (!_.disableWorkerMessageHandler) {
+    			// In worker
+    			_self.addEventListener('message', function (evt) {
+    				var message = JSON.parse(evt.data);
+    				var lang = message.language;
+    				var code = message.code;
+    				var immediateClose = message.immediateClose;
+
+    				_self.postMessage(_.highlight(code, _.languages[lang], lang));
+    				if (immediateClose) {
+    					_self.close();
+    				}
+    			}, false);
+    		}
+
+    		return _;
+    	}
+
+    	// Get current script and highlight
+    	var script = _.util.currentScript();
+
+    	if (script) {
+    		_.filename = script.src;
+
+    		if (script.hasAttribute('data-manual')) {
+    			_.manual = true;
+    		}
+    	}
+
+    	function highlightAutomaticallyCallback() {
+    		if (!_.manual) {
+    			_.highlightAll();
+    		}
+    	}
+
+    	if (!_.manual) {
+    		// If the document state is "loading", then we'll use DOMContentLoaded.
+    		// If the document state is "interactive" and the prism.js script is deferred, then we'll also use the
+    		// DOMContentLoaded event because there might be some plugins or languages which have also been deferred and they
+    		// might take longer one animation frame to execute which can create a race condition where only some plugins have
+    		// been loaded when Prism.highlightAll() is executed, depending on how fast resources are loaded.
+    		// See https://github.com/PrismJS/prism/issues/2102
+    		var readyState = document.readyState;
+    		if (readyState === 'loading' || readyState === 'interactive' && script && script.defer) {
+    			document.addEventListener('DOMContentLoaded', highlightAutomaticallyCallback);
+    		} else {
+    			if (window.requestAnimationFrame) {
+    				window.requestAnimationFrame(highlightAutomaticallyCallback);
+    			} else {
+    				window.setTimeout(highlightAutomaticallyCallback, 16);
+    			}
+    		}
+    	}
+
+    	return _;
+
+    }(_self));
+
+    if (module.exports) {
+    	module.exports = Prism;
+    }
+
+    // hack for components to work correctly in node.js
+    if (typeof commonjsGlobal !== 'undefined') {
+    	commonjsGlobal.Prism = Prism;
+    }
+
+    // some additional documentation/types
+
+    /**
+     * The expansion of a simple `RegExp` literal to support additional properties.
+     *
+     * @typedef GrammarToken
+     * @property {RegExp} pattern The regular expression of the token.
+     * @property {boolean} [lookbehind=false] If `true`, then the first capturing group of `pattern` will (effectively)
+     * behave as a lookbehind group meaning that the captured text will not be part of the matched text of the new token.
+     * @property {boolean} [greedy=false] Whether the token is greedy.
+     * @property {string|string[]} [alias] An optional alias or list of aliases.
+     * @property {Grammar} [inside] The nested grammar of this token.
+     *
+     * The `inside` grammar will be used to tokenize the text value of each token of this kind.
+     *
+     * This can be used to make nested and even recursive language definitions.
+     *
+     * Note: This can cause infinite recursion. Be careful when you embed different languages or even the same language into
+     * each another.
+     * @global
+     * @public
+     */
+
+    /**
+     * @typedef Grammar
+     * @type {Object<string, RegExp | GrammarToken | Array<RegExp | GrammarToken>>}
+     * @property {Grammar} [rest] An optional grammar object that will be appended to this grammar.
+     * @global
+     * @public
+     */
+
+    /**
+     * A function which will invoked after an element was successfully highlighted.
+     *
+     * @callback HighlightCallback
+     * @param {Element} element The element successfully highlighted.
+     * @returns {void}
+     * @global
+     * @public
+     */
+
+    /**
+     * @callback HookCallback
+     * @param {Object<string, any>} env The environment variables of the hook.
+     * @returns {void}
+     * @global
+     * @public
+     */
+
+
+    /* **********************************************
+         Begin prism-markup.js
+    ********************************************** */
+
+    Prism.languages.markup = {
+    	'comment': {
+    		pattern: /<!--(?:(?!<!--)[\s\S])*?-->/,
+    		greedy: true
+    	},
+    	'prolog': {
+    		pattern: /<\?[\s\S]+?\?>/,
+    		greedy: true
+    	},
+    	'doctype': {
+    		// https://www.w3.org/TR/xml/#NT-doctypedecl
+    		pattern: /<!DOCTYPE(?:[^>"'[\]]|"[^"]*"|'[^']*')+(?:\[(?:[^<"'\]]|"[^"]*"|'[^']*'|<(?!!--)|<!--(?:[^-]|-(?!->))*-->)*\]\s*)?>/i,
+    		greedy: true,
+    		inside: {
+    			'internal-subset': {
+    				pattern: /(^[^\[]*\[)[\s\S]+(?=\]>$)/,
+    				lookbehind: true,
+    				greedy: true,
+    				inside: null // see below
+    			},
+    			'string': {
+    				pattern: /"[^"]*"|'[^']*'/,
+    				greedy: true
+    			},
+    			'punctuation': /^<!|>$|[[\]]/,
+    			'doctype-tag': /^DOCTYPE/i,
+    			'name': /[^\s<>'"]+/
+    		}
+    	},
+    	'cdata': {
+    		pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+    		greedy: true
+    	},
+    	'tag': {
+    		pattern: /<\/?(?!\d)[^\s>\/=$<%]+(?:\s(?:\s*[^\s>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))|(?=[\s/>])))+)?\s*\/?>/,
+    		greedy: true,
+    		inside: {
+    			'tag': {
+    				pattern: /^<\/?[^\s>\/]+/,
+    				inside: {
+    					'punctuation': /^<\/?/,
+    					'namespace': /^[^\s>\/:]+:/
+    				}
+    			},
+    			'special-attr': [],
+    			'attr-value': {
+    				pattern: /=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+)/,
+    				inside: {
+    					'punctuation': [
+    						{
+    							pattern: /^=/,
+    							alias: 'attr-equals'
+    						},
+    						/"|'/
+    					]
+    				}
+    			},
+    			'punctuation': /\/?>/,
+    			'attr-name': {
+    				pattern: /[^\s>\/]+/,
+    				inside: {
+    					'namespace': /^[^\s>\/:]+:/
+    				}
+    			}
+
+    		}
+    	},
+    	'entity': [
+    		{
+    			pattern: /&[\da-z]{1,8};/i,
+    			alias: 'named-entity'
+    		},
+    		/&#x?[\da-f]{1,8};/i
+    	]
+    };
+
+    Prism.languages.markup['tag'].inside['attr-value'].inside['entity'] =
+    	Prism.languages.markup['entity'];
+    Prism.languages.markup['doctype'].inside['internal-subset'].inside = Prism.languages.markup;
+
+    // Plugin to make entity title show the real entity, idea by Roman Komarov
+    Prism.hooks.add('wrap', function (env) {
+
+    	if (env.type === 'entity') {
+    		env.attributes['title'] = env.content.replace(/&amp;/, '&');
+    	}
+    });
+
+    Object.defineProperty(Prism.languages.markup.tag, 'addInlined', {
+    	/**
+    	 * Adds an inlined language to markup.
+    	 *
+    	 * An example of an inlined language is CSS with `<style>` tags.
+    	 *
+    	 * @param {string} tagName The name of the tag that contains the inlined language. This name will be treated as
+    	 * case insensitive.
+    	 * @param {string} lang The language key.
+    	 * @example
+    	 * addInlined('style', 'css');
+    	 */
+    	value: function addInlined(tagName, lang) {
+    		var includedCdataInside = {};
+    		includedCdataInside['language-' + lang] = {
+    			pattern: /(^<!\[CDATA\[)[\s\S]+?(?=\]\]>$)/i,
+    			lookbehind: true,
+    			inside: Prism.languages[lang]
+    		};
+    		includedCdataInside['cdata'] = /^<!\[CDATA\[|\]\]>$/i;
+
+    		var inside = {
+    			'included-cdata': {
+    				pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+    				inside: includedCdataInside
+    			}
+    		};
+    		inside['language-' + lang] = {
+    			pattern: /[\s\S]+/,
+    			inside: Prism.languages[lang]
+    		};
+
+    		var def = {};
+    		def[tagName] = {
+    			pattern: RegExp(/(<__[^>]*>)(?:<!\[CDATA\[(?:[^\]]|\](?!\]>))*\]\]>|(?!<!\[CDATA\[)[\s\S])*?(?=<\/__>)/.source.replace(/__/g, function () { return tagName; }), 'i'),
+    			lookbehind: true,
+    			greedy: true,
+    			inside: inside
+    		};
+
+    		Prism.languages.insertBefore('markup', 'cdata', def);
+    	}
+    });
+    Object.defineProperty(Prism.languages.markup.tag, 'addAttribute', {
+    	/**
+    	 * Adds an pattern to highlight languages embedded in HTML attributes.
+    	 *
+    	 * An example of an inlined language is CSS with `style` attributes.
+    	 *
+    	 * @param {string} attrName The name of the tag that contains the inlined language. This name will be treated as
+    	 * case insensitive.
+    	 * @param {string} lang The language key.
+    	 * @example
+    	 * addAttribute('style', 'css');
+    	 */
+    	value: function (attrName, lang) {
+    		Prism.languages.markup.tag.inside['special-attr'].push({
+    			pattern: RegExp(
+    				/(^|["'\s])/.source + '(?:' + attrName + ')' + /\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))/.source,
+    				'i'
+    			),
+    			lookbehind: true,
+    			inside: {
+    				'attr-name': /^[^\s=]+/,
+    				'attr-value': {
+    					pattern: /=[\s\S]+/,
+    					inside: {
+    						'value': {
+    							pattern: /(^=\s*(["']|(?!["'])))\S[\s\S]*(?=\2$)/,
+    							lookbehind: true,
+    							alias: [lang, 'language-' + lang],
+    							inside: Prism.languages[lang]
+    						},
+    						'punctuation': [
+    							{
+    								pattern: /^=/,
+    								alias: 'attr-equals'
+    							},
+    							/"|'/
+    						]
+    					}
+    				}
+    			}
+    		});
+    	}
+    });
+
+    Prism.languages.html = Prism.languages.markup;
+    Prism.languages.mathml = Prism.languages.markup;
+    Prism.languages.svg = Prism.languages.markup;
+
+    Prism.languages.xml = Prism.languages.extend('markup', {});
+    Prism.languages.ssml = Prism.languages.xml;
+    Prism.languages.atom = Prism.languages.xml;
+    Prism.languages.rss = Prism.languages.xml;
+
+
+    /* **********************************************
+         Begin prism-css.js
+    ********************************************** */
+
+    (function (Prism) {
+
+    	var string = /(?:"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"|'(?:\\(?:\r\n|[\s\S])|[^'\\\r\n])*')/;
+
+    	Prism.languages.css = {
+    		'comment': /\/\*[\s\S]*?\*\//,
+    		'atrule': {
+    			pattern: /@[\w-](?:[^;{\s]|\s+(?![\s{]))*(?:;|(?=\s*\{))/,
+    			inside: {
+    				'rule': /^@[\w-]+/,
+    				'selector-function-argument': {
+    					pattern: /(\bselector\s*\(\s*(?![\s)]))(?:[^()\s]|\s+(?![\s)])|\((?:[^()]|\([^()]*\))*\))+(?=\s*\))/,
+    					lookbehind: true,
+    					alias: 'selector'
+    				},
+    				'keyword': {
+    					pattern: /(^|[^\w-])(?:and|not|only|or)(?![\w-])/,
+    					lookbehind: true
+    				}
+    				// See rest below
+    			}
+    		},
+    		'url': {
+    			// https://drafts.csswg.org/css-values-3/#urls
+    			pattern: RegExp('\\burl\\((?:' + string.source + '|' + /(?:[^\\\r\n()"']|\\[\s\S])*/.source + ')\\)', 'i'),
+    			greedy: true,
+    			inside: {
+    				'function': /^url/i,
+    				'punctuation': /^\(|\)$/,
+    				'string': {
+    					pattern: RegExp('^' + string.source + '$'),
+    					alias: 'url'
+    				}
+    			}
+    		},
+    		'selector': {
+    			pattern: RegExp('(^|[{}\\s])[^{}\\s](?:[^{};"\'\\s]|\\s+(?![\\s{])|' + string.source + ')*(?=\\s*\\{)'),
+    			lookbehind: true
+    		},
+    		'string': {
+    			pattern: string,
+    			greedy: true
+    		},
+    		'property': {
+    			pattern: /(^|[^-\w\xA0-\uFFFF])(?!\s)[-_a-z\xA0-\uFFFF](?:(?!\s)[-\w\xA0-\uFFFF])*(?=\s*:)/i,
+    			lookbehind: true
+    		},
+    		'important': /!important\b/i,
+    		'function': {
+    			pattern: /(^|[^-a-z0-9])[-a-z0-9]+(?=\()/i,
+    			lookbehind: true
+    		},
+    		'punctuation': /[(){};:,]/
+    	};
+
+    	Prism.languages.css['atrule'].inside.rest = Prism.languages.css;
+
+    	var markup = Prism.languages.markup;
+    	if (markup) {
+    		markup.tag.addInlined('style', 'css');
+    		markup.tag.addAttribute('style', 'css');
+    	}
+
+    }(Prism));
+
+
+    /* **********************************************
+         Begin prism-clike.js
+    ********************************************** */
+
+    Prism.languages.clike = {
+    	'comment': [
+    		{
+    			pattern: /(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,
+    			lookbehind: true,
+    			greedy: true
+    		},
+    		{
+    			pattern: /(^|[^\\:])\/\/.*/,
+    			lookbehind: true,
+    			greedy: true
+    		}
+    	],
+    	'string': {
+    		pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+    		greedy: true
+    	},
+    	'class-name': {
+    		pattern: /(\b(?:class|extends|implements|instanceof|interface|new|trait)\s+|\bcatch\s+\()[\w.\\]+/i,
+    		lookbehind: true,
+    		inside: {
+    			'punctuation': /[.\\]/
+    		}
+    	},
+    	'keyword': /\b(?:break|catch|continue|do|else|finally|for|function|if|in|instanceof|new|null|return|throw|try|while)\b/,
+    	'boolean': /\b(?:false|true)\b/,
+    	'function': /\b\w+(?=\()/,
+    	'number': /\b0x[\da-f]+\b|(?:\b\d+(?:\.\d*)?|\B\.\d+)(?:e[+-]?\d+)?/i,
+    	'operator': /[<>]=?|[!=]=?=?|--?|\+\+?|&&?|\|\|?|[?*/~^%]/,
+    	'punctuation': /[{}[\];(),.:]/
+    };
+
+
+    /* **********************************************
+         Begin prism-javascript.js
+    ********************************************** */
+
+    Prism.languages.javascript = Prism.languages.extend('clike', {
+    	'class-name': [
+    		Prism.languages.clike['class-name'],
+    		{
+    			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$A-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\.(?:constructor|prototype))/,
+    			lookbehind: true
+    		}
+    	],
+    	'keyword': [
+    		{
+    			pattern: /((?:^|\})\s*)catch\b/,
+    			lookbehind: true
+    		},
+    		{
+    			pattern: /(^|[^.]|\.\.\.\s*)\b(?:as|assert(?=\s*\{)|async(?=\s*(?:function\b|\(|[$\w\xA0-\uFFFF]|$))|await|break|case|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally(?=\s*(?:\{|$))|for|from(?=\s*(?:['"]|$))|function|(?:get|set)(?=\s*(?:[#\[$\w\xA0-\uFFFF]|$))|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)\b/,
+    			lookbehind: true
+    		},
+    	],
+    	// Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
+    	'function': /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
+    	'number': {
+    		pattern: RegExp(
+    			/(^|[^\w$])/.source +
+    			'(?:' +
+    			(
+    				// constant
+    				/NaN|Infinity/.source +
+    				'|' +
+    				// binary integer
+    				/0[bB][01]+(?:_[01]+)*n?/.source +
+    				'|' +
+    				// octal integer
+    				/0[oO][0-7]+(?:_[0-7]+)*n?/.source +
+    				'|' +
+    				// hexadecimal integer
+    				/0[xX][\dA-Fa-f]+(?:_[\dA-Fa-f]+)*n?/.source +
+    				'|' +
+    				// decimal bigint
+    				/\d+(?:_\d+)*n/.source +
+    				'|' +
+    				// decimal number (integer or float) but no bigint
+    				/(?:\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\.\d+(?:_\d+)*)(?:[Ee][+-]?\d+(?:_\d+)*)?/.source
+    			) +
+    			')' +
+    			/(?![\w$])/.source
+    		),
+    		lookbehind: true
+    	},
+    	'operator': /--|\+\+|\*\*=?|=>|&&=?|\|\|=?|[!=]==|<<=?|>>>?=?|[-+*/%&|^!=<>]=?|\.{3}|\?\?=?|\?\.?|[~:]/
+    });
+
+    Prism.languages.javascript['class-name'][0].pattern = /(\b(?:class|extends|implements|instanceof|interface|new)\s+)[\w.\\]+/;
+
+    Prism.languages.insertBefore('javascript', 'keyword', {
+    	'regex': {
+    		// eslint-disable-next-line regexp/no-dupe-characters-character-class
+    		pattern: /((?:^|[^$\w\xA0-\uFFFF."'\])\s]|\b(?:return|yield))\s*)\/(?:\[(?:[^\]\\\r\n]|\\.)*\]|\\.|[^/\\\[\r\n])+\/[dgimyus]{0,7}(?=(?:\s|\/\*(?:[^*]|\*(?!\/))*\*\/)*(?:$|[\r\n,.;:})\]]|\/\/))/,
+    		lookbehind: true,
+    		greedy: true,
+    		inside: {
+    			'regex-source': {
+    				pattern: /^(\/)[\s\S]+(?=\/[a-z]*$)/,
+    				lookbehind: true,
+    				alias: 'language-regex',
+    				inside: Prism.languages.regex
+    			},
+    			'regex-delimiter': /^\/|\/$/,
+    			'regex-flags': /^[a-z]+$/,
+    		}
+    	},
+    	// This must be declared before keyword because we use "function" inside the look-forward
+    	'function-variable': {
+    		pattern: /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*[=:]\s*(?:async\s*)?(?:\bfunction\b|(?:\((?:[^()]|\([^()]*\))*\)|(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)\s*=>))/,
+    		alias: 'function'
+    	},
+    	'parameter': [
+    		{
+    			pattern: /(function(?:\s+(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)?\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\))/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$a-z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*=>)/i,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /(\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*=>)/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /((?:\b|\s|^)(?!(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		}
+    	],
+    	'constant': /\b[A-Z](?:[A-Z_]|\dx?)*\b/
+    });
+
+    Prism.languages.insertBefore('javascript', 'string', {
+    	'hashbang': {
+    		pattern: /^#!.*/,
+    		greedy: true,
+    		alias: 'comment'
+    	},
+    	'template-string': {
+    		pattern: /`(?:\\[\s\S]|\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}|(?!\$\{)[^\\`])*`/,
+    		greedy: true,
+    		inside: {
+    			'template-punctuation': {
+    				pattern: /^`|`$/,
+    				alias: 'string'
+    			},
+    			'interpolation': {
+    				pattern: /((?:^|[^\\])(?:\\{2})*)\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}/,
+    				lookbehind: true,
+    				inside: {
+    					'interpolation-punctuation': {
+    						pattern: /^\$\{|\}$/,
+    						alias: 'punctuation'
+    					},
+    					rest: Prism.languages.javascript
+    				}
+    			},
+    			'string': /[\s\S]+/
+    		}
+    	},
+    	'string-property': {
+    		pattern: /((?:^|[,{])[ \t]*)(["'])(?:\\(?:\r\n|[\s\S])|(?!\2)[^\\\r\n])*\2(?=\s*:)/m,
+    		lookbehind: true,
+    		greedy: true,
+    		alias: 'property'
+    	}
+    });
+
+    Prism.languages.insertBefore('javascript', 'operator', {
+    	'literal-property': {
+    		pattern: /((?:^|[,{])[ \t]*)(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*:)/m,
+    		lookbehind: true,
+    		alias: 'property'
+    	},
+    });
+
+    if (Prism.languages.markup) {
+    	Prism.languages.markup.tag.addInlined('script', 'javascript');
+
+    	// add attribute support for all DOM events.
+    	// https://developer.mozilla.org/en-US/docs/Web/Events#Standard_events
+    	Prism.languages.markup.tag.addAttribute(
+    		/on(?:abort|blur|change|click|composition(?:end|start|update)|dblclick|error|focus(?:in|out)?|key(?:down|up)|load|mouse(?:down|enter|leave|move|out|over|up)|reset|resize|scroll|select|slotchange|submit|unload|wheel)/.source,
+    		'javascript'
+    	);
+    }
+
+    Prism.languages.js = Prism.languages.javascript;
+
+
+    /* **********************************************
+         Begin prism-file-highlight.js
+    ********************************************** */
+
+    (function () {
+
+    	if (typeof Prism === 'undefined' || typeof document === 'undefined') {
+    		return;
+    	}
+
+    	// https://developer.mozilla.org/en-US/docs/Web/API/Element/matches#Polyfill
+    	if (!Element.prototype.matches) {
+    		Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    	}
+
+    	var LOADING_MESSAGE = 'Loading…';
+    	var FAILURE_MESSAGE = function (status, message) {
+    		return '✖ Error ' + status + ' while fetching file: ' + message;
+    	};
+    	var FAILURE_EMPTY_MESSAGE = '✖ Error: File does not exist or is empty';
+
+    	var EXTENSIONS = {
+    		'js': 'javascript',
+    		'py': 'python',
+    		'rb': 'ruby',
+    		'ps1': 'powershell',
+    		'psm1': 'powershell',
+    		'sh': 'bash',
+    		'bat': 'batch',
+    		'h': 'c',
+    		'tex': 'latex'
+    	};
+
+    	var STATUS_ATTR = 'data-src-status';
+    	var STATUS_LOADING = 'loading';
+    	var STATUS_LOADED = 'loaded';
+    	var STATUS_FAILED = 'failed';
+
+    	var SELECTOR = 'pre[data-src]:not([' + STATUS_ATTR + '="' + STATUS_LOADED + '"])'
+    		+ ':not([' + STATUS_ATTR + '="' + STATUS_LOADING + '"])';
+
+    	/**
+    	 * Loads the given file.
+    	 *
+    	 * @param {string} src The URL or path of the source file to load.
+    	 * @param {(result: string) => void} success
+    	 * @param {(reason: string) => void} error
+    	 */
+    	function loadFile(src, success, error) {
+    		var xhr = new XMLHttpRequest();
+    		xhr.open('GET', src, true);
+    		xhr.onreadystatechange = function () {
+    			if (xhr.readyState == 4) {
+    				if (xhr.status < 400 && xhr.responseText) {
+    					success(xhr.responseText);
+    				} else {
+    					if (xhr.status >= 400) {
+    						error(FAILURE_MESSAGE(xhr.status, xhr.statusText));
+    					} else {
+    						error(FAILURE_EMPTY_MESSAGE);
+    					}
+    				}
+    			}
+    		};
+    		xhr.send(null);
+    	}
+
+    	/**
+    	 * Parses the given range.
+    	 *
+    	 * This returns a range with inclusive ends.
+    	 *
+    	 * @param {string | null | undefined} range
+    	 * @returns {[number, number | undefined] | undefined}
+    	 */
+    	function parseRange(range) {
+    		var m = /^\s*(\d+)\s*(?:(,)\s*(?:(\d+)\s*)?)?$/.exec(range || '');
+    		if (m) {
+    			var start = Number(m[1]);
+    			var comma = m[2];
+    			var end = m[3];
+
+    			if (!comma) {
+    				return [start, start];
+    			}
+    			if (!end) {
+    				return [start, undefined];
+    			}
+    			return [start, Number(end)];
+    		}
+    		return undefined;
+    	}
+
+    	Prism.hooks.add('before-highlightall', function (env) {
+    		env.selector += ', ' + SELECTOR;
+    	});
+
+    	Prism.hooks.add('before-sanity-check', function (env) {
+    		var pre = /** @type {HTMLPreElement} */ (env.element);
+    		if (pre.matches(SELECTOR)) {
+    			env.code = ''; // fast-path the whole thing and go to complete
+
+    			pre.setAttribute(STATUS_ATTR, STATUS_LOADING); // mark as loading
+
+    			// add code element with loading message
+    			var code = pre.appendChild(document.createElement('CODE'));
+    			code.textContent = LOADING_MESSAGE;
+
+    			var src = pre.getAttribute('data-src');
+
+    			var language = env.language;
+    			if (language === 'none') {
+    				// the language might be 'none' because there is no language set;
+    				// in this case, we want to use the extension as the language
+    				var extension = (/\.(\w+)$/.exec(src) || [, 'none'])[1];
+    				language = EXTENSIONS[extension] || extension;
+    			}
+
+    			// set language classes
+    			Prism.util.setLanguage(code, language);
+    			Prism.util.setLanguage(pre, language);
+
+    			// preload the language
+    			var autoloader = Prism.plugins.autoloader;
+    			if (autoloader) {
+    				autoloader.loadLanguages(language);
+    			}
+
+    			// load file
+    			loadFile(
+    				src,
+    				function (text) {
+    					// mark as loaded
+    					pre.setAttribute(STATUS_ATTR, STATUS_LOADED);
+
+    					// handle data-range
+    					var range = parseRange(pre.getAttribute('data-range'));
+    					if (range) {
+    						var lines = text.split(/\r\n?|\n/g);
+
+    						// the range is one-based and inclusive on both ends
+    						var start = range[0];
+    						var end = range[1] == null ? lines.length : range[1];
+
+    						if (start < 0) { start += lines.length; }
+    						start = Math.max(0, Math.min(start - 1, lines.length));
+    						if (end < 0) { end += lines.length; }
+    						end = Math.max(0, Math.min(end, lines.length));
+
+    						text = lines.slice(start, end).join('\n');
+
+    						// add data-start for line numbers
+    						if (!pre.hasAttribute('data-start')) {
+    							pre.setAttribute('data-start', String(start + 1));
+    						}
+    					}
+
+    					// highlight code
+    					code.textContent = text;
+    					Prism.highlightElement(code);
+    				},
+    				function (error) {
+    					// mark as failed
+    					pre.setAttribute(STATUS_ATTR, STATUS_FAILED);
+
+    					code.textContent = error;
+    				}
+    			);
+    		}
+    	});
+
+    	Prism.plugins.fileHighlight = {
+    		/**
+    		 * Executes the File Highlight plugin for all matching `pre` elements under the given container.
+    		 *
+    		 * Note: Elements which are already loaded or currently loading will not be touched by this method.
+    		 *
+    		 * @param {ParentNode} [container=document]
+    		 */
+    		highlight: function highlight(container) {
+    			var elements = (container || document).querySelectorAll(SELECTOR);
+
+    			for (var i = 0, element; (element = elements[i++]);) {
+    				Prism.highlightElement(element);
+    			}
+    		}
+    	};
+
+    	var logged = false;
+    	/** @deprecated Use `Prism.plugins.fileHighlight.highlight` instead. */
+    	Prism.fileHighlight = function () {
+    		if (!logged) {
+    			console.warn('Prism.fileHighlight is deprecated. Use `Prism.plugins.fileHighlight.highlight` instead.');
+    			logged = true;
+    		}
+    		Prism.plugins.fileHighlight.highlight.apply(this, arguments);
+    	};
+
+    }());
+    });
+
+    /* src/BarChart/BarChart2_CodeMirror.svelte generated by Svelte v3.46.4 */
+    const file$3 = "src/BarChart/BarChart2_CodeMirror.svelte";
+
+    function create_fragment$3(ctx) {
+    	let button0;
+    	let button1;
+    	let t2;
+    	let pre0;
+    	let code0;
+    	let raw0_value = prism.highlight(/*code*/ ctx[0], prism.languages["javascript"]) + "";
+    	let t3;
+    	let pre1;
+    	let code1;
+    	let raw1_value = prism.highlight(/*data*/ ctx[1], prism.languages["javascript"]) + "";
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			button0 = element("button");
+    			button0.textContent = "Code";
+    			button1 = element("button");
+    			button1.textContent = "Data";
+    			t2 = space();
+    			pre0 = element("pre");
+    			code0 = element("code");
+    			t3 = space();
+    			pre1 = element("pre");
+    			code1 = element("code");
+    			attr_dev(button0, "class", "page_selected svelte-10zlob6");
+    			attr_dev(button0, "id", "page1");
+    			add_location(button0, file$3, 205, 0, 6443);
+    			attr_dev(button1, "class", "page_selected svelte-10zlob6");
+    			attr_dev(button1, "id", "page2");
+    			add_location(button1, file$3, 206, 3, 6540);
+    			attr_dev(code0, "class", "language-javascript");
+    			add_location(code0, file$3, 209, 3, 6695);
+    			attr_dev(pre0, "id", "page1_desc");
+    			attr_dev(pre0, "class", "codeMirror svelte-10zlob6");
+    			attr_dev(pre0, "contenteditable", "");
+    			add_location(pre0, file$3, 208, 0, 6631);
+    			attr_dev(code1, "class", "language-javascript");
+    			add_location(code1, file$3, 220, 3, 6924);
+    			attr_dev(pre1, "id", "page2_desc");
+    			attr_dev(pre1, "class", "codeMirror svelte-10zlob6");
+    			attr_dev(pre1, "contenteditable", "");
+    			add_location(pre1, file$3, 219, 0, 6860);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, button0, anchor);
+    			insert_dev(target, button1, anchor);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, pre0, anchor);
+    			append_dev(pre0, code0);
+    			code0.innerHTML = raw0_value;
+    			insert_dev(target, t3, anchor);
+    			insert_dev(target, pre1, anchor);
+    			append_dev(pre1, code1);
+    			code1.innerHTML = raw1_value;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", /*click_handler*/ ctx[3], false, false, false),
+    					listen_dev(button1, "click", /*click_handler_1*/ ctx[4], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*code*/ 1 && raw0_value !== (raw0_value = prism.highlight(/*code*/ ctx[0], prism.languages["javascript"]) + "")) code0.innerHTML = raw0_value;		},
+    		i: noop$4,
+    		o: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(button0);
+    			if (detaching) detach_dev(button1);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(pre0);
+    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(pre1);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$3.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function showCode(id) {
+    	if (id === "page1") {
+    		document.getElementById(`page1_desc`).style.display = "block";
+    		document.getElementById(`page2_desc`).style.display = "none";
+    	} else {
+    		document.getElementById(`page1_desc`).style.display = "none";
+    		document.getElementById(`page2_desc`).style.display = "block";
+    	}
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let code;
+    	let $BarChartDocs;
+    	validate_store(BarChartDocs, 'BarChartDocs');
+    	component_subscribe($$self, BarChartDocs, $$value => $$invalidate(2, $BarChartDocs = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('BarChart2_CodeMirror', slots, []);
+
+    	let data = `const sampleData = [
+    { letter: "A", frequency: 0.08167 },
+    { letter: "B", frequency: 0.01492 },
+    { letter: "C", frequency: 0.02782 },
+    { letter: "D", frequency: 0.04253 },
+    { letter: "E", frequency: 0.12702 },
+    { letter: "F", frequency: 0.02288 },
+    { letter: "G", frequency: 0.02015 },
+    { letter: "H", frequency: 0.06094 },
+    { letter: "I", frequency: 0.06966 },
+    { letter: "J", frequency: 0.00153 },
+    { letter: "K", frequency: 0.00772 },
+    { letter: "L", frequency: 0.04025 },
+    { letter: "M", frequency: 0.02406 },
+    { letter: "N", frequency: 0.06749 },
+    { letter: "O", frequency: 0.07507 },
+    { letter: "P", frequency: 0.01929 },
+    { letter: "Q", frequency: 0.00095 },
+    { letter: "R", frequency: 0.05987 },
+    { letter: "S", frequency: 0.06327 },
+    { letter: "T", frequency: 0.09056 },
+    { letter: "U", frequency: 0.02758 },
+    { letter: "V", frequency: 0.00978 },
+    { letter: "W", frequency: 0.0236 },
+    { letter: "X", frequency: 0.0015 },
+    { letter: "Y", frequency: 0.01974 },
+    { letter: "Z", frequency: 0.00074 },
+  ];`;
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<BarChart2_CodeMirror> was created with unknown prop '${key}'`);
+    	});
+
+    	const click_handler = () => showCode("page1");
+    	const click_handler_1 = () => showCode("page2");
+
+    	$$self.$capture_state = () => ({
+    		Prism: prism,
+    		BarChartDocs,
+    		data,
+    		showCode,
+    		code,
+    		$BarChartDocs
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('data' in $$props) $$invalidate(1, data = $$props.data);
+    		if ('code' in $$props) $$invalidate(0, code = $$props.code);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$BarChartDocs*/ 4) {
+    			$$invalidate(0, code = `<script>
+  import * as d3 from "d3";
+  import {flip} from "svelte/animate"
+  import { sampleData } from './sampleData';  //import your custom dataset
+
+  let data = sampleData;
+  let marginTop = ${$BarChartDocs[1].value}; // the top margin, in pixels
+  let marginRight = ${$BarChartDocs[2].value}; // the right margin, in pixels
+  let marginBottom = ${$BarChartDocs[3].value}; // the bottom margin, in pixels
+  let marginLeft = ${$BarChartDocs[4].value}; // the left margin, in pixels
+  let width = ${$BarChartDocs[5].value}; // the outer width of the chart, in pixels
+  let height = ${$BarChartDocs[6].value}; // the outer height of the chart, in pixels
+  let xPadding = ${$BarChartDocs[7].value}; // amount of x-range to reserve to separate bars
+  let yFormat = "${$BarChartDocs[8].value}"; // a format specifier string for the y-axis
+  let yLabel = "${$BarChartDocs[9].value}"; // a label for the y-axis
+  let color = "${$BarChartDocs[10].value}"; // bar fill color
+  let yScalefactor = ${$BarChartDocs[11].value}; //y-axis number of values
+
+  // Modify data based on default, ascending, descending sorts.  Input is based on selectedIndex
+  $: showSort = (input) => {
+    if (input === 1) {
+      return (data = data.sort(
+        (a, b) => a[x].charCodeAt(0) - b[x].charCodeAt(0)
+      ));
+    }
+    if (input === 2) {
+      return (data = data.sort((a, b) => a[y] - b[y]));
+    }
+    if (input === 3) {
+      return (data = data.sort((a, b) => b[y] - a[y]));
+    }
+  };
+
+  // Compute values X and Y value of Arrays
+  let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
+  let y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
+  $: X = data.map((el) => el[x]);
+  $: Y = data.map((el) => el[y]);
+
+  // Compute default domains, and unique the x-domain.
+  $: xDomain = X; // an array of (ordinal) x-values // sort by descending frequency
+  $: yDomain = [0, d3.max(Y)]; // [ymin, ymax]
+
+  // Construct scales, axes, and formats.
+  let xRange = [marginLeft, width - marginRight]; // [left, right]
+  let yRange = [height - marginBottom, marginTop * 2]; // [bottom, top]
+  let yType = d3.scaleLinear; // y-scale type
+  $: xScale = d3.scaleBand(xDomain, xRange).padding(xPadding);
+  $: yScale = yType(yDomain, yRange);
+
+  // Create Y-Axis ticks based on yScalefactor spacing
+  let yTicks = [];
+  $: unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
+  $: for (let i = 1; i < yScalefactor + 1; i++) {
+    yTicks = [...yTicks, Math.floor(i * unit * 100)];
+  }
+
+<\/script>
+
+
+<div class="selector-main" dir="auto">
+    <select
+      on:change={showSort(this.selectedIndex)}
+      onfocus={(this.selectedIndex = -1)}
+    >
+      <option disabled selected value> ---Sorting Method--- </option>
+      <option value="1">Default</option>
+      <option value="2">{y}, Ascending</option>
+      <option value="3">{y}, Descending</option>
+    </select>
+  </div>
+  <svg {width} {height} viewBox="0 0 {width} {height}">
+    <g class="y-axis" transform="translate({marginLeft}, 0)">
+      {#each yTicks as tick, i}
+        <g
+          class="tick"
+          opacity="1"
+          transform="translate(0, {yScale(tick / 100)})"
+        >
+          <line class="tick-start" stroke="black" stroke-opacity="1" x2="-6" />
+          <line class="tick-grid" x2={width - marginLeft - marginRight} />
+          <text x={-marginLeft} y="10">{tick + yFormat}</text>
+        </g>
+      {/each}
+      <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>
+    </g>
+
+    <g class="bars">
+        {#each Y as point, i (point)}
+        <rect
+          x={xScale(X[i])}
+          y={yScale(Y[i])}
+          width={xScale.bandwidth()}
+          height={yScale(0) - yScale(Y[i])}
+          fill={color}
+          animate:flip
+        />
+        {/each}
+    </g>
+
+    <g class="x-axis" transform="translate(0,{height - marginBottom})">
+      <path class="domain" stroke="black" d="M{marginLeft}, 0.5 H{width}" />
+      {#each X as point, i}
+        <g class="tick" opacity="1" transform="translate({xScale(point)},0)">
+          <line
+            x1={xScale.bandwidth() / 2}
+            x2={xScale.bandwidth() / 2}
+            stroke="black"
+            y2="6"
+          />
+          <text y={marginBottom} dx={xScale.bandwidth() / 4}>{X[i]}</text>
+        </g>
+      {/each}
+    </g>
+  </svg>
+
+<style>
+
+  svg {
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .y-axis {
+    font-size: "10px";
+    font-family: sans-serif;
+    text-anchor: "end";
+  }
+
+  .x-axis {
+    font-size: "10px";
+    font-family: sans-serif;
+    text-anchor: "end";
+  }
+
+  .tick {
+    opacity: 1;
+  }
+
+  .tick-start {
+    stroke: black;
+    stroke-opacity: 1;
+  }
+
+  .tick-grid {
+    stroke: black;
+    stroke-opacity: 0.2;
+    font-size: "11px";
+    color: black;
+  }
+
+  .tick text {
+    fill: black;
+    text-anchor: start;
+  }
+</style>
+`);
+    		}
+    	};
+
+    	return [code, data, $BarChartDocs, click_handler, click_handler_1];
+    }
+
+    class BarChart2_CodeMirror extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$3, create_fragment$3, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "BarChart2_CodeMirror",
+    			options,
+    			id: create_fragment$3.name
+    		});
+    	}
+    }
+
+    /* src/BarChart/BarChart2_Docs.svelte generated by Svelte v3.46.4 */
+    const file$2 = "src/BarChart/BarChart2_Docs.svelte";
+
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[4] = list[i];
+    	child_ctx[5] = list;
+    	child_ctx[6] = i;
+    	return child_ctx;
+    }
+
+    // (32:16) {#if doc.max}
+    function create_if_block_1(ctx) {
+    	let li0;
+    	let b;
+    	let t1;
+    	let input;
+    	let input_step_value;
+    	let input_max_value;
+    	let t2;
+    	let li1;
+    	let t3_value = /*doc*/ ctx[4].value + "";
+    	let t3;
+    	let mounted;
+    	let dispose;
+
+    	function input_change_input_handler() {
+    		/*input_change_input_handler*/ ctx[2].call(input, /*each_value*/ ctx[5], /*i*/ ctx[6]);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			li0 = element("li");
+    			b = element("b");
+    			b.textContent = "Adjusted Value:";
+    			t1 = space();
+    			input = element("input");
+    			t2 = space();
+    			li1 = element("li");
+    			t3 = text$1(t3_value);
+    			add_location(b, file$2, 32, 48, 1188);
+    			attr_dev(li0, "class", "prop-value-docs svelte-13b3ngs");
+    			add_location(li0, file$2, 32, 20, 1160);
+    			attr_dev(input, "class", "input svelte-13b3ngs");
+    			attr_dev(input, "type", "range");
+    			attr_dev(input, "step", input_step_value = /*doc*/ ctx[4].max === 1 ? 0.1 : 1);
+    			attr_dev(input, "max", input_max_value = /*doc*/ ctx[4].max);
+    			add_location(input, file$2, 33, 20, 1237);
+    			attr_dev(li1, "class", "input-value svelte-13b3ngs");
+    			add_location(li1, file$2, 34, 20, 1360);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li0, anchor);
+    			append_dev(li0, b);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, input, anchor);
+    			set_input_value(input, /*doc*/ ctx[4].value);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, li1, anchor);
+    			append_dev(li1, t3);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(input, "change", input_change_input_handler),
+    					listen_dev(input, "input", input_change_input_handler)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*$BarChartDocs*/ 1 && input_step_value !== (input_step_value = /*doc*/ ctx[4].max === 1 ? 0.1 : 1)) {
+    				attr_dev(input, "step", input_step_value);
+    			}
+
+    			if (dirty & /*$BarChartDocs*/ 1 && input_max_value !== (input_max_value = /*doc*/ ctx[4].max)) {
+    				attr_dev(input, "max", input_max_value);
+    			}
+
+    			if (dirty & /*$BarChartDocs*/ 1) {
+    				set_input_value(input, /*doc*/ ctx[4].value);
+    			}
+
+    			if (dirty & /*$BarChartDocs*/ 1 && t3_value !== (t3_value = /*doc*/ ctx[4].value + "")) set_data_dev(t3, t3_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li0);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(input);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(li1);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(32:16) {#if doc.max}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (37:16) {#if !doc.max && i > 0}
+    function create_if_block(ctx) {
+    	let li;
+    	let b;
+    	let t1;
+    	let input;
+    	let mounted;
+    	let dispose;
+
+    	function input_input_handler() {
+    		/*input_input_handler*/ ctx[3].call(input, /*each_value*/ ctx[5], /*i*/ ctx[6]);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			li = element("li");
+    			b = element("b");
+    			b.textContent = "Adjusted Value:";
+    			t1 = space();
+    			input = element("input");
+    			add_location(b, file$2, 37, 48, 1511);
+    			attr_dev(li, "class", "prop-value-docs svelte-13b3ngs");
+    			add_location(li, file$2, 37, 20, 1483);
+    			attr_dev(input, "class", "input svelte-13b3ngs");
+    			add_location(input, file$2, 38, 20, 1560);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li, anchor);
+    			append_dev(li, b);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, input, anchor);
+    			set_input_value(input, /*doc*/ ctx[4].value);
+
+    			if (!mounted) {
+    				dispose = listen_dev(input, "input", input_input_handler);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*$BarChartDocs*/ 1 && input.value !== /*doc*/ ctx[4].value) {
+    				set_input_value(input, /*doc*/ ctx[4].value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(input);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(37:16) {#if !doc.max && i > 0}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (25:4) {#each $BarChartDocs as doc, i}
+    function create_each_block(ctx) {
+    	let ul;
+    	let li0;
+    	let t0_value = /*doc*/ ctx[4].variable + "";
+    	let t0;
+    	let t1;
+    	let li1;
+    	let b0;
+    	let t3_value = /*doc*/ ctx[4].dataType + "";
+    	let t3;
+    	let t4;
+    	let li2;
+    	let b1;
+    	let t6_value = /*doc*/ ctx[4].description + "";
+    	let t6;
+    	let t7;
+    	let li3;
+    	let b2;
+    	let span;
+    	let t9_value = /*doc*/ ctx[4].defaultValue + "";
+    	let t9;
+    	let t10;
+    	let div;
+    	let t11;
+    	let t12;
+    	let if_block0 = /*doc*/ ctx[4].max && create_if_block_1(ctx);
+    	let if_block1 = !/*doc*/ ctx[4].max && /*i*/ ctx[6] > 0 && create_if_block(ctx);
+
+    	const block = {
+    		c: function create() {
+    			ul = element("ul");
+    			li0 = element("li");
+    			t0 = text$1(t0_value);
+    			t1 = space();
+    			li1 = element("li");
+    			b0 = element("b");
+    			b0.textContent = "Data Type: ";
+    			t3 = text$1(t3_value);
+    			t4 = space();
+    			li2 = element("li");
+    			b1 = element("b");
+    			b1.textContent = "Description: ";
+    			t6 = text$1(t6_value);
+    			t7 = space();
+    			li3 = element("li");
+    			b2 = element("b");
+    			b2.textContent = "Default Value: ";
+    			span = element("span");
+    			t9 = text$1(t9_value);
+    			t10 = space();
+    			div = element("div");
+    			if (if_block0) if_block0.c();
+    			t11 = space();
+    			if (if_block1) if_block1.c();
+    			t12 = space();
+    			attr_dev(li0, "class", "prop-value svelte-13b3ngs");
+    			add_location(li0, file$2, 26, 12, 737);
+    			add_location(b0, file$2, 27, 40, 820);
+    			attr_dev(li1, "class", "prop-value-docs svelte-13b3ngs");
+    			add_location(li1, file$2, 27, 12, 792);
+    			add_location(b1, file$2, 28, 40, 898);
+    			attr_dev(li2, "class", "prop-value-docs svelte-13b3ngs");
+    			add_location(li2, file$2, 28, 12, 870);
+    			add_location(b2, file$2, 29, 40, 981);
+    			set_style(span, "color", "#FF7550");
+    			add_location(span, file$2, 29, 62, 1003);
+    			attr_dev(li3, "class", "prop-value-docs svelte-13b3ngs");
+    			add_location(li3, file$2, 29, 12, 953);
+    			attr_dev(div, "class", "adjustable-container svelte-13b3ngs");
+    			add_location(div, file$2, 30, 12, 1075);
+    			attr_dev(ul, "class", "svelte-13b3ngs");
+    			add_location(ul, file$2, 25, 8, 720);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, ul, anchor);
+    			append_dev(ul, li0);
+    			append_dev(li0, t0);
+    			append_dev(ul, t1);
+    			append_dev(ul, li1);
+    			append_dev(li1, b0);
+    			append_dev(li1, t3);
+    			append_dev(ul, t4);
+    			append_dev(ul, li2);
+    			append_dev(li2, b1);
+    			append_dev(li2, t6);
+    			append_dev(ul, t7);
+    			append_dev(ul, li3);
+    			append_dev(li3, b2);
+    			append_dev(li3, span);
+    			append_dev(span, t9);
+    			append_dev(ul, t10);
+    			append_dev(ul, div);
+    			if (if_block0) if_block0.m(div, null);
+    			append_dev(div, t11);
+    			if (if_block1) if_block1.m(div, null);
+    			append_dev(ul, t12);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*$BarChartDocs*/ 1 && t0_value !== (t0_value = /*doc*/ ctx[4].variable + "")) set_data_dev(t0, t0_value);
+    			if (dirty & /*$BarChartDocs*/ 1 && t3_value !== (t3_value = /*doc*/ ctx[4].dataType + "")) set_data_dev(t3, t3_value);
+    			if (dirty & /*$BarChartDocs*/ 1 && t6_value !== (t6_value = /*doc*/ ctx[4].description + "")) set_data_dev(t6, t6_value);
+    			if (dirty & /*$BarChartDocs*/ 1 && t9_value !== (t9_value = /*doc*/ ctx[4].defaultValue + "")) set_data_dev(t9, t9_value);
+
+    			if (/*doc*/ ctx[4].max) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+    				} else {
+    					if_block0 = create_if_block_1(ctx);
+    					if_block0.c();
+    					if_block0.m(div, t11);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
+
+    			if (!/*doc*/ ctx[4].max && /*i*/ ctx[6] > 0) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block(ctx);
+    					if_block1.c();
+    					if_block1.m(div, null);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(ul);
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(25:4) {#each $BarChartDocs as doc, i}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$2(ctx) {
+    	let div0;
+    	let h10;
+    	let t1;
+    	let pre;
+    	let code;
+    	let raw_value = prism.highlight(/*dataSchema*/ ctx[1], prism.languages['javascript']) + "";
+    	let t2;
+    	let div1;
+    	let h11;
+    	let t4;
+    	let each_value = /*$BarChartDocs*/ ctx[0];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			div0 = element("div");
+    			h10 = element("h1");
+    			h10.textContent = "Chart Data Schema";
+    			t1 = space();
+    			pre = element("pre");
+    			code = element("code");
+    			t2 = space();
+    			div1 = element("div");
+    			h11 = element("h1");
+    			h11.textContent = "Properties";
+    			t4 = space();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			add_location(h10, file$2, 15, 4, 365);
+    			attr_dev(code, "class", "language-javascript svelte-13b3ngs");
+    			add_location(code, file$2, 17, 7, 438);
+    			attr_dev(pre, "class", "data-schema-code svelte-13b3ngs");
+    			add_location(pre, file$2, 16, 4, 396);
+    			attr_dev(div0, "class", "data-schema-container");
+    			add_location(div0, file$2, 14, 0, 325);
+    			attr_dev(h11, "class", "Properties");
+    			add_location(h11, file$2, 23, 4, 637);
+    			attr_dev(div1, "class", "data-schema-container");
+    			add_location(div1, file$2, 22, 0, 597);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div0, anchor);
+    			append_dev(div0, h10);
+    			append_dev(div0, t1);
+    			append_dev(div0, pre);
+    			append_dev(pre, code);
+    			code.innerHTML = raw_value;
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, h11);
+    			append_dev(div1, t4);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div1, null);
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*$BarChartDocs*/ 1) {
+    				each_value = /*$BarChartDocs*/ ctx[0];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div1, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+    		},
+    		i: noop$4,
+    		o: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div0);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(div1);
+    			destroy_each(each_blocks, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$2.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	let $BarChartDocs;
+    	validate_store(BarChartDocs, 'BarChartDocs');
+    	component_subscribe($$self, BarChartDocs, $$value => $$invalidate(0, $BarChartDocs = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('BarChart2_Docs', slots, []);
+
+    	let dataSchema = `    const data = [
+        { key: x-value, key: y-value }, 
+        { key: x-value, key: y-value }, 
+        { key: x-value, key: y-value },
+        //insert additional data ...
+    ]    `;
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<BarChart2_Docs> was created with unknown prop '${key}'`);
+    	});
+
+    	function input_change_input_handler(each_value, i) {
+    		each_value[i].value = to_number(this.value);
+    		BarChartDocs.set($BarChartDocs);
+    	}
+
+    	function input_input_handler(each_value, i) {
+    		each_value[i].value = this.value;
+    		BarChartDocs.set($BarChartDocs);
+    	}
+
+    	$$self.$capture_state = () => ({
+    		Prism: prism,
+    		BarChartDocs,
+    		dataSchema,
+    		$BarChartDocs
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('dataSchema' in $$props) $$invalidate(1, dataSchema = $$props.dataSchema);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [$BarChartDocs, dataSchema, input_change_input_handler, input_input_handler];
+    }
+
+    class BarChart2_Docs extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$2, create_fragment$2, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "BarChart2_Docs",
+    			options,
+    			id: create_fragment$2.name
+    		});
+    	}
+    }
+
+    /* src/BarChart/BarChart2_Container.svelte generated by Svelte v3.46.4 */
+    const file$1 = "src/BarChart/BarChart2_Container.svelte";
+
+    function create_fragment$1(ctx) {
+    	let div5;
+    	let h1;
+    	let t1;
+    	let div4;
+    	let div2;
+    	let div0;
+    	let barchart2_chart;
+    	let t2;
+    	let div1;
+    	let barchart2_codemirror;
+    	let t3;
+    	let div3;
+    	let barchart2_docs;
+    	let current;
+    	barchart2_chart = new BarChart2_Chart({ $$inline: true });
+    	barchart2_codemirror = new BarChart2_CodeMirror({ $$inline: true });
+    	barchart2_docs = new BarChart2_Docs({ $$inline: true });
+
+    	const block = {
+    		c: function create() {
+    			div5 = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "BAR CHARTS";
+    			t1 = space();
+    			div4 = element("div");
+    			div2 = element("div");
+    			div0 = element("div");
+    			create_component(barchart2_chart.$$.fragment);
+    			t2 = space();
+    			div1 = element("div");
+    			create_component(barchart2_codemirror.$$.fragment);
+    			t3 = space();
+    			div3 = element("div");
+    			create_component(barchart2_docs.$$.fragment);
+    			attr_dev(h1, "class", "page-title svelte-c9qy4s");
+    			add_location(h1, file$1, 7, 4, 248);
+    			attr_dev(div0, "class", "chart-render svelte-c9qy4s");
+    			add_location(div0, file$1, 10, 12, 365);
+    			attr_dev(div1, "class", "code-mirror svelte-c9qy4s");
+    			add_location(div1, file$1, 13, 12, 459);
+    			attr_dev(div2, "class", "code-container svelte-c9qy4s");
+    			add_location(div2, file$1, 9, 8, 324);
+    			attr_dev(div3, "class", "chart-Docs svelte-c9qy4s");
+    			add_location(div3, file$1, 17, 8, 567);
+    			attr_dev(div4, "class", "chart-page svelte-c9qy4s");
+    			add_location(div4, file$1, 8, 4, 291);
+    			attr_dev(div5, "class", "bar-chart-container");
+    			add_location(div5, file$1, 6, 0, 210);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div5, anchor);
+    			append_dev(div5, h1);
+    			append_dev(div5, t1);
+    			append_dev(div5, div4);
+    			append_dev(div4, div2);
+    			append_dev(div2, div0);
+    			mount_component(barchart2_chart, div0, null);
+    			append_dev(div2, t2);
+    			append_dev(div2, div1);
+    			mount_component(barchart2_codemirror, div1, null);
+    			append_dev(div4, t3);
+    			append_dev(div4, div3);
+    			mount_component(barchart2_docs, div3, null);
+    			current = true;
+    		},
+    		p: noop$4,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(barchart2_chart.$$.fragment, local);
+    			transition_in(barchart2_codemirror.$$.fragment, local);
+    			transition_in(barchart2_docs.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(barchart2_chart.$$.fragment, local);
+    			transition_out(barchart2_codemirror.$$.fragment, local);
+    			transition_out(barchart2_docs.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div5);
+    			destroy_component(barchart2_chart);
+    			destroy_component(barchart2_codemirror);
+    			destroy_component(barchart2_docs);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$1.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$1($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('BarChart2_Container', slots, []);
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<BarChart2_Container> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$capture_state = () => ({
+    		BarChart2_Chart,
+    		BarChart2_CodeMirror,
+    		BarChart2_Docs
+    	});
+
+    	return [];
+    }
+
+    class BarChart2_Container extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$1, create_fragment$1, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "BarChart2_Container",
     			options,
     			id: create_fragment$1.name
     		});
@@ -21881,17 +24941,18 @@ var app = (function () {
     function create_fragment(ctx) {
     	let body;
     	let div;
-    	let barchart2;
+    	let barchart2_container;
     	let current;
-    	barchart2 = new BarChart2({ $$inline: true });
+    	barchart2_container = new BarChart2_Container({ $$inline: true });
 
     	const block = {
     		c: function create() {
     			body = element("body");
     			div = element("div");
-    			create_component(barchart2.$$.fragment);
-    			add_location(div, file, 8, 2, 143);
-    			add_location(body, file, 6, 0, 92);
+    			create_component(barchart2_container.$$.fragment);
+    			add_location(div, file, 5, 2, 104);
+    			attr_dev(body, "class", "svelte-1nszbcz");
+    			add_location(body, file, 4, 0, 95);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -21899,22 +24960,22 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, body, anchor);
     			append_dev(body, div);
-    			mount_component(barchart2, div, null);
+    			mount_component(barchart2_container, div, null);
     			current = true;
     		},
     		p: noop$4,
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(barchart2.$$.fragment, local);
+    			transition_in(barchart2_container.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(barchart2.$$.fragment, local);
+    			transition_out(barchart2_container.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(body);
-    			destroy_component(barchart2);
+    			destroy_component(barchart2_container);
     		}
     	};
 
@@ -21938,7 +24999,7 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ BarChart2 });
+    	$$self.$capture_state = () => ({ BarChart2_Container });
     	return [];
     }
 

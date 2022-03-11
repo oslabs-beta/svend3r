@@ -1,12 +1,20 @@
-<!--Load the AJAX API-->
 <script>
-  import BarChart2 from "./BarChart2.svelte";
-
+  import BarChart2_Container from "./BarChart/BarChart2_Container.svelte";
 </script>
 
 <body>
-  <!--Div that will hold the pie chart-->
   <div>
-    <BarChart2/>
+    <BarChart2_Container/>
   </div>
 </body>
+
+<style>
+
+body {
+   height:100%; 
+   background-color: #1E1E1E;
+}
+
+</style>
+
+
