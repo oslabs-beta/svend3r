@@ -26,7 +26,7 @@
     { letter: "U", frequency: 0.02758 },
     { letter: "V", frequency: 0.00978 },
     { letter: "W", frequency: 0.0236 },
-    { letter: "X", frequency: 0.0015 },
+    { letter: "X", frequency: 0.001 },
     { letter: "Y", frequency: 0.01974 },
     { letter: "Z", frequency: 0.00074 },
   ];

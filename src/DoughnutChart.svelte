@@ -22,7 +22,7 @@ onMount(()=> {
   
   // Create dummy data
   const data = {a: 9, b: 20, c:30, d:8, e:12};
-  const color = colorbrewer.Spectral[data.length];
+  // const color = colorbrewer.Spectral[data.length];
   
   // set the color scale
   const color = d3.scaleOrdinal()
