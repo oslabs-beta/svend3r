@@ -97,7 +97,7 @@
           width={xScale.bandwidth()}
           height={yScale(0) - yScale(Y[i])}
           fill={color}
-          animate:flip
+          animate:flip="{{duration: 1000}}"
         />
         {/each}
     </g>

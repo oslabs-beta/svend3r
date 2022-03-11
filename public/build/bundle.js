@@ -21361,7 +21361,7 @@ var app = (function () {
     		},
     		a: function animate() {
     			stop_animation();
-    			stop_animation = create_animation(rect, rect_1, flip, {});
+    			stop_animation = create_animation(rect, rect_1, flip, { duration: 1000 });
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(rect);
@@ -21401,15 +21401,15 @@ var app = (function () {
     			attr_dev(line, "x2", line_x__value_1 = /*xScale*/ ctx[10].bandwidth() / 2);
     			attr_dev(line, "stroke", "black");
     			attr_dev(line, "y2", "6");
-    			add_location(line, file$4, 104, 10, 4794);
+    			add_location(line, file$4, 104, 10, 4815);
     			attr_dev(text_1, "y", /*marginBottom*/ ctx[3]);
     			attr_dev(text_1, "dx", text_1_dx_value = /*xScale*/ ctx[10].bandwidth() / 4);
     			attr_dev(text_1, "class", "svelte-6vzo20");
-    			add_location(text_1, file$4, 110, 10, 4949);
+    			add_location(text_1, file$4, 110, 10, 4970);
     			attr_dev(g, "class", "tick svelte-6vzo20");
     			attr_dev(g, "opacity", "1");
     			attr_dev(g, "transform", g_transform_value = "translate(" + /*xScale*/ ctx[10](/*point*/ ctx[27]) + ",0)");
-    			add_location(g, file$4, 103, 8, 4714);
+    			add_location(g, file$4, 103, 8, 4735);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, g, anchor);
@@ -21569,10 +21569,10 @@ var app = (function () {
     			attr_dev(path, "class", "domain");
     			attr_dev(path, "stroke", "black");
     			attr_dev(path, "d", path_d_value = "M" + /*marginLeft*/ ctx[7] + ", 0.5 H" + /*width*/ ctx[6]);
-    			add_location(path, file$4, 101, 6, 4607);
+    			add_location(path, file$4, 101, 6, 4628);
     			attr_dev(g2, "class", "x-axis svelte-6vzo20");
     			attr_dev(g2, "transform", g2_transform_value = "translate(0," + (/*height*/ ctx[4] - /*marginBottom*/ ctx[3]) + ")");
-    			add_location(g2, file$4, 100, 4, 4533);
+    			add_location(g2, file$4, 100, 4, 4554);
     			attr_dev(svg, "width", /*width*/ ctx[6]);
     			attr_dev(svg, "height", /*height*/ ctx[4]);
     			attr_dev(svg, "viewBox", svg_viewBox_value = "0 0 " + /*width*/ ctx[6] + " " + /*height*/ ctx[4]);
@@ -23979,22 +23979,22 @@ var app = (function () {
     			code1 = element("code");
     			attr_dev(button0, "class", "page_selected svelte-10zlob6");
     			attr_dev(button0, "id", "page1");
-    			add_location(button0, file$3, 205, 0, 6443);
+    			add_location(button0, file$3, 205, 0, 6464);
     			attr_dev(button1, "class", "page_selected svelte-10zlob6");
     			attr_dev(button1, "id", "page2");
-    			add_location(button1, file$3, 206, 3, 6540);
+    			add_location(button1, file$3, 206, 3, 6561);
     			attr_dev(code0, "class", "language-javascript");
-    			add_location(code0, file$3, 209, 3, 6695);
+    			add_location(code0, file$3, 209, 3, 6716);
     			attr_dev(pre0, "id", "page1_desc");
     			attr_dev(pre0, "class", "codeMirror svelte-10zlob6");
     			attr_dev(pre0, "contenteditable", "");
-    			add_location(pre0, file$3, 208, 0, 6631);
+    			add_location(pre0, file$3, 208, 0, 6652);
     			attr_dev(code1, "class", "language-javascript");
-    			add_location(code1, file$3, 220, 3, 6924);
+    			add_location(code1, file$3, 220, 3, 6945);
     			attr_dev(pre1, "id", "page2_desc");
     			attr_dev(pre1, "class", "codeMirror svelte-10zlob6");
     			attr_dev(pre1, "contenteditable", "");
-    			add_location(pre1, file$3, 219, 0, 6860);
+    			add_location(pre1, file$3, 219, 0, 6881);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -24218,7 +24218,7 @@ var app = (function () {
           width={xScale.bandwidth()}
           height={yScale(0) - yScale(Y[i])}
           fill={color}
-          animate:flip
+          animate:flip="{{duration: 1000}}"
         />
         {/each}
     </g>
@@ -24836,17 +24836,17 @@ var app = (function () {
     			t3 = space();
     			div3 = element("div");
     			create_component(barchart2_docs.$$.fragment);
-    			attr_dev(h1, "class", "page-title svelte-c9qy4s");
+    			attr_dev(h1, "class", "page-title svelte-1vi8kpw");
     			add_location(h1, file$1, 7, 4, 248);
-    			attr_dev(div0, "class", "chart-render svelte-c9qy4s");
+    			attr_dev(div0, "class", "chart-render svelte-1vi8kpw");
     			add_location(div0, file$1, 10, 12, 365);
-    			attr_dev(div1, "class", "code-mirror svelte-c9qy4s");
+    			attr_dev(div1, "class", "code-mirror svelte-1vi8kpw");
     			add_location(div1, file$1, 13, 12, 459);
-    			attr_dev(div2, "class", "code-container svelte-c9qy4s");
+    			attr_dev(div2, "class", "code-container svelte-1vi8kpw");
     			add_location(div2, file$1, 9, 8, 324);
-    			attr_dev(div3, "class", "chart-Docs svelte-c9qy4s");
+    			attr_dev(div3, "class", "chart-Docs svelte-1vi8kpw");
     			add_location(div3, file$1, 17, 8, 567);
-    			attr_dev(div4, "class", "chart-page svelte-c9qy4s");
+    			attr_dev(div4, "class", "chart-page svelte-1vi8kpw");
     			add_location(div4, file$1, 8, 4, 291);
     			attr_dev(div5, "class", "bar-chart-container");
     			add_location(div5, file$1, 6, 0, 210);
@@ -24950,9 +24950,9 @@ var app = (function () {
     			body = element("body");
     			div = element("div");
     			create_component(barchart2_container.$$.fragment);
-    			add_location(div, file, 5, 2, 104);
+    			add_location(div, file, 10, 2, 345);
     			attr_dev(body, "class", "svelte-1nszbcz");
-    			add_location(body, file, 4, 0, 95);
+    			add_location(body, file, 9, 0, 336);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");

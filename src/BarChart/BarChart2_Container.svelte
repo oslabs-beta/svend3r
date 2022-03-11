@@ -60,7 +60,8 @@
     text-align: center;
     width:40vw;
     height: 45vh;
-    display: flex;
+    display: table-cell;
+    vertical-align: middle;
   }
   
   .chart-Docs{
