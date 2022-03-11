@@ -1,5 +1,6 @@
 <!--Load the AJAX API-->
 <script>
+<<<<<<< HEAD
   import BarChart2 from "./BarChart2.svelte";
   import Bubble from "./Bubble.svelte"
   // import ColumnChart from "../src/ColumnChart.svelte";
@@ -93,6 +94,13 @@
     },
   ];
 
+=======
+  import BarChart2 from './BarChart2.svelte';
+  import Scatter from './Scatter.svelte';
+  import scatterdata from './nivo-scatter-data';
+  import Chord from './Chord.svelte';
+  import chordData from './observable-chord-data';
+>>>>>>> 50c8ec469d0d74e06a2a8c0f6402a9f1aac8b00c
 </script>
 
 <body>
@@ -102,7 +110,13 @@
   <!-- <AnimatedDoughnut/> -->4
   <!-- <div id="chart_div" /> -->
   <div>
+<<<<<<< HEAD
     <BarChart2/>
     <Bubble/>
+=======
+    <!-- <BarChart2/> -->
+    <!-- <Scatter {scatterdata} /> -->
+    <Chord {chordData} />
+>>>>>>> 50c8ec469d0d74e06a2a8c0f6402a9f1aac8b00c
   </div>
 </body>
