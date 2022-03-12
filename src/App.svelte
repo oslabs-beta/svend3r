@@ -5,6 +5,9 @@
   import scatterdata from './nivo-scatter-data';
   import Chord from './Chord.svelte';
   import chordData from './observable-chord-data';
+  // import lineData from './line-data-vtsax';
+  import lineData from './line-data-vtsax';
+  import LineChart from './LineChart.svelte';
 </script>
 
 <body>
@@ -12,6 +15,7 @@
   <div>
     <!-- <BarChart2/> -->
     <!-- <Scatter {scatterdata} /> -->
-    <Chord {chordData} />
+    <!-- <Chord {chordData} /> -->
+    <LineChart {lineData} />
   </div>
 </body>
