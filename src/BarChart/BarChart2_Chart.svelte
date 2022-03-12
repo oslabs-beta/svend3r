@@ -57,7 +57,7 @@
   }
 </script>
 
-<div class="selector-main" dir="auto">
+<div class="c" dir="auto">
   <select
     on:change={showSort(this.selectedIndex)}
     onfocus={(this.selectedIndex = -1)}

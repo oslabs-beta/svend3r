@@ -4,12 +4,12 @@
   // import scatterdata from './nivo-scatter-data';
   // import Chord from './Chord.svelte';
   // import chordData from './observable-chord-data';
-  import BarChart2_Container from "./BarChart/BarChart2_Container.svelte";
+  import Radial_Stacked_Bart_Chart from "./Radial-Stacked-Bar/Radial_Stacked_Bart_Chart.svelte";
 </script>
 
 <body>
   <div>
-    <BarChart2_Container/>
+    <Radial_Stacked_Bart_Chart/>
     <!-- <Scatter {scatterdata} /> -->
     <!-- <Chord {chordData} /> -->
   </div>

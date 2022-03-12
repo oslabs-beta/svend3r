@@ -56,12 +56,12 @@
   
   .chart-render {
     background-color: rgba(255, 255, 255, 0.87);
+    display: flex;
     align-items: center;
+    justify-content: center;
     text-align: center;
     width:40vw;
     height: 45vh;
-    display: table-cell;
-    vertical-align: middle;
   }
   
   .chart-Docs{
