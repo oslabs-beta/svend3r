@@ -1,9 +1,11 @@
 <script>
-  import { curveLinear, scaleUtc, scaleLinear, line, range } from 'd3';
+  import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay }
+    from 'd3';
+  import { fly } from 'svelte/transition';
 
-  export let lineData;
+  export let areaData;
 
-  const data = lineData,
+  const data = areaData,
     r = 3, // (fixed) radius of dots, in pixels
     curve = curveLinear, // method of interpolation between points
     marginTop = 20, // the top margin, in pixels
@@ -87,12 +89,24 @@
     .x(i => xScale(xVals[i]))
     .y(i => yScale(yVals[i])); // TODO: should this be niceY?
 
-  const lines = [];
+  const chartArea = area()
+    .defined(i => cleanData[i])
+    .curve(curve)
+    .x(i => xScale(xVals[i]))
+    .y0(yScale(0))
+    .y1(i => yScale(yVals[i])); // TODO: should this be niceY?
+
+  const areas = [];
 
   colors.forEach((color, j) => {
     const filteredI = I.filter((el, i) => colorVals[i] === j);
-    lines.push(chartLine(filteredI));
+    areas.push(chartArea(filteredI));
   });
+  
+
+  
+  const xAxis = axisBottom(xScale).ticks(xScalefactor).tickSizeOuter(0);
+  const yAxis = axisLeft(yScale).ticks(yScalefactor, yFormat);
 
   const xTicks = xScale.ticks(xScalefactor);
   const xTicksFormatted = xTicks.map((el, i, t) => {
@@ -138,14 +152,14 @@
     {/each}
   {/if}
 
-  <!-- Chart Lines -->
-  {#each lines as subsetLine, i}
+  <!-- Chart Areas -->
+  {#each areas as subsetArea, i}
     <g class='chartlines' pointer-events='none'>
       {#if dotInfo}
-        <path class="line" fill='none' stroke-opacity={dotInfo.index === i ? '1' : '0.4'} stroke={colors[i]} d={subsetLine} />
+        <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '1' : '0.4'} stroke={colors[i]} d={subsetArea} />
         <circle cx={xScale(dotInfo.x)} cy={yScale(dotInfo.y)} r=3 stroke={colors[dotInfo.index]} fill='none' />
       {:else}
-        <path class="line" fill='none' stroke={colors[i]} d={subsetLine}
+        <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
           stroke-opacity={strokeOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
       {/if}
     </g>
