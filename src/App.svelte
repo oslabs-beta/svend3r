@@ -1,35 +1,33 @@
 <script>
-  import BarChart2 from './BarChart2.svelte';
   import Scatter from './Scatter.svelte';
   import scatterdata from './nivo-scatter-data';
   import Chord from './Chord.svelte';
   import chordData from './observable-chord-data';
-  // import lineData from './line-data-vtsax';
-  import lineData from './line-data-vtsax';
   import LineChart from './LineChart.svelte';
+  import lineData from './line-data-multi';
+  import AreaChart from './AreaChart.svelte';
+  import areaData from './line-data-multi';
+  // import lineData from './line-data-vtsax';
   // import BarChart2 from './BarChart2.svelte';
-  // import Scatter from './Scatter.svelte';
-  // import scatterdata from './nivo-scatter-data';
-  // import Chord from './Chord.svelte';
-  // import chordData from './observable-chord-data';
   import BarChart2_Container from './BarChart/BarChart2_Container.svelte';
 </script>
 
 <body>
   <div>
-    <BarChart2_Container/>
+    <!-- <BarChart2_Container/> -->
     <!-- <Scatter {scatterdata} /> -->
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
+    <AreaChart {areaData} />
   </div>
 </body>
 
 <style>
 
-body {
+/* body {
    height:100%; 
    background-color: #1E1E1E;
-}
+} */
 
 </style>
 

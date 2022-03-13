@@ -3793,7 +3793,7 @@ const csvVbtlx = `Date,Adj Close
 12/30/2021,11.143635
 12/31/2021,11.171588`;
 
-const vbtlx = csvVgenx.split('\n').slice(1).map(str => {
+const vbtlx = csvVbtlx.split('\n').slice(1).map(str => {
   const [date, close] = str.split(',')
     .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
   return { date, close };
