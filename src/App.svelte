@@ -7,6 +7,8 @@
   import lineData from './line-data-multi';
   import AreaChart from './AreaChart.svelte';
   import areaData from './line-data-multi';
+  import PieChart from './PieChart.svelte';
+  import pieData from './pie-data-census';
   // import lineData from './line-data-vtsax';
   // import BarChart2 from './BarChart2.svelte';
   import BarChart2_Container from './BarChart/BarChart2_Container.svelte';
@@ -18,7 +20,8 @@
     <!-- <Scatter {scatterdata} /> -->
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
-    <AreaChart {areaData} />
+    <!-- <AreaChart {areaData} /> -->
+    <PieChart {pieData} />
   </div>
 </body>
 
