@@ -9,6 +9,8 @@
   import areaData from './line-data-multi';
   import PieChart from './PieChart.svelte';
   import pieData from './pie-data-census';
+  import Choropleth from './Choropleth.svelte';
+  import choroplethData from './bivariate-choropleth-data-d3';
   // import lineData from './line-data-vtsax';
   // import BarChart2 from './BarChart2.svelte';
   import BarChart2_Container from './BarChart/BarChart2_Container.svelte';
@@ -21,7 +23,8 @@
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <AreaChart {areaData} /> -->
-    <PieChart {pieData} />
+    <!-- <PieChart {pieData} /> -->
+    <Choropleth {choroplethData} />
   </div>
 </body>
 
