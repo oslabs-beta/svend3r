@@ -1,7 +1,7 @@
 <script>
-    import BarChart2_Chart from "./BarChart2_Chart.svelte";
-    import BarChart2_CodeMirror from "./BarChart2_CodeMirror.svelte";
-    import BarChart2_Docs from "./BarChart2_Docs.svelte";
+    import BarChart2_Chart from './BarVert_Chart.svelte';
+    import BarChart2_CodeMirror from './BarVert_Code.svelte';
+    import BarChart2_Docs from './BarVert_Docs.svelte';
 </script>
   
 <div class="bar-chart-container">

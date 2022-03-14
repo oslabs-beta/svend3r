@@ -1,30 +1,30 @@
 <script>
-  import Scatter from './Scatter.svelte';
-  import scatterdata from './nivo-scatter-data';
-  import Chord from './Chord.svelte';
-  import chordData from './observable-chord-data';
-  import LineChart from './LineChart.svelte';
-  import lineData from './line-data-multi';
-  import AreaChart from './AreaChart.svelte';
-  import areaData from './line-data-multi';
-  import PieChart from './PieChart.svelte';
-  import pieData from './pie-data-census';
-  import Choropleth from './Choropleth.svelte';
-  import choroplethData from './bivariate-choropleth-data-d3';
-  // import lineData from './line-data-vtsax';
-  // import BarChart2 from './BarChart2.svelte';
-  import BarChart2_Container from './BarChart/BarChart2_Container.svelte';
+  import Scatter from './Scatter/Scatter_Chart.svelte';
+  import scatterData from './data/nivo-scatter-data';
+  import Chord from './Chord/Chord_Chart.svelte';
+  import chordData from './data/observable-chord-data';
+  import LineChart from './Line/Line_Chart.svelte';
+  import lineData from './data/line-data-multi';
+  // import lineData from './data/line-data-vtsax';
+  import AreaChart from './Area/Area_Chart.svelte';
+  import areaData from './data/line-data-multi';
+  import PieChart from './Pie/Pie_Chart.svelte';
+  import pieData from './data/pie-data-census';
+  import Choropleth from './Choropleth/Choropleth_Chart.svelte';
+  import choroplethData from './data/bivariate-choropleth-data-d3';
+  
+  import BarVert_Container from './BarVert/BarVert_Container.svelte';
 </script>
 
 <body>
   <div>
-    <!-- <BarChart2_Container/> -->
-    <!-- <Scatter {scatterdata} /> -->
+    <BarVert_Container/>
+    <!-- <Scatter {scatterData} /> -->
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <AreaChart {areaData} /> -->
     <!-- <PieChart {pieData} /> -->
-    <Choropleth {choroplethData} />
+    <!-- <Choropleth {choroplethData} /> -->
   </div>
 </body>
 

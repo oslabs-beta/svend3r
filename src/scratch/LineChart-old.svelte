@@ -41,9 +41,8 @@
     tooltipBackground = 'black', // background color of tooltip
     tooltipTextColor = 'white'; // text color of tooltip
 
-  let x, y, xVals = [], yVals = [], colorVals = [], points = [],
-    filters = [...colors], selectedDot, dotInfo;
-  const subsets = [];
+  let x, y, xVals = [], yVals = [], points = [], dotInfo;
+  const subsets = [], colorVals = [];
 
   console.log('data', data);
 

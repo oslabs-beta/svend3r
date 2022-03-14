@@ -1,6 +1,6 @@
 <script>
-  import * as d3 from "d3";
-  import { fly } from "svelte/transition";
+  import * as d3 from 'd3';
+  import { fly } from 'svelte/transition';
   import { onMount } from 'svelte';
 // import { filter } from "d3";
 // import { subset } from "d3";
@@ -24,17 +24,17 @@
     xRange = [marginLeft + insetLeft, width - marginRight - insetRight], // [left, right]
     yType = d3.scaleLinear, // type of y-scale
     yRange = [height - marginBottom - insetBottom, marginTop + insetTop], // [bottom, top]
-    xLabel = "Weight →", // a label for the y-axis
-    yLabel = "↑ Height", // a label for the y-axis
-    xFormat = "kg", // a format specifier string for the y-axis
-    yFormat = "cm", // a format specifier string for the y-axis
+    xLabel = 'Weight →', // a label for the y-axis
+    yLabel = '↑ Height', // a label for the y-axis
+    xFormat = 'kg', // a format specifier string for the y-axis
+    yFormat = 'cm', // a format specifier string for the y-axis
     xScalefactor = 10, //y-axis number of values
     yScalefactor = 12, //y-axis number of values
     // number of colors in fill array MUST match number of subsets in data
-    fill = ["red", "orange", "yellow", "green", "blue"], // fill color for dots
-    stroke = "black", // stroke color for the dots
+    fill = ['red', 'orange', 'yellow', 'green', 'blue'], // fill color for dots
+    stroke = 'black', // stroke color for the dots
     strokeWidth = 1.5, // stroke width for dots
-    halo = "#fff", // color of label halo 
+    halo = '#fff', // color of label halo 
     haloWidth = 3, // padding around the labels
     duration = 1000;
 
@@ -55,13 +55,13 @@
       subset.data.forEach((coordinate) => {
         X.push(coordinate[x]);
         Y.push(coordinate[y]);
-        points.push([coordinate[x], coordinate[y], i])
+        points.push([coordinate[x], coordinate[y], i]);
       });
       subsets.push(subset.id);
     });
     filters = [...fill];
   }
-  console.log('x', x, 'y', y)
+  console.log('x', x, 'y', y);
   console.log(points);
   console.log(subsets);
 
@@ -76,7 +76,7 @@
   $: yScale = yType(yDomain, yRange);
 
   $: pointsScaled = points.map((el) => [xScale(el[0]), yScale(el[1]), el[2]])
-                            .filter((el) => filters.includes(fill[el[2]]));
+    .filter((el) => filters.includes(fill[el[2]]));
   // $: points = points.map((el) => [xScale(el[x]), yScale(el[y])]);
   // $: points = data.map((el) => [el[x], el[y]]);
   $: delaunay = d3.Delaunay.from(pointsScaled);
@@ -86,13 +86,13 @@
   $: unit = Math.round((xDomain[1] - xDomain[0]) / xScalefactor);
   $: for (let i = 1; i < xScalefactor + 1; i++) {
     xTicks.push(i * unit);
-  };
+  }
 
   $: yTicks = [];
   $: unit = Math.round((yDomain[1] - yDomain[0]) / yScalefactor);
   $: for (let i = 1; i < yScalefactor + 1; i++) {
     yTicks.push(i * unit); // TODO make adjustable here and in BarChart
-  };
+  }
 
   let selectedDot, dotInfo;
 
@@ -101,10 +101,10 @@
     const extent = [[marginLeft, marginTop], [width - marginRight, height - marginTop]];
 
     d3.select('svg').call(d3.zoom()
-        .scaleExtent([0.5, 32])
-        // .translateExtent(extent)
-        // .extent(extent)
-        .on("zoom", zoomed));
+      .scaleExtent([0.5, 32])
+    // .translateExtent(extent)
+    // .extent(extent)
+      .on('zoom', zoomed));
 
     // I think this can work...but it doesn't work yet
     // function zoomed({transform}) {
@@ -145,7 +145,7 @@
     // xDomain = new d3.InternSet(xDomain);
     console.log('X', X, 'Y', Y);
     console.log(data);
-  }
+  };
 
   const sortedDesc = () => {
     console.log('sort asc');
@@ -159,14 +159,14 @@
     // xDomain = new d3.InternSet(xDomain);
     console.log('X', X, 'Y', Y);
     console.log(data);
-  }
+  };
 
   const filter = (color) => {
     console.log(color, filters);
     if (filters.includes(color)) filters = filters.filter((col) => col !== color);
     else filters = [...filters, color];
     console.log(filters);
-  }
+  };
 
   // Compute values X and Y value of Arrays
   // let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
@@ -249,7 +249,7 @@
               <circle
                 cx={dot[0]}
                 cy={dot[1]}
-                r={r+2}
+                r={r + 2}
                 stroke={stroke}
                 fill={fill[dot[2]]}
               />
