@@ -84,14 +84,14 @@ on:blur="{() => groupInfo = null}"  -->
 </svg>
 
 <!-- Group Tooltip -->
-{#if groupInfo}  
+<!-- {#if groupInfo}  
   <div style="position:absolute; left:{groupInfo[1].clientX + 12}px; top:{groupInfo[1].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
     {names[groupInfo[0]]}: {(groupInfo[2] * 100).toFixed(2)}%
   </div>
-{/if}
+{/if} -->
   
 <style>
-  div {
+  /* div {
     white-space: pre;
-  }
+  } */
 </style>

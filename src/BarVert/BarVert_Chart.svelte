@@ -1,8 +1,8 @@
 <script>
-  import * as d3 from "d3";
-  import { flip } from "svelte/animate";
-  import { sampleData } from "./sampleData"; //import your custom dataset
-  import { BarChartDocs } from "./BarChart2_stores.js"; //*****Remove for Production for production use
+  import * as d3 from 'd3';
+  import { flip } from 'svelte/animate';
+  import { sampleData } from '../data/sampleData'; //import your custom dataset
+  import { BarChartDocs } from './BarVert_Store.js'; //*****Remove for Production for production use
 
   let data = sampleData;
   $: marginTop = $BarChartDocs[1].value; // the top margin, in pixels //*****Remove reactivepermalink for production use
@@ -33,8 +33,8 @@
   };
 
   // Compute values X and Y value of Arrays
-  let x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
-  let y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
+  const x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
+  const y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
   $: X = data.map((el) => el[x]);
   $: Y = data.map((el) => el[y]);
 
@@ -45,7 +45,7 @@
   // Construct scales, axes, and formats.
   $: xRange = [marginLeft, width - marginRight]; // [left, right] //*****Remove reactivepermalink for production use
   $: yRange = [height - marginBottom, marginTop * 2]; // [bottom, top] //*****Remove reactivepermalink for production use
-  let yType = d3.scaleLinear; // y-scale type
+  const yType = d3.scaleLinear; // y-scale type
   $: xScale = d3.scaleBand(xDomain, xRange).padding(xPadding);
   $: yScale = yType(yDomain, yRange);
 

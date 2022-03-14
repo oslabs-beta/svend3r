@@ -1,6 +1,6 @@
 <script>
-  import Prism from "prismjs";
-  import { BarChartDocs } from "./BarChart2_stores.js"
+  import Prism from 'prismjs';
+  import { BarChartDocs } from './BarVert_Store.js';
 
   $: code = `<script>
   import * as d3 from "d3";
@@ -162,7 +162,7 @@
 
   // outputs the content of the text file
 
-  let data = `const sampleData = [
+  const data = `const sampleData = [
     { letter: "A", frequency: 0.08167 },
     { letter: "B", frequency: 0.01492 },
     { letter: "C", frequency: 0.02782 },
@@ -189,29 +189,29 @@
     { letter: "X", frequency: 0.0015 },
     { letter: "Y", frequency: 0.01974 },
     { letter: "Z", frequency: 0.00074 },
-  ];`
+  ];`;
 
 function showCode(id) {
-  if(id === "page1") {
-   document.getElementById(`page1_desc`).style.display = "block";
-   document.getElementById(`page2_desc`).style.display = "none";
-  } else {
-   document.getElementById(`page1_desc`).style.display = "none";
-   document.getElementById(`page2_desc`).style.display = "block";
-  }
+    if(id === 'page1') {
+      document.getElementById('page1_desc').style.display = 'block';
+      document.getElementById('page2_desc').style.display = 'none';
+    } else {
+      document.getElementById('page1_desc').style.display = 'none';
+      document.getElementById('page2_desc').style.display = 'block';
+    }
 }
 
 </script>
 
-<button class="page_selected" id="page1" on:click={() => showCode("page1")}>Code</button><!--
---><button class="page_selected" id="page2" on:click={() => showCode("page2")}>Data</button>
+<button class="page_selected" id="page1" on:click={() => showCode('page1')}>Code</button><!--
+--><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code class="language-javascript"
     ><!--
      -->{@html Prism.highlight(
       code,
-      Prism.languages["javascript"]
+      Prism.languages['javascript']
     )}<!--
  --></code
   ><!--
@@ -222,7 +222,7 @@ function showCode(id) {
     ><!--
      -->{@html Prism.highlight(
       data,
-      Prism.languages["javascript"]
+      Prism.languages['javascript']
     )}<!--
  --></code
   ><!--

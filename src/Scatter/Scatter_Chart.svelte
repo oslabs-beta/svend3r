@@ -1,9 +1,9 @@
 <script>
   import { scaleLinear, Delaunay } from 'd3';
 
-  export let scatterdata;
+  export let scatterData;
 
-  const data = scatterdata,
+  const data = scatterData,
     r = 3, // (fixed) radius of dots, in pixels
     marginTop = 20, // the top margin, in pixels
     marginRight = 0, // the right margin, in pixels

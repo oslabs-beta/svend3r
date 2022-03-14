@@ -1,9 +1,9 @@
 
 <script>
     import Prism from 'prismjs';
-    import { BarChartDocs } from "./BarChart2_stores.js"
+    import { BarChartDocs } from './BarVert_Store.js';
 
-    let dataSchema = `    const data = [
+    const dataSchema = `    const data = [
         { key: x-value, key: y-value }, 
         { key: x-value, key: y-value }, 
         { key: x-value, key: y-value },
