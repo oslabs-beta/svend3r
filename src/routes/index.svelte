@@ -5,6 +5,7 @@
 	import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
 	import ChartsDisplay from '$lib/chartsDisplay/ChartsDisplay.svelte';
 	// import barIcon from '/bar.svg';
+	
 	const barIcon = '/bar.svg';
 </script>
 
