@@ -8,7 +8,7 @@
   // import BubbleWrapper from './Bubble/Bubble.svelte'
   import ForceWrapper from './Force Example/ForceWrapper.svelte';
 import WordExample from './WordExample.svelte';
-  import WordCloud from './WordCloud.svelte';
+  import WordCloud from './Word Cloud/WordCloud.svelte';
 </script>
 
 <body>
