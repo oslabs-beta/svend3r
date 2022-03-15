@@ -1,5 +1,5 @@
 
-(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35732/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
+(function(l, r) { if (!l || l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (self.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.getElementsByTagName('head')[0].appendChild(r) })(self.document);
 var app = (function () {
     'use strict';
 
@@ -36,8 +36,24 @@ var app = (function () {
     function detach(node) {
         node.parentNode.removeChild(node);
     }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
+        }
+    }
     function element(name) {
         return document.createElement(name);
+    }
+    function svg_element(name) {
+        return document.createElementNS('http://www.w3.org/2000/svg', name);
+    }
+    function text$1(data) {
+        return document.createTextNode(data);
+    }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
     }
     function attr(node, attribute, value) {
         if (value == null)
@@ -47,6 +63,14 @@ var app = (function () {
     }
     function children$1(element) {
         return Array.from(element.childNodes);
+    }
+    function set_style(node, key, value, important) {
+        if (value === null) {
+            node.style.removeProperty(key);
+        }
+        else {
+            node.style.setProperty(key, value, important ? 'important' : '');
+        }
     }
     function custom_event(type, detail, bubbles = false) {
         const e = document.createEvent('CustomEvent');
@@ -314,12 +338,34 @@ var app = (function () {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
     }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
+    }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
         if (value == null)
             dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
         else
             dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
+    }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -3051,7 +3097,7 @@ var app = (function () {
       return drag;
     }
 
-    function define$1(constructor, factory, prototype) {
+    function define(constructor, factory, prototype) {
       constructor.prototype = factory.prototype = prototype;
       prototype.constructor = constructor;
     }
@@ -3229,7 +3275,7 @@ var app = (function () {
       yellowgreen: 0x9acd32
     };
 
-    define$1(Color, color, {
+    define(Color, color, {
       copy: function(channels) {
         return Object.assign(new this.constructor, this, channels);
       },
@@ -3301,7 +3347,7 @@ var app = (function () {
       this.opacity = +opacity;
     }
 
-    define$1(Rgb, rgb, extend(Color, {
+    define(Rgb, rgb, extend(Color, {
       brighter: function(k) {
         k = k == null ? brighter : Math.pow(brighter, k);
         return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
@@ -3387,7 +3433,7 @@ var app = (function () {
       this.opacity = +opacity;
     }
 
-    define$1(Hsl, hsl$2, extend(Color, {
+    define(Hsl, hsl$2, extend(Color, {
       brighter: function(k) {
         k = k == null ? brighter : Math.pow(brighter, k);
         return new Hsl(this.h, this.s, this.l * k, this.opacity);
@@ -3475,7 +3521,7 @@ var app = (function () {
       this.opacity = +opacity;
     }
 
-    define$1(Lab, lab$1, extend(Color, {
+    define(Lab, lab$1, extend(Color, {
       brighter: function(k) {
         return new Lab(this.l + K * (k == null ? 1 : k), this.a, this.b, this.opacity);
       },
@@ -3543,7 +3589,7 @@ var app = (function () {
       return new Lab(o.l, Math.cos(h) * o.c, Math.sin(h) * o.c, o.opacity);
     }
 
-    define$1(Hcl, hcl$2, extend(Color, {
+    define(Hcl, hcl$2, extend(Color, {
       brighter: function(k) {
         return new Hcl(this.h, this.c, this.l + K * (k == null ? 1 : k), this.opacity);
       },
@@ -3589,7 +3635,7 @@ var app = (function () {
       this.opacity = +opacity;
     }
 
-    define$1(Cubehelix, cubehelix$3, extend(Color, {
+    define(Cubehelix, cubehelix$3, extend(Color, {
       brighter: function(k) {
         k = k == null ? brighter : Math.pow(brighter, k);
         return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
@@ -8514,7 +8560,7 @@ var app = (function () {
 
     var html = parser("text/html");
 
-    var svg = parser("image/svg+xml");
+    var svg$1 = parser("image/svg+xml");
 
     function center(x, y) {
       var nodes, strength = 1;
@@ -20244,7 +20290,7 @@ var app = (function () {
         text: text,
         xml: xml,
         html: html,
-        svg: svg,
+        svg: svg$1,
         forceCenter: center,
         forceCollide: collide,
         forceLink: link$2,
@@ -20646,598 +20692,620 @@ var app = (function () {
         ZoomTransform: Transform
     });
 
-    const sampleData = [
-      {
-        State: "AL",
-        "Under 5 Years": 310504,
-        "5 to 13 Years": 552339,
-        "14 to 17 Years": 259034,
-        "18 to 24 Years": 450818,
-        "25 to 44 Years": 1231572,
-        "45 to 64 Years": 1215966,
-        "65 Years and Over": 641667,
-        total: 4661900,
-      },
-      {
-        State: "AK",
-        "Under 5 Years": 52083,
-        "5 to 13 Years": 85640,
-        "14 to 17 Years": 42153,
-        "18 to 24 Years": 74257,
-        "25 to 44 Years": 198724,
-        "45 to 64 Years": 183159,
-        "65 Years and Over": 50277,
-        total: 686293,
-      },
-      {
-        State: "AZ",
-        "Under 5 Years": 515910,
-        "5 to 13 Years": 828669,
-        "14 to 17 Years": 362642,
-        "18 to 24 Years": 601943,
-        "25 to 44 Years": 1804762,
-        "45 to 64 Years": 1523681,
-        "65 Years and Over": 862573,
-        total: 6500180,
-      },
-      {
-        State: "AR",
-        "Under 5 Years": 202070,
-        "5 to 13 Years": 343207,
-        "14 to 17 Years": 157204,
-        "18 to 24 Years": 264160,
-        "25 to 44 Years": 754420,
-        "45 to 64 Years": 727124,
-        "65 Years and Over": 407205,
-        total: 2855390,
-      },
-      {
-        State: "CA",
-        "Under 5 Years": 2704659,
-        "5 to 13 Years": 4499890,
-        "14 to 17 Years": 2159981,
-        "18 to 24 Years": 3853788,
-        "25 to 44 Years": 10604510,
-        "45 to 64 Years": 8819342,
-        "65 Years and Over": 4114496,
-        total: 36756666,
-      },
-      {
-        State: "CO",
-        "Under 5 Years": 358280,
-        "5 to 13 Years": 587154,
-        "14 to 17 Years": 261701,
-        "18 to 24 Years": 466194,
-        "25 to 44 Years": 1464939,
-        "45 to 64 Years": 1290094,
-        "65 Years and Over": 511094,
-        total: 4939456,
-      },
-      {
-        State: "CT",
-        "Under 5 Years": 211637,
-        "5 to 13 Years": 403658,
-        "14 to 17 Years": 196918,
-        "18 to 24 Years": 325110,
-        "25 to 44 Years": 916955,
-        "45 to 64 Years": 968967,
-        "65 Years and Over": 478007,
-        total: 3501252,
-      },
-      {
-        State: "DE",
-        "Under 5 Years": 59319,
-        "5 to 13 Years": 99496,
-        "14 to 17 Years": 47414,
-        "18 to 24 Years": 84464,
-        "25 to 44 Years": 230183,
-        "45 to 64 Years": 230528,
-        "65 Years and Over": 121688,
-        total: 873092,
-      },
-      {
-        State: "DC",
-        "Under 5 Years": 36352,
-        "5 to 13 Years": 50439,
-        "14 to 17 Years": 25225,
-        "18 to 24 Years": 75569,
-        "25 to 44 Years": 193557,
-        "45 to 64 Years": 140043,
-        "65 Years and Over": 70648,
-        total: 591833,
-      },
-      {
-        State: "FL",
-        "Under 5 Years": 1140516,
-        "5 to 13 Years": 1938695,
-        "14 to 17 Years": 925060,
-        "18 to 24 Years": 1607297,
-        "25 to 44 Years": 4782119,
-        "45 to 64 Years": 4746856,
-        "65 Years and Over": 3187797,
-        total: 18328340,
-      },
-      {
-        State: "GA",
-        "Under 5 Years": 740521,
-        "5 to 13 Years": 1250460,
-        "14 to 17 Years": 557860,
-        "18 to 24 Years": 919876,
-        "25 to 44 Years": 2846985,
-        "45 to 64 Years": 2389018,
-        "65 Years and Over": 981024,
-        total: 9685744,
-      },
-      {
-        State: "HI",
-        "Under 5 Years": 87207,
-        "5 to 13 Years": 134025,
-        "14 to 17 Years": 64011,
-        "18 to 24 Years": 124834,
-        "25 to 44 Years": 356237,
-        "45 to 64 Years": 331817,
-        "65 Years and Over": 190067,
-        total: 1288198,
-      },
-      {
-        State: "ID",
-        "Under 5 Years": 121746,
-        "5 to 13 Years": 201192,
-        "14 to 17 Years": 89702,
-        "18 to 24 Years": 147606,
-        "25 to 44 Years": 406247,
-        "45 to 64 Years": 375173,
-        "65 Years and Over": 182150,
-        total: 1523816,
-      },
-      {
-        State: "IL",
-        "Under 5 Years": 894368,
-        "5 to 13 Years": 1558919,
-        "14 to 17 Years": 725973,
-        "18 to 24 Years": 1311479,
-        "25 to 44 Years": 3596343,
-        "45 to 64 Years": 3239173,
-        "65 Years and Over": 1575308,
-        total: 12901563,
-      },
-      {
-        State: "IN",
-        "Under 5 Years": 443089,
-        "5 to 13 Years": 780199,
-        "14 to 17 Years": 361393,
-        "18 to 24 Years": 605863,
-        "25 to 44 Years": 1724528,
-        "45 to 64 Years": 1647881,
-        "65 Years and Over": 813839,
-        total: 6376792,
-      },
-      {
-        State: "IA",
-        "Under 5 Years": 201321,
-        "5 to 13 Years": 345409,
-        "14 to 17 Years": 165883,
-        "18 to 24 Years": 306398,
-        "25 to 44 Years": 750505,
-        "45 to 64 Years": 788485,
-        "65 Years and Over": 444554,
-        total: 3002555,
-      },
-      {
-        State: "KS",
-        "Under 5 Years": 202529,
-        "5 to 13 Years": 342134,
-        "14 to 17 Years": 155822,
-        "18 to 24 Years": 293114,
-        "25 to 44 Years": 728166,
-        "45 to 64 Years": 713663,
-        "65 Years and Over": 366706,
-        total: 2802134,
-      },
-      {
-        State: "KY",
-        "Under 5 Years": 284601,
-        "5 to 13 Years": 493536,
-        "14 to 17 Years": 229927,
-        "18 to 24 Years": 381394,
-        "25 to 44 Years": 1179637,
-        "45 to 64 Years": 1134283,
-        "65 Years and Over": 565867,
-        total: 4269245,
-      },
-      {
-        State: "LA",
-        "Under 5 Years": 310716,
-        "5 to 13 Years": 542341,
-        "14 to 17 Years": 254916,
-        "18 to 24 Years": 471275,
-        "25 to 44 Years": 1162463,
-        "45 to 64 Years": 1128771,
-        "65 Years and Over": 540314,
-        total: 4410796,
-      },
-      {
-        State: "ME",
-        "Under 5 Years": 71459,
-        "5 to 13 Years": 133656,
-        "14 to 17 Years": 69752,
-        "18 to 24 Years": 112682,
-        "25 to 44 Years": 331809,
-        "45 to 64 Years": 397911,
-        "65 Years and Over": 199187,
-        total: 1316456,
-      },
-      {
-        State: "MD",
-        "Under 5 Years": 371787,
-        "5 to 13 Years": 651923,
-        "14 to 17 Years": 316873,
-        "18 to 24 Years": 543470,
-        "25 to 44 Years": 1556225,
-        "45 to 64 Years": 1513754,
-        "65 Years and Over": 679565,
-        total: 5633597,
-      },
-      {
-        State: "MA",
-        "Under 5 Years": 383568,
-        "5 to 13 Years": 701752,
-        "14 to 17 Years": 341713,
-        "18 to 24 Years": 665879,
-        "25 to 44 Years": 1782449,
-        "45 to 64 Years": 1751508,
-        "65 Years and Over": 871098,
-        total: 6497967,
-      },
-      {
-        State: "MI",
-        "Under 5 Years": 625526,
-        "5 to 13 Years": 1179503,
-        "14 to 17 Years": 585169,
-        "18 to 24 Years": 974480,
-        "25 to 44 Years": 2628322,
-        "45 to 64 Years": 2706100,
-        "65 Years and Over": 1304322,
-        total: 10003422,
-      },
-      {
-        State: "MN",
-        "Under 5 Years": 358471,
-        "5 to 13 Years": 606802,
-        "14 to 17 Years": 289371,
-        "18 to 24 Years": 507289,
-        "25 to 44 Years": 1416063,
-        "45 to 64 Years": 1391878,
-        "65 Years and Over": 650519,
-        total: 5220393,
-      },
-      {
-        State: "MS",
-        "Under 5 Years": 220813,
-        "5 to 13 Years": 371502,
-        "14 to 17 Years": 174405,
-        "18 to 24 Years": 305964,
-        "25 to 44 Years": 764203,
-        "45 to 64 Years": 730133,
-        "65 Years and Over": 371598,
-        total: 2938618,
-      },
-      {
-        State: "MO",
-        "Under 5 Years": 399450,
-        "5 to 13 Years": 690476,
-        "14 to 17 Years": 331543,
-        "18 to 24 Years": 560463,
-        "25 to 44 Years": 1569626,
-        "45 to 64 Years": 1554812,
-        "65 Years and Over": 805235,
-        total: 5911605,
-      },
-      {
-        State: "MT",
-        "Under 5 Years": 61114,
-        "5 to 13 Years": 106088,
-        "14 to 17 Years": 53156,
-        "18 to 24 Years": 95232,
-        "25 to 44 Years": 236297,
-        "45 to 64 Years": 278241,
-        "65 Years and Over": 137312,
-        total: 967440,
-      },
-      {
-        State: "NE",
-        "Under 5 Years": 132092,
-        "5 to 13 Years": 215265,
-        "14 to 17 Years": 99638,
-        "18 to 24 Years": 186657,
-        "25 to 44 Years": 457177,
-        "45 to 64 Years": 451756,
-        "65 Years and Over": 240847,
-        total: 1783432,
-      },
-      {
-        State: "NV",
-        "Under 5 Years": 199175,
-        "5 to 13 Years": 325650,
-        "14 to 17 Years": 142976,
-        "18 to 24 Years": 212379,
-        "25 to 44 Years": 769913,
-        "45 to 64 Years": 653357,
-        "65 Years and Over": 296717,
-        total: 2600167,
-      },
-      {
-        State: "NH",
-        "Under 5 Years": 75297,
-        "5 to 13 Years": 144235,
-        "14 to 17 Years": 73826,
-        "18 to 24 Years": 119114,
-        "25 to 44 Years": 345109,
-        "45 to 64 Years": 388250,
-        "65 Years and Over": 169978,
-        total: 1315809,
-      },
-      {
-        State: "NJ",
-        "Under 5 Years": 557421,
-        "5 to 13 Years": 1011656,
-        "14 to 17 Years": 478505,
-        "18 to 24 Years": 769321,
-        "25 to 44 Years": 2379649,
-        "45 to 64 Years": 2335168,
-        "65 Years and Over": 1150941,
-        total: 8682661,
-      },
-      {
-        State: "NM",
-        "Under 5 Years": 148323,
-        "5 to 13 Years": 241326,
-        "14 to 17 Years": 112801,
-        "18 to 24 Years": 203097,
-        "25 to 44 Years": 517154,
-        "45 to 64 Years": 501604,
-        "65 Years and Over": 260051,
-        total: 1984356,
-      },
-      {
-        State: "NY",
-        "Under 5 Years": 1208495,
-        "5 to 13 Years": 2141490,
-        "14 to 17 Years": 1058031,
-        "18 to 24 Years": 1999120,
-        "25 to 44 Years": 5355235,
-        "45 to 64 Years": 5120254,
-        "65 Years and Over": 2607672,
-        total: 19490297,
-      },
-      {
-        State: "NC",
-        "Under 5 Years": 652823,
-        "5 to 13 Years": 1097890,
-        "14 to 17 Years": 492964,
-        "18 to 24 Years": 883397,
-        "25 to 44 Years": 2575603,
-        "45 to 64 Years": 2380685,
-        "65 Years and Over": 1139052,
-        total: 9222414,
-      },
-      {
-        State: "ND",
-        "Under 5 Years": 41896,
-        "5 to 13 Years": 67358,
-        "14 to 17 Years": 33794,
-        "18 to 24 Years": 82629,
-        "25 to 44 Years": 154913,
-        "45 to 64 Years": 166615,
-        "65 Years and Over": 94276,
-        total: 641481,
-      },
-      {
-        State: "OH",
-        "Under 5 Years": 743750,
-        "5 to 13 Years": 1340492,
-        "14 to 17 Years": 646135,
-        "18 to 24 Years": 1081734,
-        "25 to 44 Years": 3019147,
-        "45 to 64 Years": 3083815,
-        "65 Years and Over": 1570837,
-        total: 11485910,
-      },
-      {
-        State: "OK",
-        "Under 5 Years": 266547,
-        "5 to 13 Years": 438926,
-        "14 to 17 Years": 200562,
-        "18 to 24 Years": 369916,
-        "25 to 44 Years": 957085,
-        "45 to 64 Years": 918688,
-        "65 Years and Over": 490637,
-        total: 3642361,
-      },
-      {
-        State: "OR",
-        "Under 5 Years": 243483,
-        "5 to 13 Years": 424167,
-        "14 to 17 Years": 199925,
-        "18 to 24 Years": 338162,
-        "25 to 44 Years": 1044056,
-        "45 to 64 Years": 1036269,
-        "65 Years and Over": 503998,
-        total: 3790060,
-      },
-      {
-        State: "PA",
-        "Under 5 Years": 737462,
-        "5 to 13 Years": 1345341,
-        "14 to 17 Years": 679201,
-        "18 to 24 Years": 1203944,
-        "25 to 44 Years": 3157759,
-        "45 to 64 Years": 3414001,
-        "65 Years and Over": 1910571,
-        total: 12448279,
-      },
-      {
-        State: "RI",
-        "Under 5 Years": 60934,
-        "5 to 13 Years": 111408,
-        "14 to 17 Years": 56198,
-        "18 to 24 Years": 114502,
-        "25 to 44 Years": 277779,
-        "45 to 64 Years": 282321,
-        "65 Years and Over": 147646,
-        total: 1050788,
-      },
-      {
-        State: "SC",
-        "Under 5 Years": 303024,
-        "5 to 13 Years": 517803,
-        "14 to 17 Years": 245400,
-        "18 to 24 Years": 438147,
-        "25 to 44 Years": 1193112,
-        "45 to 64 Years": 1186019,
-        "65 Years and Over": 596295,
-        total: 4479800,
-      },
-      {
-        State: "SD",
-        "Under 5 Years": 58566,
-        "5 to 13 Years": 94438,
-        "14 to 17 Years": 45305,
-        "18 to 24 Years": 82869,
-        "25 to 44 Years": 196738,
-        "45 to 64 Years": 210178,
-        "65 Years and Over": 116100,
-        total: 804194,
-      },
-      {
-        State: "TN",
-        "Under 5 Years": 416334,
-        "5 to 13 Years": 725948,
-        "14 to 17 Years": 336312,
-        "18 to 24 Years": 550612,
-        "25 to 44 Years": 1719433,
-        "45 to 64 Years": 1646623,
-        "65 Years and Over": 819626,
-        total: 6214888,
-      },
-      {
-        State: "TX",
-        "Under 5 Years": 2027307,
-        "5 to 13 Years": 3277946,
-        "14 to 17 Years": 1420518,
-        "18 to 24 Years": 2454721,
-        "25 to 44 Years": 7017731,
-        "45 to 64 Years": 5656528,
-        "65 Years and Over": 2472223,
-        total: 24326974,
-      },
-      {
-        State: "UT",
-        "Under 5 Years": 268916,
-        "5 to 13 Years": 413034,
-        "14 to 17 Years": 167685,
-        "18 to 24 Years": 329585,
-        "25 to 44 Years": 772024,
-        "45 to 64 Years": 538978,
-        "65 Years and Over": 246202,
-        total: 2736424,
-      },
-      {
-        State: "VT",
-        "Under 5 Years": 32635,
-        "5 to 13 Years": 62538,
-        "14 to 17 Years": 33757,
-        "18 to 24 Years": 61679,
-        "25 to 44 Years": 155419,
-        "45 to 64 Years": 188593,
-        "65 Years and Over": 86649,
-        total: 621270,
-      },
-      {
-        State: "VA",
-        "Under 5 Years": 522672,
-        "5 to 13 Years": 887525,
-        "14 to 17 Years": 413004,
-        "18 to 24 Years": 768475,
-        "25 to 44 Years": 2203286,
-        "45 to 64 Years": 2033550,
-        "65 Years and Over": 940577,
-        total: 7769089,
-      },
-      {
-        State: "WA",
-        "Under 5 Years": 433119,
-        "5 to 13 Years": 750274,
-        "14 to 17 Years": 357782,
-        "18 to 24 Years": 610378,
-        "25 to 44 Years": 1850983,
-        "45 to 64 Years": 1762811,
-        "65 Years and Over": 783877,
-        total: 6549224,
-      },
-      {
-        State: "WV",
-        "Under 5 Years": 105435,
-        "5 to 13 Years": 189649,
-        "14 to 17 Years": 91074,
-        "18 to 24 Years": 157989,
-        "25 to 44 Years": 470749,
-        "45 to 64 Years": 514505,
-        "65 Years and Over": 285067,
-        total: 1814468,
-      },
-      {
-        State: "WI",
-        "Under 5 Years": 362277,
-        "5 to 13 Years": 640286,
-        "14 to 17 Years": 311849,
-        "18 to 24 Years": 553914,
-        "25 to 44 Years": 1487457,
-        "45 to 64 Years": 1522038,
-        "65 Years and Over": 750146,
-        total: 5627967,
-      },
-      {
-        State: "WY",
-        "Under 5 Years": 38253,
-        "5 to 13 Years": 60890,
-        "14 to 17 Years": 29314,
-        "18 to 24 Years": 53980,
-        "25 to 44 Years": 137338,
-        "45 to 64 Years": 147279,
-        "65 Years and Over": 65614,
-        total: 532668,
-      },
-    ];
+    const sampleData = {
+      name: 'flare',
+      children: [
+        {
+          name: 'analytics',
+          children: [
+            {
+              name: 'cluster',
+              children: [
+                { name: 'AgglomerativeCluster', value: 3938 },
+                { name: 'CommunityStructure', value: 3812 },
+                { name: 'HierarchicalCluster', value: 6714 },
+                { name: 'MergeEdge', value: 743 },
+              ],
+            },
+            {
+              name: 'graph',
+              children: [
+                { name: 'BetweennessCentrality', value: 3534 },
+                { name: 'LinkDistance', value: 5731 },
+                { name: 'MaxFlowMinCut', value: 7840 },
+                { name: 'ShortestPaths', value: 5914 },
+                { name: 'SpanningTree', value: 3416 },
+              ],
+            },
+            {
+              name: 'optimization',
+              children: [{ name: 'AspectRatioBanker', value: 7074 }],
+            },
+          ],
+        },
+        {
+          name: 'animate',
+          children: [
+            { name: 'Easing', value: 17010 },
+            { name: 'FunctionSequence', value: 5842 },
+            {
+              name: 'interpolate',
+              children: [
+                { name: 'ArrayInterpolator', value: 1983 },
+                { name: 'ColorInterpolator', value: 2047 },
+                { name: 'DateInterpolator', value: 1375 },
+                { name: 'Interpolator', value: 8746 },
+                { name: 'MatrixInterpolator', value: 2202 },
+                { name: 'NumberInterpolator', value: 1382 },
+                { name: 'ObjectInterpolator', value: 1629 },
+                { name: 'PointInterpolator', value: 1675 },
+                { name: 'RectangleInterpolator', value: 2042 },
+              ],
+            },
+            { name: 'ISchedulable', value: 1041 },
+            { name: 'Parallel', value: 5176 },
+            { name: 'Pause', value: 449 },
+            { name: 'Scheduler', value: 5593 },
+            { name: 'Sequence', value: 5534 },
+            { name: 'Transition', value: 9201 },
+            { name: 'Transitioner', value: 19975 },
+            { name: 'TransitionEvent', value: 1116 },
+            { name: 'Tween', value: 6006 },
+          ],
+        },
+        {
+          name: 'data',
+          children: [
+            {
+              name: 'converters',
+              children: [
+                { name: 'Converters', value: 721 },
+                { name: 'DelimitedTextConverter', value: 4294 },
+                { name: 'GraphMLConverter', value: 9800 },
+                { name: 'IDataConverter', value: 1314 },
+                { name: 'JSONConverter', value: 2220 },
+              ],
+            },
+            { name: 'DataField', value: 1759 },
+            { name: 'DataSchema', value: 2165 },
+            { name: 'DataSet', value: 586 },
+            { name: 'DataSource', value: 3331 },
+            { name: 'DataTable', value: 772 },
+            { name: 'DataUtil', value: 3322 },
+          ],
+        },
+        {
+          name: 'display',
+          children: [
+            { name: 'DirtySprite', value: 8833 },
+            { name: 'LineSprite', value: 1732 },
+            { name: 'RectSprite', value: 3623 },
+            { name: 'TextSprite', value: 10066 },
+          ],
+        },
+        { name: 'flex', children: [{ name: 'FlareVis', value: 4116 }] },
+        {
+          name: 'physics',
+          children: [
+            { name: 'DragForce', value: 1082 },
+            { name: 'GravityForce', value: 1336 },
+            { name: 'IForce', value: 319 },
+            { name: 'NBodyForce', value: 10498 },
+            { name: 'Particle', value: 2822 },
+            { name: 'Simulation', value: 9983 },
+            { name: 'Spring', value: 2213 },
+            { name: 'SpringForce', value: 1681 },
+          ],
+        },
+        {
+          name: 'query',
+          children: [
+            { name: 'AggregateExpression', value: 1616 },
+            { name: 'And', value: 1027 },
+            { name: 'Arithmetic', value: 3891 },
+            { name: 'Average', value: 891 },
+            { name: 'BinaryExpression', value: 2893 },
+            { name: 'Comparison', value: 5103 },
+            { name: 'CompositeExpression', value: 3677 },
+            { name: 'Count', value: 781 },
+            { name: 'DateUtil', value: 4141 },
+            { name: 'Distinct', value: 933 },
+            { name: 'Expression', value: 5130 },
+            { name: 'ExpressionIterator', value: 3617 },
+            { name: 'Fn', value: 3240 },
+            { name: 'If', value: 2732 },
+            { name: 'IsA', value: 2039 },
+            { name: 'Literal', value: 1214 },
+            { name: 'Match', value: 3748 },
+            { name: 'Maximum', value: 843 },
+            {
+              name: 'methods',
+              children: [
+                { name: 'add', value: 593 },
+                { name: 'and', value: 330 },
+                { name: 'average', value: 287 },
+                { name: 'count', value: 277 },
+                { name: 'distinct', value: 292 },
+                { name: 'div', value: 595 },
+                { name: 'eq', value: 594 },
+                { name: 'fn', value: 460 },
+                { name: 'gt', value: 603 },
+                { name: 'gte', value: 625 },
+                { name: 'iff', value: 748 },
+                { name: 'isa', value: 461 },
+                { name: 'lt', value: 597 },
+                { name: 'lte', value: 619 },
+                { name: 'max', value: 283 },
+                { name: 'min', value: 283 },
+                { name: 'mod', value: 591 },
+                { name: 'mul', value: 603 },
+                { name: 'neq', value: 599 },
+                { name: 'not', value: 386 },
+                { name: 'or', value: 323 },
+                { name: 'orderby', value: 307 },
+                { name: 'range', value: 772 },
+                { name: 'select', value: 296 },
+                { name: 'stddev', value: 363 },
+                { name: 'sub', value: 600 },
+                { name: 'sum', value: 280 },
+                { name: 'update', value: 307 },
+                { name: 'variance', value: 335 },
+                { name: 'where', value: 299 },
+                { name: 'xor', value: 354 },
+                { name: '_', value: 264 },
+              ],
+            },
+            { name: 'Minimum', value: 843 },
+            { name: 'Not', value: 1554 },
+            { name: 'Or', value: 970 },
+            { name: 'Query', value: 13896 },
+            { name: 'Range', value: 1594 },
+            { name: 'StringUtil', value: 4130 },
+            { name: 'Sum', value: 791 },
+            { name: 'Variable', value: 1124 },
+            { name: 'Variance', value: 1876 },
+            { name: 'Xor', value: 1101 },
+          ],
+        },
+        {
+          name: 'scale',
+          children: [
+            { name: 'IScaleMap', value: 2105 },
+            { name: 'LinearScale', value: 1316 },
+            { name: 'LogScale', value: 3151 },
+            { name: 'OrdinalScale', value: 3770 },
+            { name: 'QuantileScale', value: 2435 },
+            { name: 'QuantitativeScale', value: 4839 },
+            { name: 'RootScale', value: 1756 },
+            { name: 'Scale', value: 4268 },
+            { name: 'ScaleType', value: 1821 },
+            { name: 'TimeScale', value: 5833 },
+          ],
+        },
+        {
+          name: 'util',
+          children: [
+            { name: 'Arrays', value: 8258 },
+            { name: 'Colors', value: 10001 },
+            { name: 'Dates', value: 8217 },
+            { name: 'Displays', value: 12555 },
+            { name: 'Filter', value: 2324 },
+            { name: 'Geometry', value: 10993 },
+            {
+              name: 'heap',
+              children: [
+                { name: 'FibonacciHeap', value: 9354 },
+                { name: 'HeapNode', value: 1233 },
+              ],
+            },
+            { name: 'IEvaluable', value: 335 },
+            { name: 'IPredicate', value: 383 },
+            { name: 'IValueProxy', value: 874 },
+            {
+              name: 'math',
+              children: [
+                { name: 'DenseMatrix', value: 3165 },
+                { name: 'IMatrix', value: 2815 },
+                { name: 'SparseMatrix', value: 3366 },
+              ],
+            },
+            { name: 'Maths', value: 17705 },
+            { name: 'Orientation', value: 1486 },
+            {
+              name: 'palette',
+              children: [
+                { name: 'ColorPalette', value: 6367 },
+                { name: 'Palette', value: 1229 },
+                { name: 'ShapePalette', value: 2059 },
+                { name: 'SizePalette', value: 2291 },
+              ],
+            },
+            { name: 'Property', value: 5559 },
+            { name: 'Shapes', value: 19118 },
+            { name: 'Sort', value: 6887 },
+            { name: 'Stats', value: 6557 },
+            { name: 'Strings', value: 22026 },
+          ],
+        },
+        {
+          name: 'vis',
+          children: [
+            {
+              name: 'axis',
+              children: [
+                { name: 'Axes', value: 1302 },
+                { name: 'Axis', value: 24593 },
+                { name: 'AxisGridLine', value: 652 },
+                { name: 'AxisLabel', value: 636 },
+                { name: 'CartesianAxes', value: 6703 },
+              ],
+            },
+            {
+              name: 'controls',
+              children: [
+                { name: 'AnchorControl', value: 2138 },
+                { name: 'ClickControl', value: 3824 },
+                { name: 'Control', value: 1353 },
+                { name: 'ControlList', value: 4665 },
+                { name: 'DragControl', value: 2649 },
+                { name: 'ExpandControl', value: 2832 },
+                { name: 'HoverControl', value: 4896 },
+                { name: 'IControl', value: 763 },
+                { name: 'PanZoomControl', value: 5222 },
+                { name: 'SelectionControl', value: 7862 },
+                { name: 'TooltipControl', value: 8435 },
+              ],
+            },
+            {
+              name: 'data',
+              children: [
+                { name: 'Data', value: 20544 },
+                { name: 'DataList', value: 19788 },
+                { name: 'DataSprite', value: 10349 },
+                { name: 'EdgeSprite', value: 3301 },
+                { name: 'NodeSprite', value: 19382 },
+                {
+                  name: 'render',
+                  children: [
+                    { name: 'ArrowType', value: 698 },
+                    { name: 'EdgeRenderer', value: 5569 },
+                    { name: 'IRenderer', value: 353 },
+                    { name: 'ShapeRenderer', value: 2247 },
+                  ],
+                },
+                { name: 'ScaleBinding', value: 11275 },
+                { name: 'Tree', value: 7147 },
+                { name: 'TreeBuilder', value: 9930 },
+              ],
+            },
+            {
+              name: 'events',
+              children: [
+                { name: 'DataEvent', value: 2313 },
+                { name: 'SelectionEvent', value: 1880 },
+                { name: 'TooltipEvent', value: 1701 },
+                { name: 'VisualizationEvent', value: 1117 },
+              ],
+            },
+            {
+              name: 'legend',
+              children: [
+                { name: 'Legend', value: 20859 },
+                { name: 'LegendItem', value: 4614 },
+                { name: 'LegendRange', value: 10530 },
+              ],
+            },
+            {
+              name: 'operator',
+              children: [
+                {
+                  name: 'distortion',
+                  children: [
+                    { name: 'BifocalDistortion', value: 4461 },
+                    { name: 'Distortion', value: 6314 },
+                    { name: 'FisheyeDistortion', value: 3444 },
+                  ],
+                },
+                {
+                  name: 'encoder',
+                  children: [
+                    { name: 'ColorEncoder', value: 3179 },
+                    { name: 'Encoder', value: 4060 },
+                    { name: 'PropertyEncoder', value: 4138 },
+                    { name: 'ShapeEncoder', value: 1690 },
+                    { name: 'SizeEncoder', value: 1830 },
+                  ],
+                },
+                {
+                  name: 'filter',
+                  children: [
+                    { name: 'FisheyeTreeFilter', value: 5219 },
+                    { name: 'GraphDistanceFilter', value: 3165 },
+                    { name: 'VisibilityFilter', value: 3509 },
+                  ],
+                },
+                { name: 'IOperator', value: 1286 },
+                {
+                  name: 'label',
+                  children: [
+                    { name: 'Labeler', value: 9956 },
+                    { name: 'RadialLabeler', value: 3899 },
+                    { name: 'StackedAreaLabeler', value: 3202 },
+                  ],
+                },
+                {
+                  name: 'layout',
+                  children: [
+                    { name: 'AxisLayout', value: 6725 },
+                    { name: 'BundledEdgeRouter', value: 3727 },
+                    { name: 'CircleLayout', value: 9317 },
+                    { name: 'CirclePackingLayout', value: 12003 },
+                    { name: 'DendrogramLayout', value: 4853 },
+                    { name: 'ForceDirectedLayout', value: 8411 },
+                    { name: 'IcicleTreeLayout', value: 4864 },
+                    { name: 'IndentedTreeLayout', value: 3174 },
+                    { name: 'Layout', value: 7881 },
+                    { name: 'NodeLinkTreeLayout', value: 12870 },
+                    { name: 'PieLayout', value: 2728 },
+                    { name: 'RadialTreeLayout', value: 12348 },
+                    { name: 'RandomLayout', value: 870 },
+                    { name: 'StackedAreaLayout', value: 9121 },
+                    { name: 'TreeMapLayout', value: 9191 },
+                  ],
+                },
+                { name: 'Operator', value: 2490 },
+                { name: 'OperatorList', value: 5248 },
+                { name: 'OperatorSequence', value: 4190 },
+                { name: 'OperatorSwitch', value: 2581 },
+                { name: 'SortOperator', value: 2023 },
+              ],
+            },
+            { name: 'Visualization', value: 16540 },
+          ],
+        },
+      ],
+    };
 
-    /* src/Radial-Stacked-Bar/Radial_Stacked_Bart_Chart.svelte generated by Svelte v3.46.4 */
+    /* src/Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte generated by Svelte v3.46.4 */
 
-    const { Object: Object_1 } = globals;
-    const file$1 = "src/Radial-Stacked-Bar/Radial_Stacked_Bart_Chart.svelte";
+    const { console: console_1 } = globals;
+    const file$1 = "src/Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte";
 
-    function create_fragment$1(ctx) {
-    	let div;
-    	let raw_value = radialChart.outerHTML + "";
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[17] = list[i];
+    	child_ctx[19] = i;
+    	return child_ctx;
+    }
+
+    function get_each_context_1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[20] = list[i];
+    	child_ctx[19] = i;
+    	return child_ctx;
+    }
+
+    // (99:8) {#each root.descendants().slice(1) as rootData, i}
+    function create_each_block_1(ctx) {
+    	let circle;
+    	let mounted;
+    	let dispose;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
-    			attr_dev(div, "class", "c");
-    			attr_dev(div, "dir", "auto");
-    			add_location(div, file$1, 156, 0, 4537);
+    			circle = svg_element("circle");
+    			attr_dev(circle, "id", "node-" + /*i*/ ctx[19]);
+
+    			attr_dev(circle, "fill", /*rootData*/ ctx[20].children
+    			? /*color*/ ctx[7](/*rootData*/ ctx[20].depth)
+    			: "white");
+
+    			attr_dev(circle, "transform", "translate(" + (/*rootData*/ ctx[20].x - /*root*/ ctx[8].x) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + "," + (/*rootData*/ ctx[20].y - /*root*/ ctx[8].y) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + ")");
+    			attr_dev(circle, "r", /*rootData*/ ctx[20].r * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2));
+    			attr_dev(circle, "pointer-events", !/*rootData*/ ctx[20].children ? "none" : null);
+    			add_location(circle, file$1, 100, 12, 3220);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, circle, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(circle, "mouseover", createStroke, false, false, false),
+    					listen_dev(circle, "mouseout", removeStroke, false, false, false),
+    					listen_dev(circle, "click", /*click_handler*/ ctx[10], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(circle);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_1.name,
+    		type: "each",
+    		source: "(99:8) {#each root.descendants().slice(1) as rootData, i}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (113:8) {#each root.descendants() as rootDes, i}
+    function create_each_block(ctx) {
+    	let text_1;
+    	let t_value = /*rootDes*/ ctx[17].data.name + "";
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			text_1 = svg_element("text");
+    			t = text$1(t_value);
+    			attr_dev(text_1, "id", "label-" + /*i*/ ctx[19]);
+    			set_style(text_1, "fill-opacity", /*rootDes*/ ctx[17].parent === /*root*/ ctx[8] ? 1 : 0);
+
+    			set_style(text_1, "display", /*rootDes*/ ctx[17].parent === /*root*/ ctx[8]
+    			? "inline"
+    			: "none");
+
+    			attr_dev(text_1, "transform", "translate(" + (/*rootDes*/ ctx[17].x - /*root*/ ctx[8].x) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + "," + (/*rootDes*/ ctx[17].y - /*root*/ ctx[8].y) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + ")");
+    			add_location(text_1, file$1, 113, 8, 3980);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, text_1, anchor);
+    			append_dev(text_1, t);
+    		},
+    		p: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(text_1);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(113:8) {#each root.descendants() as rootDes, i}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$1(ctx) {
+    	let svg_1;
+    	let g0;
+    	let g1;
+    	let mounted;
+    	let dispose;
+    	let each_value_1 = /*root*/ ctx[8].descendants().slice(1);
+    	validate_each_argument(each_value_1);
+    	let each_blocks_1 = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	let each_value = /*root*/ ctx[8].descendants();
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			svg_1 = svg_element("svg");
+    			g0 = svg_element("g");
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].c();
+    			}
+
+    			g1 = svg_element("g");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr_dev(g0, "class", "node");
+    			add_location(g0, file$1, 97, 4, 3063);
+    			attr_dev(g1, "class", "label");
+    			attr_dev(g1, "pointer-events", "none");
+    			attr_dev(g1, "text-anchor", "middle");
+    			set_style(g1, "font", "10px sans-serif");
+    			add_location(g1, file$1, 111, 4, 3831);
+    			attr_dev(svg_1, "viewBox", "" + (-/*width*/ ctx[1] / 2 + " " + -/*height*/ ctx[2] / 2 + " " + /*width*/ ctx[1] + " " + /*height*/ ctx[2]));
+    			attr_dev(svg_1, "style", "display: block; margin: " + /*marginTB*/ ctx[3] + " " + /*marginRL*/ ctx[4] + "; background: " + /*backgroundColor*/ ctx[5] + "; cursor=" + /*cursorType*/ ctx[6] + ";");
+    			attr_dev(svg_1, "class", "svelte-hklpiw");
+    			add_location(svg_1, file$1, 96, 0, 2852);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			div.innerHTML = raw_value;
+    			insert_dev(target, svg_1, anchor);
+    			append_dev(svg_1, g0);
+
+    			for (let i = 0; i < each_blocks_1.length; i += 1) {
+    				each_blocks_1[i].m(g0, null);
+    			}
+
+    			append_dev(svg_1, g1);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(g1, null);
+    			}
+
+    			if (!mounted) {
+    				dispose = listen_dev(svg_1, "click", /*click_handler_1*/ ctx[11], false, false, false);
+    				mounted = true;
+    			}
     		},
-    		p: noop$4,
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*root, color, width, createStroke, removeStroke, focus, zoom*/ 899) {
+    				each_value_1 = /*root*/ ctx[8].descendants().slice(1);
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks_1[i]) {
+    						each_blocks_1[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks_1[i] = create_each_block_1(child_ctx);
+    						each_blocks_1[i].c();
+    						each_blocks_1[i].m(g0, null);
+    					}
+    				}
+
+    				for (; i < each_blocks_1.length; i += 1) {
+    					each_blocks_1[i].d(1);
+    				}
+
+    				each_blocks_1.length = each_value_1.length;
+    			}
+
+    			if (dirty & /*root, width*/ 258) {
+    				each_value = /*root*/ ctx[8].descendants();
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(g1, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+    		},
     		i: noop$4,
     		o: noop$4,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
+    			if (detaching) detach_dev(svg_1);
+    			destroy_each(each_blocks_1, detaching);
+    			destroy_each(each_blocks, detaching);
+    			mounted = false;
+    			dispose();
     		}
     	};
 
@@ -21252,191 +21320,153 @@ var app = (function () {
     	return block;
     }
 
+    function createStroke(e) {
+    	this.style.stroke = "#000";
+    }
+
+    function removeStroke(e) {
+    	this.style.stroke = null;
+    }
+
     function instance$1($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
-    	validate_slots('Radial_Stacked_Bart_Chart', slots, []);
+    	validate_slots('Zoomable_Circle_Packing', slots, []);
+    	let width = 932;
+    	let height = width;
+    	let marginTB = 0;
+    	let marginRL = -14;
+    	let backgroundColor = "rgb(163, 245, 207)";
+    	let cursorType = "pointer";
+    	let format$1 = format(",d");
+    	let color = linear().domain([0, 5]).range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"]).interpolate(hcl$1);
 
-    	(function (global, factory) {
-    		typeof exports === "object" && typeof module !== "undefined"
-    		? factory(exports, require("d3-scale"))
-    		: typeof define === "function" && define.amd
-    			? define(["exports", "d3-scale"], factory)
-    			: factory(global.d3 = global.d3 || {}, global.d3);
-    	})(this, function (exports, d3Scale) {
+    	// let d3 = require("d3@6")
+    	let pack = data => index$1().size([width, height]).padding(3)(hierarchy(data).sum(d => d.value).sort((a, b) => b.value - a.value));
 
-    		function square(x) {
-    			return x * x;
+    	let data = sampleData;
+    	const root = pack(data);
+    	let focus = root;
+    	let view;
+    	console.log(root.descendants().slice(1));
+    	console.log(root);
+
+    	//D3 zoomTo Function
+    	function zoomTo(v) {
+    		const k = width / v[2];
+    		view = v;
+    		(d.x - v[0]) * k;
+    		(d.y - v[1]) * k;
+    		d.r * k;
+    	} // label.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
+    	// node.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
+
+    	// node.attr("r", d => d.r * k);
+    	// //invoke zoomTo
+    	// zoomTo([root.x, root.y, root.r * 2]);
+    	//D3 zoom Function
+    	function zoom(event, d) {
+    		//both node and label transform values are the same before and after transformation.
+    		// zoomTo([root.x, root.y, root.r * 2]); set as onload value?
+    		function zoomTo(v) {
+    			const k = width / v[2];
+    			view = v;
+    			(d.x - v[0]) * k;
+    			(d.y - v[1]) * k;
+    			d.r * k;
     		}
 
-    		function radial() {
-    			var linear = d3Scale.scaleLinear();
+    		$$invalidate(0, focus = d);
 
-    			function scale(x) {
-    				return Math.sqrt(linear(x));
-    			}
+    		const transition = svg.transition().duration(event.altKey ? 7500 : 750).tween("zoom", d => {
+    			const i = interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
+    			return t => zoomTo(i(t));
+    		});
 
-    			scale.domain = function (_) {
-    				return arguments.length
-    				? (linear.domain(_), scale)
-    				: linear.domain();
-    			};
+    		this.transitionDuration = event.altKey ? 7500 : 750;
 
-    			scale.nice = function (count) {
-    				return (linear.nice(count), scale);
-    			};
-
-    			scale.range = function (_) {
-    				return arguments.length
-    				? (linear.range(_.map(square)), scale)
-    				: linear.range().map(Math.sqrt);
-    			};
-
-    			scale.ticks = linear.ticks;
-    			scale.tickFormat = linear.tickFormat;
-    			return scale;
-    		}
-
-    		exports.scaleRadial = radial;
-    		Object.defineProperty(exports, '__esModule', { value: true });
-    	});
-
-    	var svg = select("svg"),
-    		width = +svg.attr("width"),
-    		height = +svg.attr("height"),
-    		innerRadius = 180,
-    		outerRadius = Math.min(width, height) / 2,
-    		g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
-    	var x = band().range([0, 2 * Math.PI]).align(0);
-    	var y = radial().range([innerRadius, outerRadius]);
-    	var z = ordinal().range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
-    	csv(
-    		"./data.csv",
-    		function (d, i, columns) {
-    			for ((i = 1, t = 0); i < columns.length; ++i) t += d[columns[i]] = +d[columns[i]];
-    			d.total = t;
-    			return d;
-    		},
-    		function (error, data) {
-    			if (error) throw error;
-
-    			x.domain(data.map(function (d) {
-    				return d.State;
-    			}));
-
-    			y.domain([
-    				0,
-    				max$3(data, function (d) {
-    					return d.total;
-    				})
-    			]);
-
-    			z.domain(data.columns.slice(1));
-
-    			g.append("g").selectAll("g").data(stack().keys(data.columns.slice(1))(data)).enter().append("g").attr("fill", function (d) {
-    				return z(d.key);
-    			}).selectAll("path").data(function (d) {
-    				return d;
-    			}).enter().append("path").attr("d", arc().innerRadius(function (d) {
-    				return y(d[0]);
-    			}).outerRadius(function (d) {
-    				return y(d[1]);
-    			}).startAngle(function (d) {
-    				return x(d.data.State);
-    			}).endAngle(function (d) {
-    				return x(d.data.State) + x.bandwidth();
-    			}).padAngle(0.01).padRadius(innerRadius));
-
-    			var label = g.append("g").selectAll("g").data(data).enter().append("g").attr("text-anchor", "middle").attr("transform", function (d) {
-    				return "rotate(" + ((x(d.State) + x.bandwidth() / 2) * 180 / Math.PI - 90) + ")translate(" + innerRadius + ",0)";
-    			});
-
-    			label.append("line").attr("x2", -5).attr("stroke", "#000");
-
-    			label.append("text").attr("transform", function (d) {
-    				return (x(d.State) + x.bandwidth() / 2 + Math.PI / 2) % (2 * Math.PI) < Math.PI
-    				? "rotate(90)translate(0,16)"
-    				: "rotate(-90)translate(0,-9)";
-    			}).text(function (d) {
-    				return d.State;
-    			});
-
-    			var yAxis = g.append("g").attr("text-anchor", "middle");
-    			var yTick = yAxis.selectAll("g").data(y.ticks(5).slice(1)).enter().append("g");
-    			yTick.append("circle").attr("fill", "none").attr("stroke", "#000").attr("r", y);
-
-    			yTick.append("text").attr("y", function (d) {
-    				return -y(d);
-    			}).attr("dy", "0.35em").attr("fill", "none").attr("stroke", "#fff").attr("stroke-width", 5).text(y.tickFormat(5, "s"));
-
-    			yTick.append("text").attr("y", function (d) {
-    				return -y(d);
-    			}).attr("dy", "0.35em").text(y.tickFormat(5, "s"));
-
-    			yAxis.append("text").attr("y", function (d) {
-    				return -y(y.ticks(5).pop());
-    			}).attr("dy", "-1em").text("Population");
-
-    			var legend = g.append("g").selectAll("g").data(data.columns.slice(1).reverse()).enter().append("g").attr("transform", function (d, i) {
-    				return "translate(-40," + (i - (data.columns.length - 1) / 2) * 20 + ")";
-    			});
-
-    			legend.append("rect").attr("width", 18).attr("height", 18).attr("fill", z);
-
-    			legend.append("text").attr("x", 24).attr("y", 9).attr("dy", "0.35em").text(function (d) {
-    				return d;
-    			});
-    		}
-    	);
+    		document.getElementById(`index-${ind}`).filter(function (d) {
+    			return d.parent === focus || this.style.display === "inline";
+    		}).transition(transition).style("fill-opacity", d => d.parent === focus ? 1 : 0).on("start", function (d) {
+    			if (d.parent === focus) this.style.display = "inline";
+    		}).on("end", function (d) {
+    			if (d.parent !== focus) this.style.display = "none";
+    		});
+    	}
 
     	const writable_props = [];
 
-    	Object_1.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Radial_Stacked_Bart_Chart> was created with unknown prop '${key}'`);
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<Zoomable_Circle_Packing> was created with unknown prop '${key}'`);
     	});
+
+    	const click_handler = (event, rootData) => focus !== rootData && (zoom(event, rootData), event.stopPropagation());
+    	const click_handler_1 = event => zoom(event, root);
 
     	$$self.$capture_state = () => ({
     		d3,
     		sampleData,
-    		svg,
     		width,
     		height,
-    		innerRadius,
-    		outerRadius,
-    		g,
-    		x,
-    		y,
-    		z
+    		marginTB,
+    		marginRL,
+    		backgroundColor,
+    		cursorType,
+    		format: format$1,
+    		color,
+    		pack,
+    		data,
+    		root,
+    		focus,
+    		view,
+    		zoomTo,
+    		zoom,
+    		createStroke,
+    		removeStroke
     	});
 
     	$$self.$inject_state = $$props => {
-    		if ('svg' in $$props) svg = $$props.svg;
-    		if ('width' in $$props) width = $$props.width;
-    		if ('height' in $$props) height = $$props.height;
-    		if ('innerRadius' in $$props) innerRadius = $$props.innerRadius;
-    		if ('outerRadius' in $$props) outerRadius = $$props.outerRadius;
-    		if ('g' in $$props) g = $$props.g;
-    		if ('x' in $$props) x = $$props.x;
-    		if ('y' in $$props) y = $$props.y;
-    		if ('z' in $$props) z = $$props.z;
+    		if ('width' in $$props) $$invalidate(1, width = $$props.width);
+    		if ('height' in $$props) $$invalidate(2, height = $$props.height);
+    		if ('marginTB' in $$props) $$invalidate(3, marginTB = $$props.marginTB);
+    		if ('marginRL' in $$props) $$invalidate(4, marginRL = $$props.marginRL);
+    		if ('backgroundColor' in $$props) $$invalidate(5, backgroundColor = $$props.backgroundColor);
+    		if ('cursorType' in $$props) $$invalidate(6, cursorType = $$props.cursorType);
+    		if ('format' in $$props) format$1 = $$props.format;
+    		if ('color' in $$props) $$invalidate(7, color = $$props.color);
+    		if ('pack' in $$props) pack = $$props.pack;
+    		if ('data' in $$props) data = $$props.data;
+    		if ('focus' in $$props) $$invalidate(0, focus = $$props.focus);
+    		if ('view' in $$props) view = $$props.view;
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [];
+    	return [
+    		focus,
+    		width,
+    		height,
+    		marginTB,
+    		marginRL,
+    		backgroundColor,
+    		cursorType,
+    		color,
+    		root,
+    		zoom,
+    		click_handler,
+    		click_handler_1
+    	];
     }
 
-    class Radial_Stacked_Bart_Chart extends SvelteComponentDev {
+    class Zoomable_Circle_Packing extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
     		init$1(this, options, instance$1, create_fragment$1, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
-    			tagName: "Radial_Stacked_Bart_Chart",
+    			tagName: "Zoomable_Circle_Packing",
     			options,
     			id: create_fragment$1.name
     		});
@@ -21449,18 +21479,18 @@ var app = (function () {
     function create_fragment(ctx) {
     	let body;
     	let div;
-    	let radial_stacked_bart_chart;
+    	let zoomable_circle_packing;
     	let current;
-    	radial_stacked_bart_chart = new Radial_Stacked_Bart_Chart({ $$inline: true });
+    	zoomable_circle_packing = new Zoomable_Circle_Packing({ $$inline: true });
 
     	const block = {
     		c: function create() {
     			body = element("body");
     			div = element("div");
-    			create_component(radial_stacked_bart_chart.$$.fragment);
-    			add_location(div, file, 10, 2, 367);
-    			attr_dev(body, "class", "svelte-1nszbcz");
-    			add_location(body, file, 9, 0, 358);
+    			create_component(zoomable_circle_packing.$$.fragment);
+    			add_location(div, file, 19, 2, 850);
+    			attr_dev(body, "class", "svelte-xzc24z");
+    			add_location(body, file, 18, 0, 841);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -21468,22 +21498,22 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, body, anchor);
     			append_dev(body, div);
-    			mount_component(radial_stacked_bart_chart, div, null);
+    			mount_component(zoomable_circle_packing, div, null);
     			current = true;
     		},
     		p: noop$4,
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(radial_stacked_bart_chart.$$.fragment, local);
+    			transition_in(zoomable_circle_packing.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(radial_stacked_bart_chart.$$.fragment, local);
+    			transition_out(zoomable_circle_packing.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(body);
-    			destroy_component(radial_stacked_bart_chart);
+    			destroy_component(zoomable_circle_packing);
     		}
     	};
 
@@ -21507,7 +21537,7 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ Radial_Stacked_Bart_Chart });
+    	$$self.$capture_state = () => ({ Zoomable_Circle_Packing });
     	return [];
     }
 
