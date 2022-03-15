@@ -2,10 +2,10 @@
   "name": "osp",
   "version": "0.0.1",
   "scripts": {
-    "dev": "svelte-kit dev",
+    "dev": "svelte-kit dev --port 8080",
     "build": "svelte-kit build",
     "package": "svelte-kit package",
-    "preview": "svelte-kit preview",
+    "preview": "svelte-kit preview --port 8080",
     "prepare": "svelte-kit sync",
     "test": "playwright test",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -38,6 +38,7 @@
   "dependencies": {
     "@fontsource/fira-mono": "^4.5.0",
     "@lukeed/uuid": "^2.0.0",
+    "@types/png-img": "^3.0.0",
     "cookie": "^0.4.1",
     "flowbite": "^1.3.4"
   }

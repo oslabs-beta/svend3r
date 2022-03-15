@@ -5,7 +5,7 @@
 
 <ul class="top-0 relative w-full h-28 z-10">
 	<div class=" pt-5 text-3xl text-white">Svend3r</div>
-	<div class=" text-md text-gray-400">A "plug and play" Svelte charting library</div>
+	<div class=" text-md text-gray-400">Svelte x D3 "plug and play" charting library</div>
 	<li class="z-0 absolute top-0 right-0 pt-5">
 		<a on:click={() => goto('/')} class="text-gray-400 hover:text-gray-100 pr-5" href="#">Home</a>
 		<a

@@ -2,7 +2,7 @@
 	import SidebarIcon from './SidebarIcon.svelte';
 	import Divider from './Divider.svelte';
 	import githubIcon from './githubIcon.png';
-	import barChartIcon from './barChartIcon.png';
+	// import barChartIcon from '/bar.svg';
 	import { goto } from '$app/navigation';
 
 	import logo from './svelte-logo.svg';
