@@ -1,22 +1,22 @@
 <script>
-    import BarChart2_Chart from './BarVert_Chart.svelte';
-    import BarChart2_CodeMirror from './BarVert_Code.svelte';
-    import BarChart2_Docs from './BarVert_Docs.svelte';
+    import Area_Chart from './Area_Chart.svelte';
+    import Area_CodeMirror from './Area_Code.svelte';
+    import Area_Docs from './Area_Docs.svelte';
 </script>
   
 <div class="bar-chart-container">
-    <h1 class="page-title">BAR CHARTS</h1>
+    <h1 class="page-title">AREA CHARTS</h1>
     <div class="chart-page">
         <div class="code-container">
             <div class="chart-render">
-                <BarChart2_Chart />
+                <Area_Chart />
             </div>
             <div class="code-mirror">
-                <BarChart2_CodeMirror/>
+                <Area_CodeMirror/>
             </div>
         </div>
         <div class="chart-Docs">
-            <BarChart2_Docs />
+            <Area_Docs />
         </div>
     </div>
 </div>

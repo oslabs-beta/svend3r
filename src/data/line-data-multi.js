@@ -1,3 +1,5 @@
+//First Data Set
+
 const csvVtsax = `Date,Adj Close
 1/3/2017,51.862041
 1/4/2017,52.274815
@@ -1259,12 +1261,8 @@ const csvVtsax = `Date,Adj Close
 12/30/2021,117.879997
 12/31/2021,117.559998`;
 
-const vtsax = csvVtsax.split('\n').slice(1).map(str => {
-  const [date, close] = str.split(',')
-    .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
-  return { date, close };
-});
 
+//Second Data Set
 const csvVgenx = `Date,Adj Close
 1/3/2017,45.846569
 1/4/2017,45.871853
@@ -2526,12 +2524,8 @@ const csvVgenx = `Date,Adj Close
 12/30/2021,38.540001
 12/31/2021,38.650002`;
 
-const vgenx = csvVgenx.split('\n').slice(1).map(str => {
-  const [date, close] = str.split(',')
-    .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
-  return { date, close };
-});
 
+//Third Data Set
 const csvVbtlx = `Date,Adj Close
 1/3/2017,9.364864
 1/4/2017,9.373655
@@ -3793,25 +3787,4 @@ const csvVbtlx = `Date,Adj Close
 12/30/2021,11.143635
 12/31/2021,11.171588`;
 
-const vbtlx = csvVbtlx.split('\n').slice(1).map(str => {
-  const [date, close] = str.split(',')
-    .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
-  return { date, close };
-});
-
-const data = [
-  {
-    id: 'VTSAX',
-    data: vtsax
-  },
-  {
-    id: 'VGENX',
-    data: vgenx
-  },
-  {
-    id: 'VBTLX',
-    data: vbtlx
-  }
-];
-
-export default data;
+export { csvVtsax, csvVgenx, csvVbtlx };

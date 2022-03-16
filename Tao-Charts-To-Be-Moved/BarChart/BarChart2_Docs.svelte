@@ -7,7 +7,7 @@
         { key: x-value, key: y-value }, 
         { key: x-value, key: y-value }, 
         { key: x-value, key: y-value },
-        //insert additional JSON data ...
+        //insert additional data ...
     ]    `;
 
 </script>
@@ -31,7 +31,7 @@
             <div class="adjustable-container">
                 {#if doc.max}
                     <li class="prop-value-docs"><b>Adjusted Value: </b></li>
-                    <input class="input" type="range" step={doc.max === 0.9 ? 0.1 : 1} bind:value={doc.value} min={doc.min} max={doc.max}>
+                    <input class="input" type="range" step={doc.max === 1 ? 0.1 : 1} bind:value={doc.value} max={doc.max}>
                     <li class="input-value">{doc.value}</li>
                 {/if}
                 {#if !doc.max && i > 0}

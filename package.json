@@ -24,6 +24,7 @@
     "@sveltejs/kit": "^1.0.0-next.1",
     "codemirror": "^5.65.2",
     "d3": "^7.3.0",
+    "d3-fetch": "^3.0.1",
     "fs": "^0.0.1-security",
     "prismjs": "^1.27.0",
     "sirv-cli": "^2.0.0",

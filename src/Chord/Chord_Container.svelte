@@ -1,22 +1,22 @@
 <script>
-    import BarChart2_Chart from './BarVert_Chart.svelte';
-    import BarChart2_CodeMirror from './BarVert_Code.svelte';
-    import BarChart2_Docs from './BarVert_Docs.svelte';
+    import Chord_Chart from './Chord_Chart.svelte';
+    import Chord_CodeMirror from './Chord_Code.svelte';
+    import Chord_Docs from './Chord_Docs.svelte';
 </script>
   
 <div class="bar-chart-container">
-    <h1 class="page-title">BAR CHARTS</h1>
+    <h1 class="page-title">CHORD DIAGRAM</h1>
     <div class="chart-page">
         <div class="code-container">
             <div class="chart-render">
-                <BarChart2_Chart />
+                <Chord_Chart />
             </div>
             <div class="code-mirror">
-                <BarChart2_CodeMirror/>
+                <Chord_CodeMirror/>
             </div>
         </div>
         <div class="chart-Docs">
-            <BarChart2_Docs />
+            <Chord_Docs />
         </div>
     </div>
 </div>
@@ -56,10 +56,11 @@
   
   .chart-render {
     background-color: rgba(255, 255, 255, 0.87);
-    display: flex;
+    /* display: flex; */
     align-items: center;
     justify-content: center;
     text-align: center;
+    overflow: auto;
     width:40vw;
     height: 45vh;
   }
