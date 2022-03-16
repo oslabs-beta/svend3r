@@ -25,9 +25,9 @@
   const outerRadius = Math.min(width, height) * 0.5 - 60, // should connect to margin
     innerRadius = outerRadius - 10; // should make adjustable
 
-  let x, y, xVals = [], yVals = [], points = [],
-    filters = [...colors], selectedDot, dotInfo;
-  const subsets = [];
+  // let x, y, xVals = [], yVals = [], points = [],
+  //   filters = [...colors], selectedDot, dotInfo;
+  // const subsets = [];
 
   let groupInfo, ribbonInfo;
 

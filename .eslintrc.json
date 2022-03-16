@@ -17,12 +17,14 @@
     "overrides": [
       {
         "files": ["*.svelte"],
-        "processor": "svelte3/svelte3"
+        "processor": "svelte3/svelte3",
+        "rules": {
+          "no-useless-escape": "off"
+        }
       }
     ],
     "rules": {
       "indent": ["warn", 2],
-      "max-len": ["error", { "code": 100, "ignoreComments": true }],
       "no-unused-vars": ["off", { "vars": "local" }],
       "no-case-declarations": "off",
       "prefer-const": "warn",

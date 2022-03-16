@@ -1,30 +1,38 @@
-<!--Load the AJAX API-->
 <script>
-  import BarChart2 from './BarChart2.svelte';
-  import Scatter from './Scatter.svelte';
-  import scatterdata from './nivo-scatter-data';
-  import Chord from './Chord.svelte';
-  import chordData from './observable-chord-data';
-  // import BubbleWrapper from './Bubble/Bubble.svelte'
-  import ForceWrapper from './Force Example/ForceWrapper.svelte';
-import WordExample from './WordExample.svelte';
-  import WordCloud from './Word Cloud/WordCloud.svelte';
+  import Scatter from './Scatter/Scatter_Chart.svelte';
+  import scatterData from './data/nivo-scatter-data';
+  import Chord from './Chord/Chord_Chart.svelte';
+  import chordData from './data/observable-chord-data';
+  import LineChart from './Line/Line_Chart.svelte';
+  import lineData from './data/line-data-multi';
+  // import lineData from './data/line-data-vtsax';
+  import AreaChart from './Area/Area_Chart.svelte';
+  import areaData from './data/line-data-multi';
+  import PieChart_Container from './Pie/PieChart_Container.svelte'
+  import PieChart from './Pie/Pie_Chart.svelte';
+  import pieData from './data/pie-data-census';
+  import Choropleth from './Choropleth/Choropleth_Chart.svelte';
+  import choroplethData from './data/bivariate-choropleth-data-d3';
+  
+  import BarVert_Container from './BarVert/BarVert_Container.svelte';
 </script>
 
 <body>
-  <!-- Div that will hold the pie chart -->
-  <!-- <ColumnChart data={popData} />
-  <DoughnutChart/> -->
-  <!-- <AnimatedDoughnut/> -->
-  <!-- <div id="chart_div" /> -->
   <div>
-    <WordCloud/>
-    <!-- <WordExample/> -->
-    <!-- <BarChart2/> -->
-    <!-- <ForceWrapper/> -->
-    <!-- <BubbleWrapper/> -->
-    <!-- <Scatter {scatterdata} /> -->
+    <!-- <BarVert_Container/> -->
+    <!-- <Scatter {scatterData} /> -->
     <!-- <Chord {chordData} /> -->
-    <!-- <Chord {chordData}/> -->
+    <!-- <LineChart {lineData} /> -->
+    <!-- <AreaChart {areaData} /> -->
+    <!-- <PieChart/> -->
+    <PieChart_Container/>
+    <!-- <Choropleth {choroplethData} /> -->
   </div>
 </body>
+
+<style>
+body {
+   height:100%; 
+   background-color: #1E1E1E;
+}
+</style>
