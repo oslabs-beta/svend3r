@@ -1,7 +1,7 @@
 <script>
   import * as d3 from 'd3';
   import { flip } from 'svelte/animate';
-  import { sampleData } from '../data/sampleData'; //import your custom dataset
+  import { sampleData } from '../data/bar-data-alphabet'; //import your custom dataset
   import { BarChartDocs } from './BarVert_Store.js'; //*****Remove for Production for production use
 
   let data = sampleData;
@@ -84,7 +84,6 @@
     </g>
 
     <g class="bars">
-      <!-- {#key showSort} -->
       {#each Y as point, i (point)}
         <rect
           x={xScale(X[i])}
@@ -95,7 +94,6 @@
           animate:flip="{{duration: 1000}}"
         />
       {/each}
-      <!-- {/key} -->
     </g>
 
     <g class="x-axis" transform="translate(0,{height - marginBottom})">

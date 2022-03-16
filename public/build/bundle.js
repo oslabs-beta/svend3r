@@ -27,6 +27,21 @@ var app = (function () {
     function is_empty(obj) {
         return Object.keys(obj).length === 0;
     }
+    function validate_store(store, name) {
+        if (store != null && typeof store.subscribe !== 'function') {
+            throw new Error(`'${name}' is not a store with a 'subscribe' method`);
+        }
+    }
+    function subscribe(store, ...callbacks) {
+        if (store == null) {
+            return noop$4;
+        }
+        const unsub = store.subscribe(...callbacks);
+        return unsub.unsubscribe ? () => unsub.unsubscribe() : unsub;
+    }
+    function component_subscribe(component, store, callback) {
+        component.$$.on_destroy.push(subscribe(store, callback));
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -51,6 +66,12 @@ var app = (function () {
     function text$1(data) {
         return document.createTextNode(data);
     }
+    function space() {
+        return text$1(' ');
+    }
+    function empty$3() {
+        return text$1('');
+    }
     function listen(node, event, handler, options) {
         node.addEventListener(event, handler, options);
         return () => node.removeEventListener(event, handler, options);
@@ -61,8 +82,14 @@ var app = (function () {
         else if (node.getAttribute(attribute) !== value)
             node.setAttribute(attribute, value);
     }
+    function to_number(value) {
+        return value === '' ? null : +value;
+    }
     function children$1(element) {
         return Array.from(element.childNodes);
+    }
+    function set_input_value(input, value) {
+        input.value = value == null ? '' : value;
     }
     function set_style(node, key, value, important) {
         if (value === null) {
@@ -188,12 +215,6 @@ var app = (function () {
             block.o(local);
         }
     }
-
-    const globals = (typeof window !== 'undefined'
-        ? window
-        : typeof globalThis !== 'undefined'
-            ? globalThis
-            : global);
     function create_component(block) {
         block && block.c();
     }
@@ -357,6 +378,13 @@ var app = (function () {
             dispatch_dev('SvelteDOMRemoveAttribute', { node, attribute });
         else
             dispatch_dev('SvelteDOMSetAttribute', { node, attribute, value });
+    }
+    function set_data_dev(text, data) {
+        data = '' + data;
+        if (text.wholeText === data)
+            return;
+        dispatch_dev('SvelteDOMSetData', { node: text, data });
+        text.data = data;
     }
     function validate_each_argument(arg) {
         if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
@@ -8560,7 +8588,7 @@ var app = (function () {
 
     var html = parser("text/html");
 
-    var svg$1 = parser("image/svg+xml");
+    var svg = parser("image/svg+xml");
 
     function center(x, y) {
       var nodes, strength = 1;
@@ -20290,7 +20318,7 @@ var app = (function () {
         text: text,
         xml: xml,
         html: html,
-        svg: svg$1,
+        svg: svg,
         forceCenter: center,
         forceCollide: collide,
         forceLink: link$2,
@@ -20692,435 +20720,390 @@ var app = (function () {
         ZoomTransform: Transform
     });
 
-    const sampleData = {
-      name: 'flare',
-      children: [
-        {
-          name: 'analytics',
-          children: [
-            {
-              name: 'cluster',
-              children: [
-                { name: 'AgglomerativeCluster', value: 3938 },
-                { name: 'CommunityStructure', value: 3812 },
-                { name: 'HierarchicalCluster', value: 6714 },
-                { name: 'MergeEdge', value: 743 },
-              ],
-            },
-            {
-              name: 'graph',
-              children: [
-                { name: 'BetweennessCentrality', value: 3534 },
-                { name: 'LinkDistance', value: 5731 },
-                { name: 'MaxFlowMinCut', value: 7840 },
-                { name: 'ShortestPaths', value: 5914 },
-                { name: 'SpanningTree', value: 3416 },
-              ],
-            },
-            {
-              name: 'optimization',
-              children: [{ name: 'AspectRatioBanker', value: 7074 }],
-            },
-          ],
-        },
-        {
-          name: 'animate',
-          children: [
-            { name: 'Easing', value: 17010 },
-            { name: 'FunctionSequence', value: 5842 },
-            {
-              name: 'interpolate',
-              children: [
-                { name: 'ArrayInterpolator', value: 1983 },
-                { name: 'ColorInterpolator', value: 2047 },
-                { name: 'DateInterpolator', value: 1375 },
-                { name: 'Interpolator', value: 8746 },
-                { name: 'MatrixInterpolator', value: 2202 },
-                { name: 'NumberInterpolator', value: 1382 },
-                { name: 'ObjectInterpolator', value: 1629 },
-                { name: 'PointInterpolator', value: 1675 },
-                { name: 'RectangleInterpolator', value: 2042 },
-              ],
-            },
-            { name: 'ISchedulable', value: 1041 },
-            { name: 'Parallel', value: 5176 },
-            { name: 'Pause', value: 449 },
-            { name: 'Scheduler', value: 5593 },
-            { name: 'Sequence', value: 5534 },
-            { name: 'Transition', value: 9201 },
-            { name: 'Transitioner', value: 19975 },
-            { name: 'TransitionEvent', value: 1116 },
-            { name: 'Tween', value: 6006 },
-          ],
-        },
-        {
-          name: 'data',
-          children: [
-            {
-              name: 'converters',
-              children: [
-                { name: 'Converters', value: 721 },
-                { name: 'DelimitedTextConverter', value: 4294 },
-                { name: 'GraphMLConverter', value: 9800 },
-                { name: 'IDataConverter', value: 1314 },
-                { name: 'JSONConverter', value: 2220 },
-              ],
-            },
-            { name: 'DataField', value: 1759 },
-            { name: 'DataSchema', value: 2165 },
-            { name: 'DataSet', value: 586 },
-            { name: 'DataSource', value: 3331 },
-            { name: 'DataTable', value: 772 },
-            { name: 'DataUtil', value: 3322 },
-          ],
-        },
-        {
-          name: 'display',
-          children: [
-            { name: 'DirtySprite', value: 8833 },
-            { name: 'LineSprite', value: 1732 },
-            { name: 'RectSprite', value: 3623 },
-            { name: 'TextSprite', value: 10066 },
-          ],
-        },
-        { name: 'flex', children: [{ name: 'FlareVis', value: 4116 }] },
-        {
-          name: 'physics',
-          children: [
-            { name: 'DragForce', value: 1082 },
-            { name: 'GravityForce', value: 1336 },
-            { name: 'IForce', value: 319 },
-            { name: 'NBodyForce', value: 10498 },
-            { name: 'Particle', value: 2822 },
-            { name: 'Simulation', value: 9983 },
-            { name: 'Spring', value: 2213 },
-            { name: 'SpringForce', value: 1681 },
-          ],
-        },
-        {
-          name: 'query',
-          children: [
-            { name: 'AggregateExpression', value: 1616 },
-            { name: 'And', value: 1027 },
-            { name: 'Arithmetic', value: 3891 },
-            { name: 'Average', value: 891 },
-            { name: 'BinaryExpression', value: 2893 },
-            { name: 'Comparison', value: 5103 },
-            { name: 'CompositeExpression', value: 3677 },
-            { name: 'Count', value: 781 },
-            { name: 'DateUtil', value: 4141 },
-            { name: 'Distinct', value: 933 },
-            { name: 'Expression', value: 5130 },
-            { name: 'ExpressionIterator', value: 3617 },
-            { name: 'Fn', value: 3240 },
-            { name: 'If', value: 2732 },
-            { name: 'IsA', value: 2039 },
-            { name: 'Literal', value: 1214 },
-            { name: 'Match', value: 3748 },
-            { name: 'Maximum', value: 843 },
-            {
-              name: 'methods',
-              children: [
-                { name: 'add', value: 593 },
-                { name: 'and', value: 330 },
-                { name: 'average', value: 287 },
-                { name: 'count', value: 277 },
-                { name: 'distinct', value: 292 },
-                { name: 'div', value: 595 },
-                { name: 'eq', value: 594 },
-                { name: 'fn', value: 460 },
-                { name: 'gt', value: 603 },
-                { name: 'gte', value: 625 },
-                { name: 'iff', value: 748 },
-                { name: 'isa', value: 461 },
-                { name: 'lt', value: 597 },
-                { name: 'lte', value: 619 },
-                { name: 'max', value: 283 },
-                { name: 'min', value: 283 },
-                { name: 'mod', value: 591 },
-                { name: 'mul', value: 603 },
-                { name: 'neq', value: 599 },
-                { name: 'not', value: 386 },
-                { name: 'or', value: 323 },
-                { name: 'orderby', value: 307 },
-                { name: 'range', value: 772 },
-                { name: 'select', value: 296 },
-                { name: 'stddev', value: 363 },
-                { name: 'sub', value: 600 },
-                { name: 'sum', value: 280 },
-                { name: 'update', value: 307 },
-                { name: 'variance', value: 335 },
-                { name: 'where', value: 299 },
-                { name: 'xor', value: 354 },
-                { name: '_', value: 264 },
-              ],
-            },
-            { name: 'Minimum', value: 843 },
-            { name: 'Not', value: 1554 },
-            { name: 'Or', value: 970 },
-            { name: 'Query', value: 13896 },
-            { name: 'Range', value: 1594 },
-            { name: 'StringUtil', value: 4130 },
-            { name: 'Sum', value: 791 },
-            { name: 'Variable', value: 1124 },
-            { name: 'Variance', value: 1876 },
-            { name: 'Xor', value: 1101 },
-          ],
-        },
-        {
-          name: 'scale',
-          children: [
-            { name: 'IScaleMap', value: 2105 },
-            { name: 'LinearScale', value: 1316 },
-            { name: 'LogScale', value: 3151 },
-            { name: 'OrdinalScale', value: 3770 },
-            { name: 'QuantileScale', value: 2435 },
-            { name: 'QuantitativeScale', value: 4839 },
-            { name: 'RootScale', value: 1756 },
-            { name: 'Scale', value: 4268 },
-            { name: 'ScaleType', value: 1821 },
-            { name: 'TimeScale', value: 5833 },
-          ],
-        },
-        {
-          name: 'util',
-          children: [
-            { name: 'Arrays', value: 8258 },
-            { name: 'Colors', value: 10001 },
-            { name: 'Dates', value: 8217 },
-            { name: 'Displays', value: 12555 },
-            { name: 'Filter', value: 2324 },
-            { name: 'Geometry', value: 10993 },
-            {
-              name: 'heap',
-              children: [
-                { name: 'FibonacciHeap', value: 9354 },
-                { name: 'HeapNode', value: 1233 },
-              ],
-            },
-            { name: 'IEvaluable', value: 335 },
-            { name: 'IPredicate', value: 383 },
-            { name: 'IValueProxy', value: 874 },
-            {
-              name: 'math',
-              children: [
-                { name: 'DenseMatrix', value: 3165 },
-                { name: 'IMatrix', value: 2815 },
-                { name: 'SparseMatrix', value: 3366 },
-              ],
-            },
-            { name: 'Maths', value: 17705 },
-            { name: 'Orientation', value: 1486 },
-            {
-              name: 'palette',
-              children: [
-                { name: 'ColorPalette', value: 6367 },
-                { name: 'Palette', value: 1229 },
-                { name: 'ShapePalette', value: 2059 },
-                { name: 'SizePalette', value: 2291 },
-              ],
-            },
-            { name: 'Property', value: 5559 },
-            { name: 'Shapes', value: 19118 },
-            { name: 'Sort', value: 6887 },
-            { name: 'Stats', value: 6557 },
-            { name: 'Strings', value: 22026 },
-          ],
-        },
-        {
-          name: 'vis',
-          children: [
-            {
-              name: 'axis',
-              children: [
-                { name: 'Axes', value: 1302 },
-                { name: 'Axis', value: 24593 },
-                { name: 'AxisGridLine', value: 652 },
-                { name: 'AxisLabel', value: 636 },
-                { name: 'CartesianAxes', value: 6703 },
-              ],
-            },
-            {
-              name: 'controls',
-              children: [
-                { name: 'AnchorControl', value: 2138 },
-                { name: 'ClickControl', value: 3824 },
-                { name: 'Control', value: 1353 },
-                { name: 'ControlList', value: 4665 },
-                { name: 'DragControl', value: 2649 },
-                { name: 'ExpandControl', value: 2832 },
-                { name: 'HoverControl', value: 4896 },
-                { name: 'IControl', value: 763 },
-                { name: 'PanZoomControl', value: 5222 },
-                { name: 'SelectionControl', value: 7862 },
-                { name: 'TooltipControl', value: 8435 },
-              ],
-            },
-            {
-              name: 'data',
-              children: [
-                { name: 'Data', value: 20544 },
-                { name: 'DataList', value: 19788 },
-                { name: 'DataSprite', value: 10349 },
-                { name: 'EdgeSprite', value: 3301 },
-                { name: 'NodeSprite', value: 19382 },
-                {
-                  name: 'render',
-                  children: [
-                    { name: 'ArrowType', value: 698 },
-                    { name: 'EdgeRenderer', value: 5569 },
-                    { name: 'IRenderer', value: 353 },
-                    { name: 'ShapeRenderer', value: 2247 },
-                  ],
-                },
-                { name: 'ScaleBinding', value: 11275 },
-                { name: 'Tree', value: 7147 },
-                { name: 'TreeBuilder', value: 9930 },
-              ],
-            },
-            {
-              name: 'events',
-              children: [
-                { name: 'DataEvent', value: 2313 },
-                { name: 'SelectionEvent', value: 1880 },
-                { name: 'TooltipEvent', value: 1701 },
-                { name: 'VisualizationEvent', value: 1117 },
-              ],
-            },
-            {
-              name: 'legend',
-              children: [
-                { name: 'Legend', value: 20859 },
-                { name: 'LegendItem', value: 4614 },
-                { name: 'LegendRange', value: 10530 },
-              ],
-            },
-            {
-              name: 'operator',
-              children: [
-                {
-                  name: 'distortion',
-                  children: [
-                    { name: 'BifocalDistortion', value: 4461 },
-                    { name: 'Distortion', value: 6314 },
-                    { name: 'FisheyeDistortion', value: 3444 },
-                  ],
-                },
-                {
-                  name: 'encoder',
-                  children: [
-                    { name: 'ColorEncoder', value: 3179 },
-                    { name: 'Encoder', value: 4060 },
-                    { name: 'PropertyEncoder', value: 4138 },
-                    { name: 'ShapeEncoder', value: 1690 },
-                    { name: 'SizeEncoder', value: 1830 },
-                  ],
-                },
-                {
-                  name: 'filter',
-                  children: [
-                    { name: 'FisheyeTreeFilter', value: 5219 },
-                    { name: 'GraphDistanceFilter', value: 3165 },
-                    { name: 'VisibilityFilter', value: 3509 },
-                  ],
-                },
-                { name: 'IOperator', value: 1286 },
-                {
-                  name: 'label',
-                  children: [
-                    { name: 'Labeler', value: 9956 },
-                    { name: 'RadialLabeler', value: 3899 },
-                    { name: 'StackedAreaLabeler', value: 3202 },
-                  ],
-                },
-                {
-                  name: 'layout',
-                  children: [
-                    { name: 'AxisLayout', value: 6725 },
-                    { name: 'BundledEdgeRouter', value: 3727 },
-                    { name: 'CircleLayout', value: 9317 },
-                    { name: 'CirclePackingLayout', value: 12003 },
-                    { name: 'DendrogramLayout', value: 4853 },
-                    { name: 'ForceDirectedLayout', value: 8411 },
-                    { name: 'IcicleTreeLayout', value: 4864 },
-                    { name: 'IndentedTreeLayout', value: 3174 },
-                    { name: 'Layout', value: 7881 },
-                    { name: 'NodeLinkTreeLayout', value: 12870 },
-                    { name: 'PieLayout', value: 2728 },
-                    { name: 'RadialTreeLayout', value: 12348 },
-                    { name: 'RandomLayout', value: 870 },
-                    { name: 'StackedAreaLayout', value: 9121 },
-                    { name: 'TreeMapLayout', value: 9191 },
-                  ],
-                },
-                { name: 'Operator', value: 2490 },
-                { name: 'OperatorList', value: 5248 },
-                { name: 'OperatorSequence', value: 4190 },
-                { name: 'OperatorSwitch', value: 2581 },
-                { name: 'SortOperator', value: 2023 },
-              ],
-            },
-            { name: 'Visualization', value: 16540 },
-          ],
-        },
-      ],
-    };
+    const sampleData = [
+      [0.096899, 0.008859, 0.000554, 0.00443, 0.025471, 0.024363, 0.005537, 0.025471],
+      [0.001107, 0.018272, 0, 0.004983, 0.011074, 0.01052, 0.002215, 0.004983],
+      [0.000554, 0.002769, 0.002215, 0.002215, 0.003876, 0.008306, 0.000554, 0.003322],
+      [0.000554, 0.001107, 0.000554, 0.012182, 0.011628, 0.006645, 0.004983, 0.01052],
+      [0.002215, 0.00443, 0, 0.002769, 0.104097, 0.012182, 0.004983, 0.028239],
+      [0.011628, 0.026024, 0, 0.013843, 0.087486, 0.168328, 0.017165, 0.055925],
+      [0.000554, 0.004983, 0, 0.003322, 0.00443, 0.008859, 0.017719, 0.00443],
+      [0.002215, 0.007198, 0, 0.003322, 0.016611, 0.01495, 0.001107, 0.054264]
+    ];
 
-    /* src/Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte generated by Svelte v3.46.4 */
+    const subscriber_queue = [];
+    /**
+     * Create a `Writable` store that allows both updating and reading by subscription.
+     * @param {*=}value initial value
+     * @param {StartStopNotifier=}start start and stop notifications for subscriptions
+     */
+    function writable(value, start = noop$4) {
+        let stop;
+        const subscribers = new Set();
+        function set(new_value) {
+            if (safe_not_equal(value, new_value)) {
+                value = new_value;
+                if (stop) { // store is ready
+                    const run_queue = !subscriber_queue.length;
+                    for (const subscriber of subscribers) {
+                        subscriber[1]();
+                        subscriber_queue.push(subscriber, value);
+                    }
+                    if (run_queue) {
+                        for (let i = 0; i < subscriber_queue.length; i += 2) {
+                            subscriber_queue[i][0](subscriber_queue[i + 1]);
+                        }
+                        subscriber_queue.length = 0;
+                    }
+                }
+            }
+        }
+        function update(fn) {
+            set(fn(value));
+        }
+        function subscribe(run, invalidate = noop$4) {
+            const subscriber = [run, invalidate];
+            subscribers.add(subscriber);
+            if (subscribers.size === 1) {
+                stop = start(set) || noop$4;
+            }
+            run(value);
+            return () => {
+                subscribers.delete(subscriber);
+                if (subscribers.size === 0) {
+                    stop();
+                    stop = null;
+                }
+            };
+        }
+        return { set, update, subscribe };
+    }
 
-    const { console: console_1 } = globals;
-    const file$1 = "src/Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte";
+    const ChordChartDocs = writable([
+      {
+        variable: 'data',
+        value: 'sampleData',
+        dataType: 'Array',
+        description: 'An array of objects with x-axis and y-axis key value pairs.',
+        defaultValue: 'sampleData'  
+      },
+      {
+        variable: 'marginOffset',
+        value: 100,
+        dataType: 'Number',
+        description: 'The margin top, bottom, left, right margin offset relative to the radius.',
+        defaultValue: 100,
+        min: 0,
+        max: 180
+      },
+      {
+        variable: 'width',
+        value: 800,
+        dataType: 'Number',
+        description: 'The outer width of the chart, in pixels.',
+        defaultValue: 800,
+        min: 370,
+        max: 700
+      },
+      {
+        variable: 'bandThickness',
+        value: 10,
+        dataType: 'Number',
+        description: 'The thickness of the color band representing each dataset.',
+        defaultValue: 10,
+        min: 0,
+        max: 100
+      },
+      {
+        variable: 'fontSize',
+        value: 1,
+        dataType: 'Number',
+        description: 'The label font size relative to 1% of the width of the viewport.',
+        defaultValue: 1,
+        min: 0.1,
+        max: 1
+      },
+      {
+        variable: 'tickStep',
+        value: 1,
+        dataType: 'Number',
+        description: 'The chart label tick spread factor.',
+        defaultValue: 1,
+        min: 1,
+        max: 5
+      },
+      {
+        variable: 'scaleFormat',
+        value: '%',
+        dataType: 'String',
+        description: 'The format specifier string for the scale ticks.',
+        defaultValue: '%',
+      },
+      {
+        variable: 'names',
+        value: ['Apple', 'HTC', 'Huawei', 'LG', 'Nokia', 'Samsung', 'Sony', 'Other'],
+        dataType: 'Array',
+        description: 'The section labels for each dataset.',
+        defaultValue: ['Apple', 'HTC', 'Huawei', 'LG', 'Nokia', 'Samsung', 'Sony', 'Other'],
+      },
+      {
+        variable: 'colors',
+        value: ['#c4c4c4', '#69b40f', '#ec1d25', '#c8125c', '#008fc8', '#10218b', '#134b24', '#737373'],
+        dataType: 'Array',
+        description: 'The fill colors for each section.  The length of colors MUST match names variable array.',
+        defaultValue: ['#c4c4c4', '#69b40f', '#ec1d25', '#c8125c', '#008fc8', '#10218b', '#134b24', '#737373'],
+      },
+      {
+        variable: 'chordOpacity',
+        value: 0.7,
+        dataType: 'Number',
+        description: 'The opacity for the charts overall chords.',
+        defaultValue: 0.7,
+        min: 0.1,
+        max: 1
+      },
+      {
+        variable: 'unselectOpacity',
+        value: 0.1,
+        dataType: 'Number',
+        description: 'The opacity of non-select chart elements.',
+        defaultValue: 0.1,
+        min: 0.1,
+        max: 1
+      },
+      {
+        variable: 'selectOpacity',
+        value: 0.7,
+        dataType: 'Number',
+        description: 'The opacity of select chart elements.',
+        defaultValue: 0.7,
+        min: 0.1,
+        max: 1
+      },
+      {
+        variable: 'tooltipBackground',
+        value: 'lightgrey',
+        dataType: 'String | RGB | Hex',
+        description: 'The background color of the tooltip.',
+        defaultValue: 'lightgrey',
+      },
+      {
+        variable: 'tooltipTextColor',
+        value: 'black',
+        dataType: 'String | RGB | Hex',
+        description: 'The text color of the tooltip.',
+        defaultValue: 'black',
+      }
+    ]);
 
-    function get_each_context(ctx, list, i) {
+    /* src/Chord/Chord_Chart.svelte generated by Svelte v3.46.4 */
+    const file$4 = "src/Chord/Chord_Chart.svelte";
+
+    function get_each_context$1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[17] = list[i];
-    	child_ctx[19] = i;
+    	child_ctx[4] = list[i];
     	return child_ctx;
     }
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[20] = list[i];
-    	child_ctx[19] = i;
+    	child_ctx[41] = list[i];
+    	child_ctx[43] = i;
     	return child_ctx;
     }
 
-    // (99:8) {#each root.descendants().slice(1) as rootData, i}
-    function create_each_block_1(ctx) {
-    	let circle;
-    	let mounted;
-    	let dispose;
+    function get_each_context_2(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[44] = list[i];
+    	return child_ctx;
+    }
+
+    // (62:4) {#each ticks(group) as groupTick}
+    function create_each_block_2(ctx) {
+    	let g;
+    	let line;
+    	let text_1;
+
+    	let t_value = (/*groupTick*/ ctx[44].value !== 0
+    	? Math.round(/*groupTick*/ ctx[44].value * 100) + /*scaleFormat*/ ctx[0]
+    	: /*names*/ ctx[19][/*i*/ ctx[43]]) + "";
+
+    	let t;
+    	let text_1_font_size_value;
+    	let text_1_transform_value;
+    	let text_1_text_anchor_value;
+    	let text_1_font_weight_value;
+    	let g_transform_value;
 
     	const block = {
     		c: function create() {
-    			circle = svg_element("circle");
-    			attr_dev(circle, "id", "node-" + /*i*/ ctx[19]);
+    			g = svg_element("g");
+    			line = svg_element("line");
+    			text_1 = svg_element("text");
+    			t = text$1(t_value);
+    			attr_dev(line, "stroke", "black");
+    			attr_dev(line, "x2", "6");
+    			add_location(line, file$4, 63, 8, 2814);
+    			attr_dev(text_1, "x", "8");
+    			attr_dev(text_1, "dy", "0.35em");
+    			attr_dev(text_1, "font-size", text_1_font_size_value = "" + (/*fontSize*/ ctx[20] + "vw"));
 
-    			attr_dev(circle, "fill", /*rootData*/ ctx[20].children
-    			? /*color*/ ctx[7](/*rootData*/ ctx[20].depth)
-    			: "white");
+    			attr_dev(text_1, "transform", text_1_transform_value = /*groupTick*/ ctx[44].angle > Math.PI
+    			? "rotate(180) translate(-16)"
+    			: null);
 
-    			attr_dev(circle, "transform", "translate(" + (/*rootData*/ ctx[20].x - /*root*/ ctx[8].x) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + "," + (/*rootData*/ ctx[20].y - /*root*/ ctx[8].y) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + ")");
-    			attr_dev(circle, "r", /*rootData*/ ctx[20].r * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2));
-    			attr_dev(circle, "pointer-events", !/*rootData*/ ctx[20].children ? "none" : null);
-    			add_location(circle, file$1, 100, 12, 3220);
+    			attr_dev(text_1, "text-anchor", text_1_text_anchor_value = /*groupTick*/ ctx[44].angle > Math.PI ? "end" : null);
+    			attr_dev(text_1, "font-weight", text_1_font_weight_value = /*groupTick*/ ctx[44].value !== 0 ? "normal" : "bold");
+    			add_location(text_1, file$4, 64, 8, 2852);
+    			attr_dev(g, "transform", g_transform_value = "rotate(" + (/*groupTick*/ ctx[44].angle * 180 / Math.PI - 90) + ") translate(" + /*outerRadius*/ ctx[1] + ", 0)");
+    			add_location(g, file$4, 62, 6, 2715);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, circle, anchor);
+    			insert_dev(target, g, anchor);
+    			append_dev(g, line);
+    			append_dev(g, text_1);
+    			append_dev(text_1, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*ticks, chords, scaleFormat, names*/ 526593 && t_value !== (t_value = (/*groupTick*/ ctx[44].value !== 0
+    			? Math.round(/*groupTick*/ ctx[44].value * 100) + /*scaleFormat*/ ctx[0]
+    			: /*names*/ ctx[19][/*i*/ ctx[43]]) + "")) set_data_dev(t, t_value);
+
+    			if (dirty[0] & /*fontSize*/ 1048576 && text_1_font_size_value !== (text_1_font_size_value = "" + (/*fontSize*/ ctx[20] + "vw"))) {
+    				attr_dev(text_1, "font-size", text_1_font_size_value);
+    			}
+
+    			if (dirty[0] & /*ticks, chords*/ 2304 && text_1_transform_value !== (text_1_transform_value = /*groupTick*/ ctx[44].angle > Math.PI
+    			? "rotate(180) translate(-16)"
+    			: null)) {
+    				attr_dev(text_1, "transform", text_1_transform_value);
+    			}
+
+    			if (dirty[0] & /*ticks, chords*/ 2304 && text_1_text_anchor_value !== (text_1_text_anchor_value = /*groupTick*/ ctx[44].angle > Math.PI ? "end" : null)) {
+    				attr_dev(text_1, "text-anchor", text_1_text_anchor_value);
+    			}
+
+    			if (dirty[0] & /*ticks, chords*/ 2304 && text_1_font_weight_value !== (text_1_font_weight_value = /*groupTick*/ ctx[44].value !== 0 ? "normal" : "bold")) {
+    				attr_dev(text_1, "font-weight", text_1_font_weight_value);
+    			}
+
+    			if (dirty[0] & /*ticks, chords, outerRadius*/ 2306 && g_transform_value !== (g_transform_value = "rotate(" + (/*groupTick*/ ctx[44].angle * 180 / Math.PI - 90) + ") translate(" + /*outerRadius*/ ctx[1] + ", 0)")) {
+    				attr_dev(g, "transform", g_transform_value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(g);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_2.name,
+    		type: "each",
+    		source: "(62:4) {#each ticks(group) as groupTick}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (56:2) {#each chords.groups as group, i}
+    function create_each_block_1(ctx) {
+    	let path;
+    	let path_fill_value;
+    	let path_d_value;
+    	let each_1_anchor;
+    	let mounted;
+    	let dispose;
+
+    	function mouseover_handler(...args) {
+    		return /*mouseover_handler*/ ctx[26](/*i*/ ctx[43], /*group*/ ctx[41], ...args);
+    	}
+
+    	function focus_handler(...args) {
+    		return /*focus_handler*/ ctx[27](/*i*/ ctx[43], ...args);
+    	}
+
+    	let each_value_2 = /*ticks*/ ctx[8](/*group*/ ctx[41]);
+    	validate_each_argument(each_value_2);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value_2.length; i += 1) {
+    		each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			path = svg_element("path");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty$3();
+    			attr_dev(path, "fill", path_fill_value = /*colors*/ ctx[18][/*i*/ ctx[43]]);
+    			attr_dev(path, "d", path_d_value = /*arc*/ ctx[10](/*group*/ ctx[41]));
+    			add_location(path, file$4, 56, 4, 2437);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, path, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
 
     			if (!mounted) {
     				dispose = [
-    					listen_dev(circle, "mouseover", createStroke, false, false, false),
-    					listen_dev(circle, "mouseout", removeStroke, false, false, false),
-    					listen_dev(circle, "click", /*click_handler*/ ctx[10], false, false, false)
+    					listen_dev(path, "mouseover", mouseover_handler, false, false, false),
+    					listen_dev(path, "focus", focus_handler, false, false, false),
+    					listen_dev(path, "mouseout", /*mouseout_handler*/ ctx[28], false, false, false),
+    					listen_dev(path, "blur", /*blur_handler*/ ctx[29], false, false, false)
     				];
 
     				mounted = true;
     			}
     		},
-    		p: noop$4,
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty[0] & /*colors*/ 262144 && path_fill_value !== (path_fill_value = /*colors*/ ctx[18][/*i*/ ctx[43]])) {
+    				attr_dev(path, "fill", path_fill_value);
+    			}
+
+    			if (dirty[0] & /*arc, chords*/ 3072 && path_d_value !== (path_d_value = /*arc*/ ctx[10](/*group*/ ctx[41]))) {
+    				attr_dev(path, "d", path_d_value);
+    			}
+
+    			if (dirty[0] & /*ticks, chords, outerRadius, fontSize, scaleFormat, names*/ 1575171) {
+    				each_value_2 = /*ticks*/ ctx[8](/*group*/ ctx[41]);
+    				validate_each_argument(each_value_2);
+    				let i;
+
+    				for (i = 0; i < each_value_2.length; i += 1) {
+    					const child_ctx = get_each_context_2(ctx, each_value_2, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block_2(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value_2.length;
+    			}
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(circle);
+    			if (detaching) detach_dev(path);
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(each_1_anchor);
     			mounted = false;
     			run_all(dispose);
     		}
@@ -21130,61 +21113,380 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(99:8) {#each root.descendants().slice(1) as rootData, i}",
+    		source: "(56:2) {#each chords.groups as group, i}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (113:8) {#each root.descendants() as rootDes, i}
-    function create_each_block(ctx) {
-    	let text_1;
-    	let t_value = /*rootDes*/ ctx[17].data.name + "";
-    	let t;
+    // (83:4) {:else}
+    function create_else_block(ctx) {
+    	let path;
+    	let path_fill_value;
+    	let path_d_value;
+    	let mounted;
+    	let dispose;
+
+    	function mouseover_handler_2(...args) {
+    		return /*mouseover_handler_2*/ ctx[34](/*chord*/ ctx[4], ...args);
+    	}
+
+    	function focus_handler_2(...args) {
+    		return /*focus_handler_2*/ ctx[35](/*chord*/ ctx[4], ...args);
+    	}
 
     	const block = {
     		c: function create() {
-    			text_1 = svg_element("text");
-    			t = text$1(t_value);
-    			attr_dev(text_1, "id", "label-" + /*i*/ ctx[19]);
-    			set_style(text_1, "fill-opacity", /*rootDes*/ ctx[17].parent === /*root*/ ctx[8] ? 1 : 0);
-
-    			set_style(text_1, "display", /*rootDes*/ ctx[17].parent === /*root*/ ctx[8]
-    			? "inline"
-    			: "none");
-
-    			attr_dev(text_1, "transform", "translate(" + (/*rootDes*/ ctx[17].x - /*root*/ ctx[8].x) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + "," + (/*rootDes*/ ctx[17].y - /*root*/ ctx[8].y) * (/*width*/ ctx[1] / /*root*/ ctx[8].r * 2) + ")");
-    			add_location(text_1, file$1, 113, 8, 3980);
+    			path = svg_element("path");
+    			attr_dev(path, "fill-opacity", /*chordOpacity*/ ctx[17]);
+    			attr_dev(path, "fill", path_fill_value = /*colors*/ ctx[18][/*chord*/ ctx[4].source.index]);
+    			attr_dev(path, "d", path_d_value = /*ribbon*/ ctx[9](/*chord*/ ctx[4]));
+    			add_location(path, file$4, 83, 4, 3792);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, text_1, anchor);
-    			append_dev(text_1, t);
+    			insert_dev(target, path, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(path, "mouseover", mouseover_handler_2, false, false, false),
+    					listen_dev(path, "focus", focus_handler_2, false, false, false),
+    					listen_dev(path, "mouseout", /*mouseout_handler_2*/ ctx[36], false, false, false),
+    					listen_dev(path, "blur", /*blur_handler_2*/ ctx[37], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
     		},
-    		p: noop$4,
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty[0] & /*chordOpacity*/ 131072) {
+    				attr_dev(path, "fill-opacity", /*chordOpacity*/ ctx[17]);
+    			}
+
+    			if (dirty[0] & /*colors, chords*/ 264192 && path_fill_value !== (path_fill_value = /*colors*/ ctx[18][/*chord*/ ctx[4].source.index])) {
+    				attr_dev(path, "fill", path_fill_value);
+    			}
+
+    			if (dirty[0] & /*ribbon, chords*/ 2560 && path_d_value !== (path_d_value = /*ribbon*/ ctx[9](/*chord*/ ctx[4]))) {
+    				attr_dev(path, "d", path_d_value);
+    			}
+    		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(text_1);
+    			if (detaching) detach_dev(path);
+    			mounted = false;
+    			run_all(dispose);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_each_block.name,
-    		type: "each",
-    		source: "(113:8) {#each root.descendants() as rootDes, i}",
+    		id: create_else_block.name,
+    		type: "else",
+    		source: "(83:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    function create_fragment$1(ctx) {
-    	let svg_1;
-    	let g0;
-    	let g1;
+    // (76:4) {#if selectedChord}
+    function create_if_block_2$1(ctx) {
+    	let path;
+    	let path_fill_opacity_value;
+    	let path_fill_value;
+    	let path_d_value;
     	let mounted;
     	let dispose;
-    	let each_value_1 = /*root*/ ctx[8].descendants().slice(1);
+
+    	function mouseover_handler_1(...args) {
+    		return /*mouseover_handler_1*/ ctx[30](/*chord*/ ctx[4], ...args);
+    	}
+
+    	function focus_handler_1(...args) {
+    		return /*focus_handler_1*/ ctx[31](/*chord*/ ctx[4], ...args);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			path = svg_element("path");
+
+    			attr_dev(path, "fill-opacity", path_fill_opacity_value = /*selectedChord*/ ctx[12] === /*chord*/ ctx[4]
+    			? /*selectOpacity*/ ctx[15]
+    			: /*unselectOpacity*/ ctx[16]);
+
+    			attr_dev(path, "fill", path_fill_value = /*colors*/ ctx[18][/*chord*/ ctx[4].source.index]);
+    			attr_dev(path, "d", path_d_value = /*ribbon*/ ctx[9](/*chord*/ ctx[4]));
+    			add_location(path, file$4, 76, 6, 3328);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, path, anchor);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(path, "mouseover", mouseover_handler_1, false, false, false),
+    					listen_dev(path, "focus", focus_handler_1, false, false, false),
+    					listen_dev(path, "mouseout", /*mouseout_handler_1*/ ctx[32], false, false, false),
+    					listen_dev(path, "blur", /*blur_handler_1*/ ctx[33], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty[0] & /*selectedChord, chords, selectOpacity, unselectOpacity*/ 104448 && path_fill_opacity_value !== (path_fill_opacity_value = /*selectedChord*/ ctx[12] === /*chord*/ ctx[4]
+    			? /*selectOpacity*/ ctx[15]
+    			: /*unselectOpacity*/ ctx[16])) {
+    				attr_dev(path, "fill-opacity", path_fill_opacity_value);
+    			}
+
+    			if (dirty[0] & /*colors, chords*/ 264192 && path_fill_value !== (path_fill_value = /*colors*/ ctx[18][/*chord*/ ctx[4].source.index])) {
+    				attr_dev(path, "fill", path_fill_value);
+    			}
+
+    			if (dirty[0] & /*ribbon, chords*/ 2560 && path_d_value !== (path_d_value = /*ribbon*/ ctx[9](/*chord*/ ctx[4]))) {
+    				attr_dev(path, "d", path_d_value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(path);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2$1.name,
+    		type: "if",
+    		source: "(76:4) {#if selectedChord}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (75:2) {#each chords as chord}
+    function create_each_block$1(ctx) {
+    	let if_block_anchor;
+
+    	function select_block_type(ctx, dirty) {
+    		if (/*selectedChord*/ ctx[12]) return create_if_block_2$1;
+    		return create_else_block;
+    	}
+
+    	let current_block_type = select_block_type(ctx);
+    	let if_block = current_block_type(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if_block.c();
+    			if_block_anchor = empty$3();
+    		},
+    		m: function mount(target, anchor) {
+    			if_block.m(target, anchor);
+    			insert_dev(target, if_block_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(if_block_anchor.parentNode, if_block_anchor);
+    				}
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if_block.d(detaching);
+    			if (detaching) detach_dev(if_block_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block$1.name,
+    		type: "each",
+    		source: "(75:2) {#each chords as chord}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (95:0) {#if groupInfo}
+    function create_if_block_1$1(ctx) {
+    	let div;
+    	let t0_value = /*names*/ ctx[19][/*groupInfo*/ ctx[5][0]] + "";
+    	let t0;
+    	let t1;
+    	let t2_value = (/*groupInfo*/ ctx[5][2] * 100).toFixed(2) + "";
+    	let t2;
+    	let t3;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			t0 = text$1(t0_value);
+    			t1 = text$1(": ");
+    			t2 = text$1(t2_value);
+    			t3 = text$1(/*scaleFormat*/ ctx[0]);
+    			set_style(div, "position", "absolute");
+    			set_style(div, "left", /*groupInfo*/ ctx[5][1].clientX + 12 + "px");
+    			set_style(div, "top", /*groupInfo*/ ctx[5][1].clientY + 12 + "px");
+    			set_style(div, "background-color", /*tooltipBackground*/ ctx[14]);
+    			set_style(div, "color", /*tooltipTextColor*/ ctx[13]);
+    			attr_dev(div, "class", "svelte-1fp7xvk");
+    			add_location(div, file$4, 95, 2, 4257);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t0);
+    			append_dev(div, t1);
+    			append_dev(div, t2);
+    			append_dev(div, t3);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*names, groupInfo*/ 524320 && t0_value !== (t0_value = /*names*/ ctx[19][/*groupInfo*/ ctx[5][0]] + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*groupInfo*/ 32 && t2_value !== (t2_value = (/*groupInfo*/ ctx[5][2] * 100).toFixed(2) + "")) set_data_dev(t2, t2_value);
+    			if (dirty[0] & /*scaleFormat*/ 1) set_data_dev(t3, /*scaleFormat*/ ctx[0]);
+
+    			if (dirty[0] & /*groupInfo*/ 32) {
+    				set_style(div, "left", /*groupInfo*/ ctx[5][1].clientX + 12 + "px");
+    			}
+
+    			if (dirty[0] & /*groupInfo*/ 32) {
+    				set_style(div, "top", /*groupInfo*/ ctx[5][1].clientY + 12 + "px");
+    			}
+
+    			if (dirty[0] & /*tooltipBackground*/ 16384) {
+    				set_style(div, "background-color", /*tooltipBackground*/ ctx[14]);
+    			}
+
+    			if (dirty[0] & /*tooltipTextColor*/ 8192) {
+    				set_style(div, "color", /*tooltipTextColor*/ ctx[13]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1$1.name,
+    		type: "if",
+    		source: "(95:0) {#if groupInfo}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (102:0) {#if ribbonInfo}
+    function create_if_block$1(ctx) {
+    	let div;
+    	let t0_value = /*formatValue*/ ctx[7](/*ribbonInfo*/ ctx[6][1].source.value) + "";
+    	let t0;
+    	let t1;
+    	let t2_value = /*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].target.index] + "";
+    	let t2;
+    	let t3;
+    	let t4_value = /*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].source.index] + "";
+    	let t4;
+    	let t5;
+
+    	let t6_value = (/*ribbonInfo*/ ctx[6][1].source.index === /*ribbonInfo*/ ctx[6][1].target.index
+    	? ''
+    	: // eslint-disable-next-line max-len
+    		`\n${/*formatValue*/ ctx[7](/*ribbonInfo*/ ctx[6][1].target.value)} ${/*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].source.index]} → ${/*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].target.index]}`) + "";
+
+    	let t6;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			t0 = text$1(t0_value);
+    			t1 = space();
+    			t2 = text$1(t2_value);
+    			t3 = text$1(" → ");
+    			t4 = text$1(t4_value);
+    			t5 = space();
+    			t6 = text$1(t6_value);
+    			set_style(div, "position", "absolute");
+    			set_style(div, "left", /*ribbonInfo*/ ctx[6][0].clientX + 12 + "px");
+    			set_style(div, "top", /*ribbonInfo*/ ctx[6][0].clientY + 12 + "px");
+    			set_style(div, "background-color", /*tooltipBackground*/ ctx[14]);
+    			set_style(div, "color", /*tooltipTextColor*/ ctx[13]);
+    			attr_dev(div, "class", "svelte-1fp7xvk");
+    			add_location(div, file$4, 102, 2, 4559);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, t0);
+    			append_dev(div, t1);
+    			append_dev(div, t2);
+    			append_dev(div, t3);
+    			append_dev(div, t4);
+    			append_dev(div, t5);
+    			append_dev(div, t6);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*formatValue, ribbonInfo*/ 192 && t0_value !== (t0_value = /*formatValue*/ ctx[7](/*ribbonInfo*/ ctx[6][1].source.value) + "")) set_data_dev(t0, t0_value);
+    			if (dirty[0] & /*names, ribbonInfo*/ 524352 && t2_value !== (t2_value = /*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].target.index] + "")) set_data_dev(t2, t2_value);
+    			if (dirty[0] & /*names, ribbonInfo*/ 524352 && t4_value !== (t4_value = /*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].source.index] + "")) set_data_dev(t4, t4_value);
+
+    			if (dirty[0] & /*ribbonInfo, formatValue, names*/ 524480 && t6_value !== (t6_value = (/*ribbonInfo*/ ctx[6][1].source.index === /*ribbonInfo*/ ctx[6][1].target.index
+    			? ''
+    			: // eslint-disable-next-line max-len
+    				`\n${/*formatValue*/ ctx[7](/*ribbonInfo*/ ctx[6][1].target.value)} ${/*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].source.index]} → ${/*names*/ ctx[19][/*ribbonInfo*/ ctx[6][1].target.index]}`) + "")) set_data_dev(t6, t6_value);
+
+    			if (dirty[0] & /*ribbonInfo*/ 64) {
+    				set_style(div, "left", /*ribbonInfo*/ ctx[6][0].clientX + 12 + "px");
+    			}
+
+    			if (dirty[0] & /*ribbonInfo*/ 64) {
+    				set_style(div, "top", /*ribbonInfo*/ ctx[6][0].clientY + 12 + "px");
+    			}
+
+    			if (dirty[0] & /*tooltipBackground*/ 16384) {
+    				set_style(div, "background-color", /*tooltipBackground*/ ctx[14]);
+    			}
+
+    			if (dirty[0] & /*tooltipTextColor*/ 8192) {
+    				set_style(div, "color", /*tooltipTextColor*/ ctx[13]);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$1.name,
+    		type: "if",
+    		source: "(102:0) {#if ribbonInfo}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$4(ctx) {
+    	let svg;
+    	let each0_anchor;
+    	let svg_viewBox_value;
+    	let t0;
+    	let t1;
+    	let if_block1_anchor;
+    	let each_value_1 = /*chords*/ ctx[11].groups;
     	validate_each_argument(each_value_1);
     	let each_blocks_1 = [];
 
@@ -21192,66 +21494,66 @@ var app = (function () {
     		each_blocks_1[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
     	}
 
-    	let each_value = /*root*/ ctx[8].descendants();
+    	let each_value = /*chords*/ ctx[11];
     	validate_each_argument(each_value);
     	let each_blocks = [];
 
     	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    		each_blocks[i] = create_each_block$1(get_each_context$1(ctx, each_value, i));
     	}
+
+    	let if_block0 = /*groupInfo*/ ctx[5] && create_if_block_1$1(ctx);
+    	let if_block1 = /*ribbonInfo*/ ctx[6] && create_if_block$1(ctx);
 
     	const block = {
     		c: function create() {
-    			svg_1 = svg_element("svg");
-    			g0 = svg_element("g");
+    			svg = svg_element("svg");
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
     				each_blocks_1[i].c();
     			}
 
-    			g1 = svg_element("g");
+    			each0_anchor = empty$3();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
-    			attr_dev(g0, "class", "node");
-    			add_location(g0, file$1, 97, 4, 3063);
-    			attr_dev(g1, "class", "label");
-    			attr_dev(g1, "pointer-events", "none");
-    			attr_dev(g1, "text-anchor", "middle");
-    			set_style(g1, "font", "10px sans-serif");
-    			add_location(g1, file$1, 111, 4, 3831);
-    			attr_dev(svg_1, "viewBox", "" + (-/*width*/ ctx[1] / 2 + " " + -/*height*/ ctx[2] / 2 + " " + /*width*/ ctx[1] + " " + /*height*/ ctx[2]));
-    			attr_dev(svg_1, "style", "display: block; margin: " + /*marginTB*/ ctx[3] + " " + /*marginRL*/ ctx[4] + "; background: " + /*backgroundColor*/ ctx[5] + "; cursor=" + /*cursorType*/ ctx[6] + ";");
-    			attr_dev(svg_1, "class", "svelte-hklpiw");
-    			add_location(svg_1, file$1, 96, 0, 2852);
+    			t0 = space();
+    			if (if_block0) if_block0.c();
+    			t1 = space();
+    			if (if_block1) if_block1.c();
+    			if_block1_anchor = empty$3();
+    			attr_dev(svg, "width", /*width*/ ctx[3]);
+    			attr_dev(svg, "height", /*height*/ ctx[2]);
+    			attr_dev(svg, "viewBox", svg_viewBox_value = "" + (-/*width*/ ctx[3] / 2 + " " + -/*height*/ ctx[2] / 2 + " " + /*width*/ ctx[3] + " " + /*height*/ ctx[2]));
+    			add_location(svg, file$4, 54, 0, 2319);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, svg_1, anchor);
-    			append_dev(svg_1, g0);
+    			insert_dev(target, svg, anchor);
 
     			for (let i = 0; i < each_blocks_1.length; i += 1) {
-    				each_blocks_1[i].m(g0, null);
+    				each_blocks_1[i].m(svg, null);
     			}
 
-    			append_dev(svg_1, g1);
+    			append_dev(svg, each0_anchor);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(g1, null);
+    				each_blocks[i].m(svg, null);
     			}
 
-    			if (!mounted) {
-    				dispose = listen_dev(svg_1, "click", /*click_handler_1*/ ctx[11], false, false, false);
-    				mounted = true;
-    			}
+    			insert_dev(target, t0, anchor);
+    			if (if_block0) if_block0.m(target, anchor);
+    			insert_dev(target, t1, anchor);
+    			if (if_block1) if_block1.m(target, anchor);
+    			insert_dev(target, if_block1_anchor, anchor);
     		},
-    		p: function update(ctx, [dirty]) {
-    			if (dirty & /*root, color, width, createStroke, removeStroke, focus, zoom*/ 899) {
-    				each_value_1 = /*root*/ ctx[8].descendants().slice(1);
+    		p: function update(ctx, dirty) {
+    			if (dirty[0] & /*ticks, chords, outerRadius, fontSize, scaleFormat, names, colors, arc, groupInfo*/ 1838371) {
+    				each_value_1 = /*chords*/ ctx[11].groups;
     				validate_each_argument(each_value_1);
     				let i;
 
@@ -21263,7 +21565,7 @@ var app = (function () {
     					} else {
     						each_blocks_1[i] = create_each_block_1(child_ctx);
     						each_blocks_1[i].c();
-    						each_blocks_1[i].m(g0, null);
+    						each_blocks_1[i].m(svg, each0_anchor);
     					}
     				}
 
@@ -21274,8 +21576,3139 @@ var app = (function () {
     				each_blocks_1.length = each_value_1.length;
     			}
 
-    			if (dirty & /*root, width*/ 258) {
-    				each_value = /*root*/ ctx[8].descendants();
+    			if (dirty[0] & /*selectedChord, chords, selectOpacity, unselectOpacity, colors, ribbon, ribbonInfo, chordOpacity*/ 498240) {
+    				each_value = /*chords*/ ctx[11];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = 0; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context$1(ctx, each_value, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block$1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(svg, null);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
+    			if (dirty[0] & /*width*/ 8) {
+    				attr_dev(svg, "width", /*width*/ ctx[3]);
+    			}
+
+    			if (dirty[0] & /*height*/ 4) {
+    				attr_dev(svg, "height", /*height*/ ctx[2]);
+    			}
+
+    			if (dirty[0] & /*width, height*/ 12 && svg_viewBox_value !== (svg_viewBox_value = "" + (-/*width*/ ctx[3] / 2 + " " + -/*height*/ ctx[2] / 2 + " " + /*width*/ ctx[3] + " " + /*height*/ ctx[2]))) {
+    				attr_dev(svg, "viewBox", svg_viewBox_value);
+    			}
+
+    			if (/*groupInfo*/ ctx[5]) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+    				} else {
+    					if_block0 = create_if_block_1$1(ctx);
+    					if_block0.c();
+    					if_block0.m(t1.parentNode, t1);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
+
+    			if (/*ribbonInfo*/ ctx[6]) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block$1(ctx);
+    					if_block1.c();
+    					if_block1.m(if_block1_anchor.parentNode, if_block1_anchor);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+    		},
+    		i: noop$4,
+    		o: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(svg);
+    			destroy_each(each_blocks_1, detaching);
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(t0);
+    			if (if_block0) if_block0.d(detaching);
+    			if (detaching) detach_dev(t1);
+    			if (if_block1) if_block1.d(detaching);
+    			if (detaching) detach_dev(if_block1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$4.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$4($$self, $$props, $$invalidate) {
+    	let marginOffset;
+    	let width;
+    	let height;
+    	let bandThickness;
+    	let fontSize;
+    	let tickStep;
+    	let scaleFormat;
+    	let names;
+    	let colors;
+    	let chordOpacity;
+    	let unselectOpacity;
+    	let selectOpacity;
+    	let tooltipBackground;
+    	let tooltipTextColor;
+    	let outerRadius;
+    	let innerRadius;
+    	let selectedChord;
+    	let chord$1;
+    	let chords;
+    	let arc$1;
+    	let ribbon;
+    	let ticks;
+    	let formatValue;
+    	let $ChordChartDocs;
+    	validate_store(ChordChartDocs, 'ChordChartDocs');
+    	component_subscribe($$self, ChordChartDocs, $$value => $$invalidate(25, $ChordChartDocs = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Chord_Chart', slots, []);
+    	const data = sampleData;
+    	let groupInfo, ribbonInfo;
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Chord_Chart> was created with unknown prop '${key}'`);
+    	});
+
+    	const mouseover_handler = (i, group, e) => $$invalidate(5, groupInfo = [i, e, group.value]);
+    	const focus_handler = (i, e) => $$invalidate(5, groupInfo = [i, e]);
+    	const mouseout_handler = () => $$invalidate(5, groupInfo = null);
+    	const blur_handler = () => $$invalidate(5, groupInfo = null);
+
+    	const mouseover_handler_1 = (chord, e) => {
+    		$$invalidate(6, ribbonInfo = [e, chord]);
+    		$$invalidate(12, selectedChord = chord);
+    	};
+
+    	const focus_handler_1 = (chord, e) => {
+    		$$invalidate(6, ribbonInfo = [e, chord]);
+    		$$invalidate(12, selectedChord = chord);
+    	};
+
+    	const mouseout_handler_1 = () => {
+    		$$invalidate(6, ribbonInfo = null);
+    		$$invalidate(12, selectedChord = null);
+    	};
+
+    	const blur_handler_1 = () => {
+    		$$invalidate(6, ribbonInfo = null);
+    		$$invalidate(12, selectedChord = null);
+    	};
+
+    	const mouseover_handler_2 = (chord, e) => {
+    		$$invalidate(6, ribbonInfo = [e, chord]);
+    		$$invalidate(12, selectedChord = chord);
+    	};
+
+    	const focus_handler_2 = (chord, e) => {
+    		$$invalidate(6, ribbonInfo = [e, chord]);
+    		$$invalidate(12, selectedChord = chord);
+    	};
+
+    	const mouseout_handler_2 = () => {
+    		$$invalidate(6, ribbonInfo = null);
+    		$$invalidate(12, selectedChord = null);
+    	};
+
+    	const blur_handler_2 = () => {
+    		$$invalidate(6, ribbonInfo = null);
+    		$$invalidate(12, selectedChord = null);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		d3,
+    		sampleData,
+    		ChordChartDocs,
+    		data,
+    		groupInfo,
+    		ribbonInfo,
+    		scaleFormat,
+    		formatValue,
+    		tickStep,
+    		ticks,
+    		innerRadius,
+    		ribbon,
+    		outerRadius,
+    		arc: arc$1,
+    		chord: chord$1,
+    		chords,
+    		selectedChord,
+    		bandThickness,
+    		marginOffset,
+    		height,
+    		width,
+    		tooltipTextColor,
+    		tooltipBackground,
+    		selectOpacity,
+    		unselectOpacity,
+    		chordOpacity,
+    		colors,
+    		names,
+    		fontSize,
+    		$ChordChartDocs
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('groupInfo' in $$props) $$invalidate(5, groupInfo = $$props.groupInfo);
+    		if ('ribbonInfo' in $$props) $$invalidate(6, ribbonInfo = $$props.ribbonInfo);
+    		if ('scaleFormat' in $$props) $$invalidate(0, scaleFormat = $$props.scaleFormat);
+    		if ('formatValue' in $$props) $$invalidate(7, formatValue = $$props.formatValue);
+    		if ('tickStep' in $$props) $$invalidate(21, tickStep = $$props.tickStep);
+    		if ('ticks' in $$props) $$invalidate(8, ticks = $$props.ticks);
+    		if ('innerRadius' in $$props) $$invalidate(22, innerRadius = $$props.innerRadius);
+    		if ('ribbon' in $$props) $$invalidate(9, ribbon = $$props.ribbon);
+    		if ('outerRadius' in $$props) $$invalidate(1, outerRadius = $$props.outerRadius);
+    		if ('arc' in $$props) $$invalidate(10, arc$1 = $$props.arc);
+    		if ('chord' in $$props) $$invalidate(4, chord$1 = $$props.chord);
+    		if ('chords' in $$props) $$invalidate(11, chords = $$props.chords);
+    		if ('selectedChord' in $$props) $$invalidate(12, selectedChord = $$props.selectedChord);
+    		if ('bandThickness' in $$props) $$invalidate(23, bandThickness = $$props.bandThickness);
+    		if ('marginOffset' in $$props) $$invalidate(24, marginOffset = $$props.marginOffset);
+    		if ('height' in $$props) $$invalidate(2, height = $$props.height);
+    		if ('width' in $$props) $$invalidate(3, width = $$props.width);
+    		if ('tooltipTextColor' in $$props) $$invalidate(13, tooltipTextColor = $$props.tooltipTextColor);
+    		if ('tooltipBackground' in $$props) $$invalidate(14, tooltipBackground = $$props.tooltipBackground);
+    		if ('selectOpacity' in $$props) $$invalidate(15, selectOpacity = $$props.selectOpacity);
+    		if ('unselectOpacity' in $$props) $$invalidate(16, unselectOpacity = $$props.unselectOpacity);
+    		if ('chordOpacity' in $$props) $$invalidate(17, chordOpacity = $$props.chordOpacity);
+    		if ('colors' in $$props) $$invalidate(18, colors = $$props.colors);
+    		if ('names' in $$props) $$invalidate(19, names = $$props.names);
+    		if ('fontSize' in $$props) $$invalidate(20, fontSize = $$props.fontSize);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(24, marginOffset = $ChordChartDocs[1].value); //the margin top, bottom, left, right margin offset relative to the radius
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(3, width = $ChordChartDocs[2].value); // the outer width of the chart, in pixels
+    		}
+
+    		if ($$self.$$.dirty[0] & /*width*/ 8) {
+    			$$invalidate(2, height = width); // the outer height of the chart, in pixels
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(23, bandThickness = $ChordChartDocs[3].value); // the thickness of the color band representing each dataset
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(20, fontSize = $ChordChartDocs[4].value); //the label font size relative to 1% of the width of the viewport
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(21, tickStep = $ChordChartDocs[5].value); //the chart label tick spread factor
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(0, scaleFormat = $ChordChartDocs[6].value); // a format specifier string for the scale ticks
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(19, names = $ChordChartDocs[7].value); // section names
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(18, colors = $ChordChartDocs[8].value); // section fill colors && number of colors in fill array MUST match number of subsets in data
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(17, chordOpacity = $ChordChartDocs[9].value); //the opacity for the charts overall chords
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(16, unselectOpacity = $ChordChartDocs[10].value); //the opacity of non-select chart elements
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(15, selectOpacity = $ChordChartDocs[11].value); //the opacity of select chart elements
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(14, tooltipBackground = $ChordChartDocs[12].value); // background color of tooltip
+    		}
+
+    		if ($$self.$$.dirty[0] & /*$ChordChartDocs*/ 33554432) {
+    			$$invalidate(13, tooltipTextColor = $ChordChartDocs[13].value); // text color of tooltip
+    		}
+
+    		if ($$self.$$.dirty[0] & /*width, height, marginOffset*/ 16777228) {
+    			$$invalidate(1, outerRadius = Math.min(width, height) * 0.5 - marginOffset); // should connect to margin
+    		}
+
+    		if ($$self.$$.dirty[0] & /*outerRadius, bandThickness*/ 8388610) {
+    			$$invalidate(22, innerRadius = outerRadius - bandThickness); // should make adjustable
+    		}
+
+    		if ($$self.$$.dirty[0] & /*innerRadius*/ 4194304) {
+    			$$invalidate(4, chord$1 = chord().padAngle(10 / innerRadius).sortSubgroups(descending$2).sortChords(descending$2));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*chord*/ 16) {
+    			$$invalidate(11, chords = chord$1(data));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*innerRadius, outerRadius*/ 4194306) {
+    			$$invalidate(10, arc$1 = arc().innerRadius(innerRadius).outerRadius(outerRadius));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*innerRadius*/ 4194304) {
+    			$$invalidate(9, ribbon = ribbon$1().radius(innerRadius - 1).padAngle(1 / innerRadius));
+    		}
+
+    		if ($$self.$$.dirty[0] & /*tickStep*/ 2097152) {
+    			$$invalidate(8, ticks = ({ startAngle, endAngle, value }) => {
+    				const k = (endAngle - startAngle) / value;
+
+    				return range$2(0, value, tickStep / 100).map(value => {
+    					return { value, angle: value * k + startAngle };
+    				});
+    			});
+    		}
+
+    		if ($$self.$$.dirty[0] & /*scaleFormat*/ 1) {
+    			$$invalidate(7, formatValue = val => {
+    				return (val * 100).toFixed(2) + scaleFormat;
+    			});
+    		}
+    	};
+
+    	$$invalidate(12, selectedChord = null);
+
+    	return [
+    		scaleFormat,
+    		outerRadius,
+    		height,
+    		width,
+    		chord$1,
+    		groupInfo,
+    		ribbonInfo,
+    		formatValue,
+    		ticks,
+    		ribbon,
+    		arc$1,
+    		chords,
+    		selectedChord,
+    		tooltipTextColor,
+    		tooltipBackground,
+    		selectOpacity,
+    		unselectOpacity,
+    		chordOpacity,
+    		colors,
+    		names,
+    		fontSize,
+    		tickStep,
+    		innerRadius,
+    		bandThickness,
+    		marginOffset,
+    		$ChordChartDocs,
+    		mouseover_handler,
+    		focus_handler,
+    		mouseout_handler,
+    		blur_handler,
+    		mouseover_handler_1,
+    		focus_handler_1,
+    		mouseout_handler_1,
+    		blur_handler_1,
+    		mouseover_handler_2,
+    		focus_handler_2,
+    		mouseout_handler_2,
+    		blur_handler_2
+    	];
+    }
+
+    class Chord_Chart extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$4, create_fragment$4, safe_not_equal, {}, null, [-1, -1]);
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Chord_Chart",
+    			options,
+    			id: create_fragment$4.name
+    		});
+    	}
+    }
+
+    var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+    function createCommonjsModule(fn) {
+      var module = { exports: {} };
+    	return fn(module, module.exports), module.exports;
+    }
+
+    var prism = createCommonjsModule(function (module) {
+    /* **********************************************
+         Begin prism-core.js
+    ********************************************** */
+
+    /// <reference lib="WebWorker"/>
+
+    var _self = (typeof window !== 'undefined')
+    	? window   // if in browser
+    	: (
+    		(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)
+    			? self // if in worker
+    			: {}   // if in node js
+    	);
+
+    /**
+     * Prism: Lightweight, robust, elegant syntax highlighting
+     *
+     * @license MIT <https://opensource.org/licenses/MIT>
+     * @author Lea Verou <https://lea.verou.me>
+     * @namespace
+     * @public
+     */
+    var Prism = (function (_self) {
+
+    	// Private helper vars
+    	var lang = /(?:^|\s)lang(?:uage)?-([\w-]+)(?=\s|$)/i;
+    	var uniqueId = 0;
+
+    	// The grammar object for plaintext
+    	var plainTextGrammar = {};
+
+
+    	var _ = {
+    		/**
+    		 * By default, Prism will attempt to highlight all code elements (by calling {@link Prism.highlightAll}) on the
+    		 * current page after the page finished loading. This might be a problem if e.g. you wanted to asynchronously load
+    		 * additional languages or plugins yourself.
+    		 *
+    		 * By setting this value to `true`, Prism will not automatically highlight all code elements on the page.
+    		 *
+    		 * You obviously have to change this value before the automatic highlighting started. To do this, you can add an
+    		 * empty Prism object into the global scope before loading the Prism script like this:
+    		 *
+    		 * ```js
+    		 * window.Prism = window.Prism || {};
+    		 * Prism.manual = true;
+    		 * // add a new <script> to load Prism's script
+    		 * ```
+    		 *
+    		 * @default false
+    		 * @type {boolean}
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		manual: _self.Prism && _self.Prism.manual,
+    		/**
+    		 * By default, if Prism is in a web worker, it assumes that it is in a worker it created itself, so it uses
+    		 * `addEventListener` to communicate with its parent instance. However, if you're using Prism manually in your
+    		 * own worker, you don't want it to do this.
+    		 *
+    		 * By setting this value to `true`, Prism will not add its own listeners to the worker.
+    		 *
+    		 * You obviously have to change this value before Prism executes. To do this, you can add an
+    		 * empty Prism object into the global scope before loading the Prism script like this:
+    		 *
+    		 * ```js
+    		 * window.Prism = window.Prism || {};
+    		 * Prism.disableWorkerMessageHandler = true;
+    		 * // Load Prism's script
+    		 * ```
+    		 *
+    		 * @default false
+    		 * @type {boolean}
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
+
+    		/**
+    		 * A namespace for utility methods.
+    		 *
+    		 * All function in this namespace that are not explicitly marked as _public_ are for __internal use only__ and may
+    		 * change or disappear at any time.
+    		 *
+    		 * @namespace
+    		 * @memberof Prism
+    		 */
+    		util: {
+    			encode: function encode(tokens) {
+    				if (tokens instanceof Token) {
+    					return new Token(tokens.type, encode(tokens.content), tokens.alias);
+    				} else if (Array.isArray(tokens)) {
+    					return tokens.map(encode);
+    				} else {
+    					return tokens.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\u00a0/g, ' ');
+    				}
+    			},
+
+    			/**
+    			 * Returns the name of the type of the given value.
+    			 *
+    			 * @param {any} o
+    			 * @returns {string}
+    			 * @example
+    			 * type(null)      === 'Null'
+    			 * type(undefined) === 'Undefined'
+    			 * type(123)       === 'Number'
+    			 * type('foo')     === 'String'
+    			 * type(true)      === 'Boolean'
+    			 * type([1, 2])    === 'Array'
+    			 * type({})        === 'Object'
+    			 * type(String)    === 'Function'
+    			 * type(/abc+/)    === 'RegExp'
+    			 */
+    			type: function (o) {
+    				return Object.prototype.toString.call(o).slice(8, -1);
+    			},
+
+    			/**
+    			 * Returns a unique number for the given object. Later calls will still return the same number.
+    			 *
+    			 * @param {Object} obj
+    			 * @returns {number}
+    			 */
+    			objId: function (obj) {
+    				if (!obj['__id']) {
+    					Object.defineProperty(obj, '__id', { value: ++uniqueId });
+    				}
+    				return obj['__id'];
+    			},
+
+    			/**
+    			 * Creates a deep clone of the given object.
+    			 *
+    			 * The main intended use of this function is to clone language definitions.
+    			 *
+    			 * @param {T} o
+    			 * @param {Record<number, any>} [visited]
+    			 * @returns {T}
+    			 * @template T
+    			 */
+    			clone: function deepClone(o, visited) {
+    				visited = visited || {};
+
+    				var clone; var id;
+    				switch (_.util.type(o)) {
+    					case 'Object':
+    						id = _.util.objId(o);
+    						if (visited[id]) {
+    							return visited[id];
+    						}
+    						clone = /** @type {Record<string, any>} */ ({});
+    						visited[id] = clone;
+
+    						for (var key in o) {
+    							if (o.hasOwnProperty(key)) {
+    								clone[key] = deepClone(o[key], visited);
+    							}
+    						}
+
+    						return /** @type {any} */ (clone);
+
+    					case 'Array':
+    						id = _.util.objId(o);
+    						if (visited[id]) {
+    							return visited[id];
+    						}
+    						clone = [];
+    						visited[id] = clone;
+
+    						(/** @type {Array} */(/** @type {any} */(o))).forEach(function (v, i) {
+    							clone[i] = deepClone(v, visited);
+    						});
+
+    						return /** @type {any} */ (clone);
+
+    					default:
+    						return o;
+    				}
+    			},
+
+    			/**
+    			 * Returns the Prism language of the given element set by a `language-xxxx` or `lang-xxxx` class.
+    			 *
+    			 * If no language is set for the element or the element is `null` or `undefined`, `none` will be returned.
+    			 *
+    			 * @param {Element} element
+    			 * @returns {string}
+    			 */
+    			getLanguage: function (element) {
+    				while (element) {
+    					var m = lang.exec(element.className);
+    					if (m) {
+    						return m[1].toLowerCase();
+    					}
+    					element = element.parentElement;
+    				}
+    				return 'none';
+    			},
+
+    			/**
+    			 * Sets the Prism `language-xxxx` class of the given element.
+    			 *
+    			 * @param {Element} element
+    			 * @param {string} language
+    			 * @returns {void}
+    			 */
+    			setLanguage: function (element, language) {
+    				// remove all `language-xxxx` classes
+    				// (this might leave behind a leading space)
+    				element.className = element.className.replace(RegExp(lang, 'gi'), '');
+
+    				// add the new `language-xxxx` class
+    				// (using `classList` will automatically clean up spaces for us)
+    				element.classList.add('language-' + language);
+    			},
+
+    			/**
+    			 * Returns the script element that is currently executing.
+    			 *
+    			 * This does __not__ work for line script element.
+    			 *
+    			 * @returns {HTMLScriptElement | null}
+    			 */
+    			currentScript: function () {
+    				if (typeof document === 'undefined') {
+    					return null;
+    				}
+    				if ('currentScript' in document && 1 < 2 /* hack to trip TS' flow analysis */) {
+    					return /** @type {any} */ (document.currentScript);
+    				}
+
+    				// IE11 workaround
+    				// we'll get the src of the current script by parsing IE11's error stack trace
+    				// this will not work for inline scripts
+
+    				try {
+    					throw new Error();
+    				} catch (err) {
+    					// Get file src url from stack. Specifically works with the format of stack traces in IE.
+    					// A stack will look like this:
+    					//
+    					// Error
+    					//    at _.util.currentScript (http://localhost/components/prism-core.js:119:5)
+    					//    at Global code (http://localhost/components/prism-core.js:606:1)
+
+    					var src = (/at [^(\r\n]*\((.*):[^:]+:[^:]+\)$/i.exec(err.stack) || [])[1];
+    					if (src) {
+    						var scripts = document.getElementsByTagName('script');
+    						for (var i in scripts) {
+    							if (scripts[i].src == src) {
+    								return scripts[i];
+    							}
+    						}
+    					}
+    					return null;
+    				}
+    			},
+
+    			/**
+    			 * Returns whether a given class is active for `element`.
+    			 *
+    			 * The class can be activated if `element` or one of its ancestors has the given class and it can be deactivated
+    			 * if `element` or one of its ancestors has the negated version of the given class. The _negated version_ of the
+    			 * given class is just the given class with a `no-` prefix.
+    			 *
+    			 * Whether the class is active is determined by the closest ancestor of `element` (where `element` itself is
+    			 * closest ancestor) that has the given class or the negated version of it. If neither `element` nor any of its
+    			 * ancestors have the given class or the negated version of it, then the default activation will be returned.
+    			 *
+    			 * In the paradoxical situation where the closest ancestor contains __both__ the given class and the negated
+    			 * version of it, the class is considered active.
+    			 *
+    			 * @param {Element} element
+    			 * @param {string} className
+    			 * @param {boolean} [defaultActivation=false]
+    			 * @returns {boolean}
+    			 */
+    			isActive: function (element, className, defaultActivation) {
+    				var no = 'no-' + className;
+
+    				while (element) {
+    					var classList = element.classList;
+    					if (classList.contains(className)) {
+    						return true;
+    					}
+    					if (classList.contains(no)) {
+    						return false;
+    					}
+    					element = element.parentElement;
+    				}
+    				return !!defaultActivation;
+    			}
+    		},
+
+    		/**
+    		 * This namespace contains all currently loaded languages and the some helper functions to create and modify languages.
+    		 *
+    		 * @namespace
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		languages: {
+    			/**
+    			 * The grammar for plain, unformatted text.
+    			 */
+    			plain: plainTextGrammar,
+    			plaintext: plainTextGrammar,
+    			text: plainTextGrammar,
+    			txt: plainTextGrammar,
+
+    			/**
+    			 * Creates a deep copy of the language with the given id and appends the given tokens.
+    			 *
+    			 * If a token in `redef` also appears in the copied language, then the existing token in the copied language
+    			 * will be overwritten at its original position.
+    			 *
+    			 * ## Best practices
+    			 *
+    			 * Since the position of overwriting tokens (token in `redef` that overwrite tokens in the copied language)
+    			 * doesn't matter, they can technically be in any order. However, this can be confusing to others that trying to
+    			 * understand the language definition because, normally, the order of tokens matters in Prism grammars.
+    			 *
+    			 * Therefore, it is encouraged to order overwriting tokens according to the positions of the overwritten tokens.
+    			 * Furthermore, all non-overwriting tokens should be placed after the overwriting ones.
+    			 *
+    			 * @param {string} id The id of the language to extend. This has to be a key in `Prism.languages`.
+    			 * @param {Grammar} redef The new tokens to append.
+    			 * @returns {Grammar} The new language created.
+    			 * @public
+    			 * @example
+    			 * Prism.languages['css-with-colors'] = Prism.languages.extend('css', {
+    			 *     // Prism.languages.css already has a 'comment' token, so this token will overwrite CSS' 'comment' token
+    			 *     // at its original position
+    			 *     'comment': { ... },
+    			 *     // CSS doesn't have a 'color' token, so this token will be appended
+    			 *     'color': /\b(?:red|green|blue)\b/
+    			 * });
+    			 */
+    			extend: function (id, redef) {
+    				var lang = _.util.clone(_.languages[id]);
+
+    				for (var key in redef) {
+    					lang[key] = redef[key];
+    				}
+
+    				return lang;
+    			},
+
+    			/**
+    			 * Inserts tokens _before_ another token in a language definition or any other grammar.
+    			 *
+    			 * ## Usage
+    			 *
+    			 * This helper method makes it easy to modify existing languages. For example, the CSS language definition
+    			 * not only defines CSS highlighting for CSS documents, but also needs to define highlighting for CSS embedded
+    			 * in HTML through `<style>` elements. To do this, it needs to modify `Prism.languages.markup` and add the
+    			 * appropriate tokens. However, `Prism.languages.markup` is a regular JavaScript object literal, so if you do
+    			 * this:
+    			 *
+    			 * ```js
+    			 * Prism.languages.markup.style = {
+    			 *     // token
+    			 * };
+    			 * ```
+    			 *
+    			 * then the `style` token will be added (and processed) at the end. `insertBefore` allows you to insert tokens
+    			 * before existing tokens. For the CSS example above, you would use it like this:
+    			 *
+    			 * ```js
+    			 * Prism.languages.insertBefore('markup', 'cdata', {
+    			 *     'style': {
+    			 *         // token
+    			 *     }
+    			 * });
+    			 * ```
+    			 *
+    			 * ## Special cases
+    			 *
+    			 * If the grammars of `inside` and `insert` have tokens with the same name, the tokens in `inside`'s grammar
+    			 * will be ignored.
+    			 *
+    			 * This behavior can be used to insert tokens after `before`:
+    			 *
+    			 * ```js
+    			 * Prism.languages.insertBefore('markup', 'comment', {
+    			 *     'comment': Prism.languages.markup.comment,
+    			 *     // tokens after 'comment'
+    			 * });
+    			 * ```
+    			 *
+    			 * ## Limitations
+    			 *
+    			 * The main problem `insertBefore` has to solve is iteration order. Since ES2015, the iteration order for object
+    			 * properties is guaranteed to be the insertion order (except for integer keys) but some browsers behave
+    			 * differently when keys are deleted and re-inserted. So `insertBefore` can't be implemented by temporarily
+    			 * deleting properties which is necessary to insert at arbitrary positions.
+    			 *
+    			 * To solve this problem, `insertBefore` doesn't actually insert the given tokens into the target object.
+    			 * Instead, it will create a new object and replace all references to the target object with the new one. This
+    			 * can be done without temporarily deleting properties, so the iteration order is well-defined.
+    			 *
+    			 * However, only references that can be reached from `Prism.languages` or `insert` will be replaced. I.e. if
+    			 * you hold the target object in a variable, then the value of the variable will not change.
+    			 *
+    			 * ```js
+    			 * var oldMarkup = Prism.languages.markup;
+    			 * var newMarkup = Prism.languages.insertBefore('markup', 'comment', { ... });
+    			 *
+    			 * assert(oldMarkup !== Prism.languages.markup);
+    			 * assert(newMarkup === Prism.languages.markup);
+    			 * ```
+    			 *
+    			 * @param {string} inside The property of `root` (e.g. a language id in `Prism.languages`) that contains the
+    			 * object to be modified.
+    			 * @param {string} before The key to insert before.
+    			 * @param {Grammar} insert An object containing the key-value pairs to be inserted.
+    			 * @param {Object<string, any>} [root] The object containing `inside`, i.e. the object that contains the
+    			 * object to be modified.
+    			 *
+    			 * Defaults to `Prism.languages`.
+    			 * @returns {Grammar} The new grammar object.
+    			 * @public
+    			 */
+    			insertBefore: function (inside, before, insert, root) {
+    				root = root || /** @type {any} */ (_.languages);
+    				var grammar = root[inside];
+    				/** @type {Grammar} */
+    				var ret = {};
+
+    				for (var token in grammar) {
+    					if (grammar.hasOwnProperty(token)) {
+
+    						if (token == before) {
+    							for (var newToken in insert) {
+    								if (insert.hasOwnProperty(newToken)) {
+    									ret[newToken] = insert[newToken];
+    								}
+    							}
+    						}
+
+    						// Do not insert token which also occur in insert. See #1525
+    						if (!insert.hasOwnProperty(token)) {
+    							ret[token] = grammar[token];
+    						}
+    					}
+    				}
+
+    				var old = root[inside];
+    				root[inside] = ret;
+
+    				// Update references in other language definitions
+    				_.languages.DFS(_.languages, function (key, value) {
+    					if (value === old && key != inside) {
+    						this[key] = ret;
+    					}
+    				});
+
+    				return ret;
+    			},
+
+    			// Traverse a language definition with Depth First Search
+    			DFS: function DFS(o, callback, type, visited) {
+    				visited = visited || {};
+
+    				var objId = _.util.objId;
+
+    				for (var i in o) {
+    					if (o.hasOwnProperty(i)) {
+    						callback.call(o, i, o[i], type || i);
+
+    						var property = o[i];
+    						var propertyType = _.util.type(property);
+
+    						if (propertyType === 'Object' && !visited[objId(property)]) {
+    							visited[objId(property)] = true;
+    							DFS(property, callback, null, visited);
+    						} else if (propertyType === 'Array' && !visited[objId(property)]) {
+    							visited[objId(property)] = true;
+    							DFS(property, callback, i, visited);
+    						}
+    					}
+    				}
+    			}
+    		},
+
+    		plugins: {},
+
+    		/**
+    		 * This is the most high-level function in Prism’s API.
+    		 * It fetches all the elements that have a `.language-xxxx` class and then calls {@link Prism.highlightElement} on
+    		 * each one of them.
+    		 *
+    		 * This is equivalent to `Prism.highlightAllUnder(document, async, callback)`.
+    		 *
+    		 * @param {boolean} [async=false] Same as in {@link Prism.highlightAllUnder}.
+    		 * @param {HighlightCallback} [callback] Same as in {@link Prism.highlightAllUnder}.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightAll: function (async, callback) {
+    			_.highlightAllUnder(document, async, callback);
+    		},
+
+    		/**
+    		 * Fetches all the descendants of `container` that have a `.language-xxxx` class and then calls
+    		 * {@link Prism.highlightElement} on each one of them.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-highlightall`
+    		 * 2. `before-all-elements-highlight`
+    		 * 3. All hooks of {@link Prism.highlightElement} for each element.
+    		 *
+    		 * @param {ParentNode} container The root element, whose descendants that have a `.language-xxxx` class will be highlighted.
+    		 * @param {boolean} [async=false] Whether each element is to be highlighted asynchronously using Web Workers.
+    		 * @param {HighlightCallback} [callback] An optional callback to be invoked on each element after its highlighting is done.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightAllUnder: function (container, async, callback) {
+    			var env = {
+    				callback: callback,
+    				container: container,
+    				selector: 'code[class*="language-"], [class*="language-"] code, code[class*="lang-"], [class*="lang-"] code'
+    			};
+
+    			_.hooks.run('before-highlightall', env);
+
+    			env.elements = Array.prototype.slice.apply(env.container.querySelectorAll(env.selector));
+
+    			_.hooks.run('before-all-elements-highlight', env);
+
+    			for (var i = 0, element; (element = env.elements[i++]);) {
+    				_.highlightElement(element, async === true, env.callback);
+    			}
+    		},
+
+    		/**
+    		 * Highlights the code inside a single element.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-sanity-check`
+    		 * 2. `before-highlight`
+    		 * 3. All hooks of {@link Prism.highlight}. These hooks will be run by an asynchronous worker if `async` is `true`.
+    		 * 4. `before-insert`
+    		 * 5. `after-highlight`
+    		 * 6. `complete`
+    		 *
+    		 * Some the above hooks will be skipped if the element doesn't contain any text or there is no grammar loaded for
+    		 * the element's language.
+    		 *
+    		 * @param {Element} element The element containing the code.
+    		 * It must have a class of `language-xxxx` to be processed, where `xxxx` is a valid language identifier.
+    		 * @param {boolean} [async=false] Whether the element is to be highlighted asynchronously using Web Workers
+    		 * to improve performance and avoid blocking the UI when highlighting very large chunks of code. This option is
+    		 * [disabled by default](https://prismjs.com/faq.html#why-is-asynchronous-highlighting-disabled-by-default).
+    		 *
+    		 * Note: All language definitions required to highlight the code must be included in the main `prism.js` file for
+    		 * asynchronous highlighting to work. You can build your own bundle on the
+    		 * [Download page](https://prismjs.com/download.html).
+    		 * @param {HighlightCallback} [callback] An optional callback to be invoked after the highlighting is done.
+    		 * Mostly useful when `async` is `true`, since in that case, the highlighting is done asynchronously.
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		highlightElement: function (element, async, callback) {
+    			// Find language
+    			var language = _.util.getLanguage(element);
+    			var grammar = _.languages[language];
+
+    			// Set language on the element, if not present
+    			_.util.setLanguage(element, language);
+
+    			// Set language on the parent, for styling
+    			var parent = element.parentElement;
+    			if (parent && parent.nodeName.toLowerCase() === 'pre') {
+    				_.util.setLanguage(parent, language);
+    			}
+
+    			var code = element.textContent;
+
+    			var env = {
+    				element: element,
+    				language: language,
+    				grammar: grammar,
+    				code: code
+    			};
+
+    			function insertHighlightedCode(highlightedCode) {
+    				env.highlightedCode = highlightedCode;
+
+    				_.hooks.run('before-insert', env);
+
+    				env.element.innerHTML = env.highlightedCode;
+
+    				_.hooks.run('after-highlight', env);
+    				_.hooks.run('complete', env);
+    				callback && callback.call(env.element);
+    			}
+
+    			_.hooks.run('before-sanity-check', env);
+
+    			// plugins may change/add the parent/element
+    			parent = env.element.parentElement;
+    			if (parent && parent.nodeName.toLowerCase() === 'pre' && !parent.hasAttribute('tabindex')) {
+    				parent.setAttribute('tabindex', '0');
+    			}
+
+    			if (!env.code) {
+    				_.hooks.run('complete', env);
+    				callback && callback.call(env.element);
+    				return;
+    			}
+
+    			_.hooks.run('before-highlight', env);
+
+    			if (!env.grammar) {
+    				insertHighlightedCode(_.util.encode(env.code));
+    				return;
+    			}
+
+    			if (async && _self.Worker) {
+    				var worker = new Worker(_.filename);
+
+    				worker.onmessage = function (evt) {
+    					insertHighlightedCode(evt.data);
+    				};
+
+    				worker.postMessage(JSON.stringify({
+    					language: env.language,
+    					code: env.code,
+    					immediateClose: true
+    				}));
+    			} else {
+    				insertHighlightedCode(_.highlight(env.code, env.grammar, env.language));
+    			}
+    		},
+
+    		/**
+    		 * Low-level function, only use if you know what you’re doing. It accepts a string of text as input
+    		 * and the language definitions to use, and returns a string with the HTML produced.
+    		 *
+    		 * The following hooks will be run:
+    		 * 1. `before-tokenize`
+    		 * 2. `after-tokenize`
+    		 * 3. `wrap`: On each {@link Token}.
+    		 *
+    		 * @param {string} text A string with the code to be highlighted.
+    		 * @param {Grammar} grammar An object containing the tokens to use.
+    		 *
+    		 * Usually a language definition like `Prism.languages.markup`.
+    		 * @param {string} language The name of the language definition passed to `grammar`.
+    		 * @returns {string} The highlighted HTML.
+    		 * @memberof Prism
+    		 * @public
+    		 * @example
+    		 * Prism.highlight('var foo = true;', Prism.languages.javascript, 'javascript');
+    		 */
+    		highlight: function (text, grammar, language) {
+    			var env = {
+    				code: text,
+    				grammar: grammar,
+    				language: language
+    			};
+    			_.hooks.run('before-tokenize', env);
+    			if (!env.grammar) {
+    				throw new Error('The language "' + env.language + '" has no grammar.');
+    			}
+    			env.tokens = _.tokenize(env.code, env.grammar);
+    			_.hooks.run('after-tokenize', env);
+    			return Token.stringify(_.util.encode(env.tokens), env.language);
+    		},
+
+    		/**
+    		 * This is the heart of Prism, and the most low-level function you can use. It accepts a string of text as input
+    		 * and the language definitions to use, and returns an array with the tokenized code.
+    		 *
+    		 * When the language definition includes nested tokens, the function is called recursively on each of these tokens.
+    		 *
+    		 * This method could be useful in other contexts as well, as a very crude parser.
+    		 *
+    		 * @param {string} text A string with the code to be highlighted.
+    		 * @param {Grammar} grammar An object containing the tokens to use.
+    		 *
+    		 * Usually a language definition like `Prism.languages.markup`.
+    		 * @returns {TokenStream} An array of strings and tokens, a token stream.
+    		 * @memberof Prism
+    		 * @public
+    		 * @example
+    		 * let code = `var foo = 0;`;
+    		 * let tokens = Prism.tokenize(code, Prism.languages.javascript);
+    		 * tokens.forEach(token => {
+    		 *     if (token instanceof Prism.Token && token.type === 'number') {
+    		 *         console.log(`Found numeric literal: ${token.content}`);
+    		 *     }
+    		 * });
+    		 */
+    		tokenize: function (text, grammar) {
+    			var rest = grammar.rest;
+    			if (rest) {
+    				for (var token in rest) {
+    					grammar[token] = rest[token];
+    				}
+
+    				delete grammar.rest;
+    			}
+
+    			var tokenList = new LinkedList();
+    			addAfter(tokenList, tokenList.head, text);
+
+    			matchGrammar(text, tokenList, grammar, tokenList.head, 0);
+
+    			return toArray(tokenList);
+    		},
+
+    		/**
+    		 * @namespace
+    		 * @memberof Prism
+    		 * @public
+    		 */
+    		hooks: {
+    			all: {},
+
+    			/**
+    			 * Adds the given callback to the list of callbacks for the given hook.
+    			 *
+    			 * The callback will be invoked when the hook it is registered for is run.
+    			 * Hooks are usually directly run by a highlight function but you can also run hooks yourself.
+    			 *
+    			 * One callback function can be registered to multiple hooks and the same hook multiple times.
+    			 *
+    			 * @param {string} name The name of the hook.
+    			 * @param {HookCallback} callback The callback function which is given environment variables.
+    			 * @public
+    			 */
+    			add: function (name, callback) {
+    				var hooks = _.hooks.all;
+
+    				hooks[name] = hooks[name] || [];
+
+    				hooks[name].push(callback);
+    			},
+
+    			/**
+    			 * Runs a hook invoking all registered callbacks with the given environment variables.
+    			 *
+    			 * Callbacks will be invoked synchronously and in the order in which they were registered.
+    			 *
+    			 * @param {string} name The name of the hook.
+    			 * @param {Object<string, any>} env The environment variables of the hook passed to all callbacks registered.
+    			 * @public
+    			 */
+    			run: function (name, env) {
+    				var callbacks = _.hooks.all[name];
+
+    				if (!callbacks || !callbacks.length) {
+    					return;
+    				}
+
+    				for (var i = 0, callback; (callback = callbacks[i++]);) {
+    					callback(env);
+    				}
+    			}
+    		},
+
+    		Token: Token
+    	};
+    	_self.Prism = _;
+
+
+    	// Typescript note:
+    	// The following can be used to import the Token type in JSDoc:
+    	//
+    	//   @typedef {InstanceType<import("./prism-core")["Token"]>} Token
+
+    	/**
+    	 * Creates a new token.
+    	 *
+    	 * @param {string} type See {@link Token#type type}
+    	 * @param {string | TokenStream} content See {@link Token#content content}
+    	 * @param {string|string[]} [alias] The alias(es) of the token.
+    	 * @param {string} [matchedStr=""] A copy of the full string this token was created from.
+    	 * @class
+    	 * @global
+    	 * @public
+    	 */
+    	function Token(type, content, alias, matchedStr) {
+    		/**
+    		 * The type of the token.
+    		 *
+    		 * This is usually the key of a pattern in a {@link Grammar}.
+    		 *
+    		 * @type {string}
+    		 * @see GrammarToken
+    		 * @public
+    		 */
+    		this.type = type;
+    		/**
+    		 * The strings or tokens contained by this token.
+    		 *
+    		 * This will be a token stream if the pattern matched also defined an `inside` grammar.
+    		 *
+    		 * @type {string | TokenStream}
+    		 * @public
+    		 */
+    		this.content = content;
+    		/**
+    		 * The alias(es) of the token.
+    		 *
+    		 * @type {string|string[]}
+    		 * @see GrammarToken
+    		 * @public
+    		 */
+    		this.alias = alias;
+    		// Copy of the full string this token was created from
+    		this.length = (matchedStr || '').length | 0;
+    	}
+
+    	/**
+    	 * A token stream is an array of strings and {@link Token Token} objects.
+    	 *
+    	 * Token streams have to fulfill a few properties that are assumed by most functions (mostly internal ones) that process
+    	 * them.
+    	 *
+    	 * 1. No adjacent strings.
+    	 * 2. No empty strings.
+    	 *
+    	 *    The only exception here is the token stream that only contains the empty string and nothing else.
+    	 *
+    	 * @typedef {Array<string | Token>} TokenStream
+    	 * @global
+    	 * @public
+    	 */
+
+    	/**
+    	 * Converts the given token or token stream to an HTML representation.
+    	 *
+    	 * The following hooks will be run:
+    	 * 1. `wrap`: On each {@link Token}.
+    	 *
+    	 * @param {string | Token | TokenStream} o The token or token stream to be converted.
+    	 * @param {string} language The name of current language.
+    	 * @returns {string} The HTML representation of the token or token stream.
+    	 * @memberof Token
+    	 * @static
+    	 */
+    	Token.stringify = function stringify(o, language) {
+    		if (typeof o == 'string') {
+    			return o;
+    		}
+    		if (Array.isArray(o)) {
+    			var s = '';
+    			o.forEach(function (e) {
+    				s += stringify(e, language);
+    			});
+    			return s;
+    		}
+
+    		var env = {
+    			type: o.type,
+    			content: stringify(o.content, language),
+    			tag: 'span',
+    			classes: ['token', o.type],
+    			attributes: {},
+    			language: language
+    		};
+
+    		var aliases = o.alias;
+    		if (aliases) {
+    			if (Array.isArray(aliases)) {
+    				Array.prototype.push.apply(env.classes, aliases);
+    			} else {
+    				env.classes.push(aliases);
+    			}
+    		}
+
+    		_.hooks.run('wrap', env);
+
+    		var attributes = '';
+    		for (var name in env.attributes) {
+    			attributes += ' ' + name + '="' + (env.attributes[name] || '').replace(/"/g, '&quot;') + '"';
+    		}
+
+    		return '<' + env.tag + ' class="' + env.classes.join(' ') + '"' + attributes + '>' + env.content + '</' + env.tag + '>';
+    	};
+
+    	/**
+    	 * @param {RegExp} pattern
+    	 * @param {number} pos
+    	 * @param {string} text
+    	 * @param {boolean} lookbehind
+    	 * @returns {RegExpExecArray | null}
+    	 */
+    	function matchPattern(pattern, pos, text, lookbehind) {
+    		pattern.lastIndex = pos;
+    		var match = pattern.exec(text);
+    		if (match && lookbehind && match[1]) {
+    			// change the match to remove the text matched by the Prism lookbehind group
+    			var lookbehindLength = match[1].length;
+    			match.index += lookbehindLength;
+    			match[0] = match[0].slice(lookbehindLength);
+    		}
+    		return match;
+    	}
+
+    	/**
+    	 * @param {string} text
+    	 * @param {LinkedList<string | Token>} tokenList
+    	 * @param {any} grammar
+    	 * @param {LinkedListNode<string | Token>} startNode
+    	 * @param {number} startPos
+    	 * @param {RematchOptions} [rematch]
+    	 * @returns {void}
+    	 * @private
+    	 *
+    	 * @typedef RematchOptions
+    	 * @property {string} cause
+    	 * @property {number} reach
+    	 */
+    	function matchGrammar(text, tokenList, grammar, startNode, startPos, rematch) {
+    		for (var token in grammar) {
+    			if (!grammar.hasOwnProperty(token) || !grammar[token]) {
+    				continue;
+    			}
+
+    			var patterns = grammar[token];
+    			patterns = Array.isArray(patterns) ? patterns : [patterns];
+
+    			for (var j = 0; j < patterns.length; ++j) {
+    				if (rematch && rematch.cause == token + ',' + j) {
+    					return;
+    				}
+
+    				var patternObj = patterns[j];
+    				var inside = patternObj.inside;
+    				var lookbehind = !!patternObj.lookbehind;
+    				var greedy = !!patternObj.greedy;
+    				var alias = patternObj.alias;
+
+    				if (greedy && !patternObj.pattern.global) {
+    					// Without the global flag, lastIndex won't work
+    					var flags = patternObj.pattern.toString().match(/[imsuy]*$/)[0];
+    					patternObj.pattern = RegExp(patternObj.pattern.source, flags + 'g');
+    				}
+
+    				/** @type {RegExp} */
+    				var pattern = patternObj.pattern || patternObj;
+
+    				for ( // iterate the token list and keep track of the current token/string position
+    					var currentNode = startNode.next, pos = startPos;
+    					currentNode !== tokenList.tail;
+    					pos += currentNode.value.length, currentNode = currentNode.next
+    				) {
+
+    					if (rematch && pos >= rematch.reach) {
+    						break;
+    					}
+
+    					var str = currentNode.value;
+
+    					if (tokenList.length > text.length) {
+    						// Something went terribly wrong, ABORT, ABORT!
+    						return;
+    					}
+
+    					if (str instanceof Token) {
+    						continue;
+    					}
+
+    					var removeCount = 1; // this is the to parameter of removeBetween
+    					var match;
+
+    					if (greedy) {
+    						match = matchPattern(pattern, pos, text, lookbehind);
+    						if (!match || match.index >= text.length) {
+    							break;
+    						}
+
+    						var from = match.index;
+    						var to = match.index + match[0].length;
+    						var p = pos;
+
+    						// find the node that contains the match
+    						p += currentNode.value.length;
+    						while (from >= p) {
+    							currentNode = currentNode.next;
+    							p += currentNode.value.length;
+    						}
+    						// adjust pos (and p)
+    						p -= currentNode.value.length;
+    						pos = p;
+
+    						// the current node is a Token, then the match starts inside another Token, which is invalid
+    						if (currentNode.value instanceof Token) {
+    							continue;
+    						}
+
+    						// find the last node which is affected by this match
+    						for (
+    							var k = currentNode;
+    							k !== tokenList.tail && (p < to || typeof k.value === 'string');
+    							k = k.next
+    						) {
+    							removeCount++;
+    							p += k.value.length;
+    						}
+    						removeCount--;
+
+    						// replace with the new match
+    						str = text.slice(pos, p);
+    						match.index -= pos;
+    					} else {
+    						match = matchPattern(pattern, 0, str, lookbehind);
+    						if (!match) {
+    							continue;
+    						}
+    					}
+
+    					// eslint-disable-next-line no-redeclare
+    					var from = match.index;
+    					var matchStr = match[0];
+    					var before = str.slice(0, from);
+    					var after = str.slice(from + matchStr.length);
+
+    					var reach = pos + str.length;
+    					if (rematch && reach > rematch.reach) {
+    						rematch.reach = reach;
+    					}
+
+    					var removeFrom = currentNode.prev;
+
+    					if (before) {
+    						removeFrom = addAfter(tokenList, removeFrom, before);
+    						pos += before.length;
+    					}
+
+    					removeRange(tokenList, removeFrom, removeCount);
+
+    					var wrapped = new Token(token, inside ? _.tokenize(matchStr, inside) : matchStr, alias, matchStr);
+    					currentNode = addAfter(tokenList, removeFrom, wrapped);
+
+    					if (after) {
+    						addAfter(tokenList, currentNode, after);
+    					}
+
+    					if (removeCount > 1) {
+    						// at least one Token object was removed, so we have to do some rematching
+    						// this can only happen if the current pattern is greedy
+
+    						/** @type {RematchOptions} */
+    						var nestedRematch = {
+    							cause: token + ',' + j,
+    							reach: reach
+    						};
+    						matchGrammar(text, tokenList, grammar, currentNode.prev, pos, nestedRematch);
+
+    						// the reach might have been extended because of the rematching
+    						if (rematch && nestedRematch.reach > rematch.reach) {
+    							rematch.reach = nestedRematch.reach;
+    						}
+    					}
+    				}
+    			}
+    		}
+    	}
+
+    	/**
+    	 * @typedef LinkedListNode
+    	 * @property {T} value
+    	 * @property {LinkedListNode<T> | null} prev The previous node.
+    	 * @property {LinkedListNode<T> | null} next The next node.
+    	 * @template T
+    	 * @private
+    	 */
+
+    	/**
+    	 * @template T
+    	 * @private
+    	 */
+    	function LinkedList() {
+    		/** @type {LinkedListNode<T>} */
+    		var head = { value: null, prev: null, next: null };
+    		/** @type {LinkedListNode<T>} */
+    		var tail = { value: null, prev: head, next: null };
+    		head.next = tail;
+
+    		/** @type {LinkedListNode<T>} */
+    		this.head = head;
+    		/** @type {LinkedListNode<T>} */
+    		this.tail = tail;
+    		this.length = 0;
+    	}
+
+    	/**
+    	 * Adds a new node with the given value to the list.
+    	 *
+    	 * @param {LinkedList<T>} list
+    	 * @param {LinkedListNode<T>} node
+    	 * @param {T} value
+    	 * @returns {LinkedListNode<T>} The added node.
+    	 * @template T
+    	 */
+    	function addAfter(list, node, value) {
+    		// assumes that node != list.tail && values.length >= 0
+    		var next = node.next;
+
+    		var newNode = { value: value, prev: node, next: next };
+    		node.next = newNode;
+    		next.prev = newNode;
+    		list.length++;
+
+    		return newNode;
+    	}
+    	/**
+    	 * Removes `count` nodes after the given node. The given node will not be removed.
+    	 *
+    	 * @param {LinkedList<T>} list
+    	 * @param {LinkedListNode<T>} node
+    	 * @param {number} count
+    	 * @template T
+    	 */
+    	function removeRange(list, node, count) {
+    		var next = node.next;
+    		for (var i = 0; i < count && next !== list.tail; i++) {
+    			next = next.next;
+    		}
+    		node.next = next;
+    		next.prev = node;
+    		list.length -= i;
+    	}
+    	/**
+    	 * @param {LinkedList<T>} list
+    	 * @returns {T[]}
+    	 * @template T
+    	 */
+    	function toArray(list) {
+    		var array = [];
+    		var node = list.head.next;
+    		while (node !== list.tail) {
+    			array.push(node.value);
+    			node = node.next;
+    		}
+    		return array;
+    	}
+
+
+    	if (!_self.document) {
+    		if (!_self.addEventListener) {
+    			// in Node.js
+    			return _;
+    		}
+
+    		if (!_.disableWorkerMessageHandler) {
+    			// In worker
+    			_self.addEventListener('message', function (evt) {
+    				var message = JSON.parse(evt.data);
+    				var lang = message.language;
+    				var code = message.code;
+    				var immediateClose = message.immediateClose;
+
+    				_self.postMessage(_.highlight(code, _.languages[lang], lang));
+    				if (immediateClose) {
+    					_self.close();
+    				}
+    			}, false);
+    		}
+
+    		return _;
+    	}
+
+    	// Get current script and highlight
+    	var script = _.util.currentScript();
+
+    	if (script) {
+    		_.filename = script.src;
+
+    		if (script.hasAttribute('data-manual')) {
+    			_.manual = true;
+    		}
+    	}
+
+    	function highlightAutomaticallyCallback() {
+    		if (!_.manual) {
+    			_.highlightAll();
+    		}
+    	}
+
+    	if (!_.manual) {
+    		// If the document state is "loading", then we'll use DOMContentLoaded.
+    		// If the document state is "interactive" and the prism.js script is deferred, then we'll also use the
+    		// DOMContentLoaded event because there might be some plugins or languages which have also been deferred and they
+    		// might take longer one animation frame to execute which can create a race condition where only some plugins have
+    		// been loaded when Prism.highlightAll() is executed, depending on how fast resources are loaded.
+    		// See https://github.com/PrismJS/prism/issues/2102
+    		var readyState = document.readyState;
+    		if (readyState === 'loading' || readyState === 'interactive' && script && script.defer) {
+    			document.addEventListener('DOMContentLoaded', highlightAutomaticallyCallback);
+    		} else {
+    			if (window.requestAnimationFrame) {
+    				window.requestAnimationFrame(highlightAutomaticallyCallback);
+    			} else {
+    				window.setTimeout(highlightAutomaticallyCallback, 16);
+    			}
+    		}
+    	}
+
+    	return _;
+
+    }(_self));
+
+    if (module.exports) {
+    	module.exports = Prism;
+    }
+
+    // hack for components to work correctly in node.js
+    if (typeof commonjsGlobal !== 'undefined') {
+    	commonjsGlobal.Prism = Prism;
+    }
+
+    // some additional documentation/types
+
+    /**
+     * The expansion of a simple `RegExp` literal to support additional properties.
+     *
+     * @typedef GrammarToken
+     * @property {RegExp} pattern The regular expression of the token.
+     * @property {boolean} [lookbehind=false] If `true`, then the first capturing group of `pattern` will (effectively)
+     * behave as a lookbehind group meaning that the captured text will not be part of the matched text of the new token.
+     * @property {boolean} [greedy=false] Whether the token is greedy.
+     * @property {string|string[]} [alias] An optional alias or list of aliases.
+     * @property {Grammar} [inside] The nested grammar of this token.
+     *
+     * The `inside` grammar will be used to tokenize the text value of each token of this kind.
+     *
+     * This can be used to make nested and even recursive language definitions.
+     *
+     * Note: This can cause infinite recursion. Be careful when you embed different languages or even the same language into
+     * each another.
+     * @global
+     * @public
+     */
+
+    /**
+     * @typedef Grammar
+     * @type {Object<string, RegExp | GrammarToken | Array<RegExp | GrammarToken>>}
+     * @property {Grammar} [rest] An optional grammar object that will be appended to this grammar.
+     * @global
+     * @public
+     */
+
+    /**
+     * A function which will invoked after an element was successfully highlighted.
+     *
+     * @callback HighlightCallback
+     * @param {Element} element The element successfully highlighted.
+     * @returns {void}
+     * @global
+     * @public
+     */
+
+    /**
+     * @callback HookCallback
+     * @param {Object<string, any>} env The environment variables of the hook.
+     * @returns {void}
+     * @global
+     * @public
+     */
+
+
+    /* **********************************************
+         Begin prism-markup.js
+    ********************************************** */
+
+    Prism.languages.markup = {
+    	'comment': {
+    		pattern: /<!--(?:(?!<!--)[\s\S])*?-->/,
+    		greedy: true
+    	},
+    	'prolog': {
+    		pattern: /<\?[\s\S]+?\?>/,
+    		greedy: true
+    	},
+    	'doctype': {
+    		// https://www.w3.org/TR/xml/#NT-doctypedecl
+    		pattern: /<!DOCTYPE(?:[^>"'[\]]|"[^"]*"|'[^']*')+(?:\[(?:[^<"'\]]|"[^"]*"|'[^']*'|<(?!!--)|<!--(?:[^-]|-(?!->))*-->)*\]\s*)?>/i,
+    		greedy: true,
+    		inside: {
+    			'internal-subset': {
+    				pattern: /(^[^\[]*\[)[\s\S]+(?=\]>$)/,
+    				lookbehind: true,
+    				greedy: true,
+    				inside: null // see below
+    			},
+    			'string': {
+    				pattern: /"[^"]*"|'[^']*'/,
+    				greedy: true
+    			},
+    			'punctuation': /^<!|>$|[[\]]/,
+    			'doctype-tag': /^DOCTYPE/i,
+    			'name': /[^\s<>'"]+/
+    		}
+    	},
+    	'cdata': {
+    		pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+    		greedy: true
+    	},
+    	'tag': {
+    		pattern: /<\/?(?!\d)[^\s>\/=$<%]+(?:\s(?:\s*[^\s>\/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))|(?=[\s/>])))+)?\s*\/?>/,
+    		greedy: true,
+    		inside: {
+    			'tag': {
+    				pattern: /^<\/?[^\s>\/]+/,
+    				inside: {
+    					'punctuation': /^<\/?/,
+    					'namespace': /^[^\s>\/:]+:/
+    				}
+    			},
+    			'special-attr': [],
+    			'attr-value': {
+    				pattern: /=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+)/,
+    				inside: {
+    					'punctuation': [
+    						{
+    							pattern: /^=/,
+    							alias: 'attr-equals'
+    						},
+    						/"|'/
+    					]
+    				}
+    			},
+    			'punctuation': /\/?>/,
+    			'attr-name': {
+    				pattern: /[^\s>\/]+/,
+    				inside: {
+    					'namespace': /^[^\s>\/:]+:/
+    				}
+    			}
+
+    		}
+    	},
+    	'entity': [
+    		{
+    			pattern: /&[\da-z]{1,8};/i,
+    			alias: 'named-entity'
+    		},
+    		/&#x?[\da-f]{1,8};/i
+    	]
+    };
+
+    Prism.languages.markup['tag'].inside['attr-value'].inside['entity'] =
+    	Prism.languages.markup['entity'];
+    Prism.languages.markup['doctype'].inside['internal-subset'].inside = Prism.languages.markup;
+
+    // Plugin to make entity title show the real entity, idea by Roman Komarov
+    Prism.hooks.add('wrap', function (env) {
+
+    	if (env.type === 'entity') {
+    		env.attributes['title'] = env.content.replace(/&amp;/, '&');
+    	}
+    });
+
+    Object.defineProperty(Prism.languages.markup.tag, 'addInlined', {
+    	/**
+    	 * Adds an inlined language to markup.
+    	 *
+    	 * An example of an inlined language is CSS with `<style>` tags.
+    	 *
+    	 * @param {string} tagName The name of the tag that contains the inlined language. This name will be treated as
+    	 * case insensitive.
+    	 * @param {string} lang The language key.
+    	 * @example
+    	 * addInlined('style', 'css');
+    	 */
+    	value: function addInlined(tagName, lang) {
+    		var includedCdataInside = {};
+    		includedCdataInside['language-' + lang] = {
+    			pattern: /(^<!\[CDATA\[)[\s\S]+?(?=\]\]>$)/i,
+    			lookbehind: true,
+    			inside: Prism.languages[lang]
+    		};
+    		includedCdataInside['cdata'] = /^<!\[CDATA\[|\]\]>$/i;
+
+    		var inside = {
+    			'included-cdata': {
+    				pattern: /<!\[CDATA\[[\s\S]*?\]\]>/i,
+    				inside: includedCdataInside
+    			}
+    		};
+    		inside['language-' + lang] = {
+    			pattern: /[\s\S]+/,
+    			inside: Prism.languages[lang]
+    		};
+
+    		var def = {};
+    		def[tagName] = {
+    			pattern: RegExp(/(<__[^>]*>)(?:<!\[CDATA\[(?:[^\]]|\](?!\]>))*\]\]>|(?!<!\[CDATA\[)[\s\S])*?(?=<\/__>)/.source.replace(/__/g, function () { return tagName; }), 'i'),
+    			lookbehind: true,
+    			greedy: true,
+    			inside: inside
+    		};
+
+    		Prism.languages.insertBefore('markup', 'cdata', def);
+    	}
+    });
+    Object.defineProperty(Prism.languages.markup.tag, 'addAttribute', {
+    	/**
+    	 * Adds an pattern to highlight languages embedded in HTML attributes.
+    	 *
+    	 * An example of an inlined language is CSS with `style` attributes.
+    	 *
+    	 * @param {string} attrName The name of the tag that contains the inlined language. This name will be treated as
+    	 * case insensitive.
+    	 * @param {string} lang The language key.
+    	 * @example
+    	 * addAttribute('style', 'css');
+    	 */
+    	value: function (attrName, lang) {
+    		Prism.languages.markup.tag.inside['special-attr'].push({
+    			pattern: RegExp(
+    				/(^|["'\s])/.source + '(?:' + attrName + ')' + /\s*=\s*(?:"[^"]*"|'[^']*'|[^\s'">=]+(?=[\s>]))/.source,
+    				'i'
+    			),
+    			lookbehind: true,
+    			inside: {
+    				'attr-name': /^[^\s=]+/,
+    				'attr-value': {
+    					pattern: /=[\s\S]+/,
+    					inside: {
+    						'value': {
+    							pattern: /(^=\s*(["']|(?!["'])))\S[\s\S]*(?=\2$)/,
+    							lookbehind: true,
+    							alias: [lang, 'language-' + lang],
+    							inside: Prism.languages[lang]
+    						},
+    						'punctuation': [
+    							{
+    								pattern: /^=/,
+    								alias: 'attr-equals'
+    							},
+    							/"|'/
+    						]
+    					}
+    				}
+    			}
+    		});
+    	}
+    });
+
+    Prism.languages.html = Prism.languages.markup;
+    Prism.languages.mathml = Prism.languages.markup;
+    Prism.languages.svg = Prism.languages.markup;
+
+    Prism.languages.xml = Prism.languages.extend('markup', {});
+    Prism.languages.ssml = Prism.languages.xml;
+    Prism.languages.atom = Prism.languages.xml;
+    Prism.languages.rss = Prism.languages.xml;
+
+
+    /* **********************************************
+         Begin prism-css.js
+    ********************************************** */
+
+    (function (Prism) {
+
+    	var string = /(?:"(?:\\(?:\r\n|[\s\S])|[^"\\\r\n])*"|'(?:\\(?:\r\n|[\s\S])|[^'\\\r\n])*')/;
+
+    	Prism.languages.css = {
+    		'comment': /\/\*[\s\S]*?\*\//,
+    		'atrule': {
+    			pattern: /@[\w-](?:[^;{\s]|\s+(?![\s{]))*(?:;|(?=\s*\{))/,
+    			inside: {
+    				'rule': /^@[\w-]+/,
+    				'selector-function-argument': {
+    					pattern: /(\bselector\s*\(\s*(?![\s)]))(?:[^()\s]|\s+(?![\s)])|\((?:[^()]|\([^()]*\))*\))+(?=\s*\))/,
+    					lookbehind: true,
+    					alias: 'selector'
+    				},
+    				'keyword': {
+    					pattern: /(^|[^\w-])(?:and|not|only|or)(?![\w-])/,
+    					lookbehind: true
+    				}
+    				// See rest below
+    			}
+    		},
+    		'url': {
+    			// https://drafts.csswg.org/css-values-3/#urls
+    			pattern: RegExp('\\burl\\((?:' + string.source + '|' + /(?:[^\\\r\n()"']|\\[\s\S])*/.source + ')\\)', 'i'),
+    			greedy: true,
+    			inside: {
+    				'function': /^url/i,
+    				'punctuation': /^\(|\)$/,
+    				'string': {
+    					pattern: RegExp('^' + string.source + '$'),
+    					alias: 'url'
+    				}
+    			}
+    		},
+    		'selector': {
+    			pattern: RegExp('(^|[{}\\s])[^{}\\s](?:[^{};"\'\\s]|\\s+(?![\\s{])|' + string.source + ')*(?=\\s*\\{)'),
+    			lookbehind: true
+    		},
+    		'string': {
+    			pattern: string,
+    			greedy: true
+    		},
+    		'property': {
+    			pattern: /(^|[^-\w\xA0-\uFFFF])(?!\s)[-_a-z\xA0-\uFFFF](?:(?!\s)[-\w\xA0-\uFFFF])*(?=\s*:)/i,
+    			lookbehind: true
+    		},
+    		'important': /!important\b/i,
+    		'function': {
+    			pattern: /(^|[^-a-z0-9])[-a-z0-9]+(?=\()/i,
+    			lookbehind: true
+    		},
+    		'punctuation': /[(){};:,]/
+    	};
+
+    	Prism.languages.css['atrule'].inside.rest = Prism.languages.css;
+
+    	var markup = Prism.languages.markup;
+    	if (markup) {
+    		markup.tag.addInlined('style', 'css');
+    		markup.tag.addAttribute('style', 'css');
+    	}
+
+    }(Prism));
+
+
+    /* **********************************************
+         Begin prism-clike.js
+    ********************************************** */
+
+    Prism.languages.clike = {
+    	'comment': [
+    		{
+    			pattern: /(^|[^\\])\/\*[\s\S]*?(?:\*\/|$)/,
+    			lookbehind: true,
+    			greedy: true
+    		},
+    		{
+    			pattern: /(^|[^\\:])\/\/.*/,
+    			lookbehind: true,
+    			greedy: true
+    		}
+    	],
+    	'string': {
+    		pattern: /(["'])(?:\\(?:\r\n|[\s\S])|(?!\1)[^\\\r\n])*\1/,
+    		greedy: true
+    	},
+    	'class-name': {
+    		pattern: /(\b(?:class|extends|implements|instanceof|interface|new|trait)\s+|\bcatch\s+\()[\w.\\]+/i,
+    		lookbehind: true,
+    		inside: {
+    			'punctuation': /[.\\]/
+    		}
+    	},
+    	'keyword': /\b(?:break|catch|continue|do|else|finally|for|function|if|in|instanceof|new|null|return|throw|try|while)\b/,
+    	'boolean': /\b(?:false|true)\b/,
+    	'function': /\b\w+(?=\()/,
+    	'number': /\b0x[\da-f]+\b|(?:\b\d+(?:\.\d*)?|\B\.\d+)(?:e[+-]?\d+)?/i,
+    	'operator': /[<>]=?|[!=]=?=?|--?|\+\+?|&&?|\|\|?|[?*/~^%]/,
+    	'punctuation': /[{}[\];(),.:]/
+    };
+
+
+    /* **********************************************
+         Begin prism-javascript.js
+    ********************************************** */
+
+    Prism.languages.javascript = Prism.languages.extend('clike', {
+    	'class-name': [
+    		Prism.languages.clike['class-name'],
+    		{
+    			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$A-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\.(?:constructor|prototype))/,
+    			lookbehind: true
+    		}
+    	],
+    	'keyword': [
+    		{
+    			pattern: /((?:^|\})\s*)catch\b/,
+    			lookbehind: true
+    		},
+    		{
+    			pattern: /(^|[^.]|\.\.\.\s*)\b(?:as|assert(?=\s*\{)|async(?=\s*(?:function\b|\(|[$\w\xA0-\uFFFF]|$))|await|break|case|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally(?=\s*(?:\{|$))|for|from(?=\s*(?:['"]|$))|function|(?:get|set)(?=\s*(?:[#\[$\w\xA0-\uFFFF]|$))|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)\b/,
+    			lookbehind: true
+    		},
+    	],
+    	// Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
+    	'function': /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
+    	'number': {
+    		pattern: RegExp(
+    			/(^|[^\w$])/.source +
+    			'(?:' +
+    			(
+    				// constant
+    				/NaN|Infinity/.source +
+    				'|' +
+    				// binary integer
+    				/0[bB][01]+(?:_[01]+)*n?/.source +
+    				'|' +
+    				// octal integer
+    				/0[oO][0-7]+(?:_[0-7]+)*n?/.source +
+    				'|' +
+    				// hexadecimal integer
+    				/0[xX][\dA-Fa-f]+(?:_[\dA-Fa-f]+)*n?/.source +
+    				'|' +
+    				// decimal bigint
+    				/\d+(?:_\d+)*n/.source +
+    				'|' +
+    				// decimal number (integer or float) but no bigint
+    				/(?:\d+(?:_\d+)*(?:\.(?:\d+(?:_\d+)*)?)?|\.\d+(?:_\d+)*)(?:[Ee][+-]?\d+(?:_\d+)*)?/.source
+    			) +
+    			')' +
+    			/(?![\w$])/.source
+    		),
+    		lookbehind: true
+    	},
+    	'operator': /--|\+\+|\*\*=?|=>|&&=?|\|\|=?|[!=]==|<<=?|>>>?=?|[-+*/%&|^!=<>]=?|\.{3}|\?\?=?|\?\.?|[~:]/
+    });
+
+    Prism.languages.javascript['class-name'][0].pattern = /(\b(?:class|extends|implements|instanceof|interface|new)\s+)[\w.\\]+/;
+
+    Prism.languages.insertBefore('javascript', 'keyword', {
+    	'regex': {
+    		// eslint-disable-next-line regexp/no-dupe-characters-character-class
+    		pattern: /((?:^|[^$\w\xA0-\uFFFF."'\])\s]|\b(?:return|yield))\s*)\/(?:\[(?:[^\]\\\r\n]|\\.)*\]|\\.|[^/\\\[\r\n])+\/[dgimyus]{0,7}(?=(?:\s|\/\*(?:[^*]|\*(?!\/))*\*\/)*(?:$|[\r\n,.;:})\]]|\/\/))/,
+    		lookbehind: true,
+    		greedy: true,
+    		inside: {
+    			'regex-source': {
+    				pattern: /^(\/)[\s\S]+(?=\/[a-z]*$)/,
+    				lookbehind: true,
+    				alias: 'language-regex',
+    				inside: Prism.languages.regex
+    			},
+    			'regex-delimiter': /^\/|\/$/,
+    			'regex-flags': /^[a-z]+$/,
+    		}
+    	},
+    	// This must be declared before keyword because we use "function" inside the look-forward
+    	'function-variable': {
+    		pattern: /#?(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*[=:]\s*(?:async\s*)?(?:\bfunction\b|(?:\((?:[^()]|\([^()]*\))*\)|(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)\s*=>))/,
+    		alias: 'function'
+    	},
+    	'parameter': [
+    		{
+    			pattern: /(function(?:\s+(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*)?\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\))/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /(^|[^$\w\xA0-\uFFFF])(?!\s)[_$a-z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*=>)/i,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /(\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*=>)/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		},
+    		{
+    			pattern: /((?:\b|\s|^)(?!(?:as|async|await|break|case|catch|class|const|continue|debugger|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|let|new|null|of|package|private|protected|public|return|set|static|super|switch|this|throw|try|typeof|undefined|var|void|while|with|yield)(?![$\w\xA0-\uFFFF]))(?:(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*\s*)\(\s*|\]\s*\(\s*)(?!\s)(?:[^()\s]|\s+(?![\s)])|\([^()]*\))+(?=\s*\)\s*\{)/,
+    			lookbehind: true,
+    			inside: Prism.languages.javascript
+    		}
+    	],
+    	'constant': /\b[A-Z](?:[A-Z_]|\dx?)*\b/
+    });
+
+    Prism.languages.insertBefore('javascript', 'string', {
+    	'hashbang': {
+    		pattern: /^#!.*/,
+    		greedy: true,
+    		alias: 'comment'
+    	},
+    	'template-string': {
+    		pattern: /`(?:\\[\s\S]|\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}|(?!\$\{)[^\\`])*`/,
+    		greedy: true,
+    		inside: {
+    			'template-punctuation': {
+    				pattern: /^`|`$/,
+    				alias: 'string'
+    			},
+    			'interpolation': {
+    				pattern: /((?:^|[^\\])(?:\\{2})*)\$\{(?:[^{}]|\{(?:[^{}]|\{[^}]*\})*\})+\}/,
+    				lookbehind: true,
+    				inside: {
+    					'interpolation-punctuation': {
+    						pattern: /^\$\{|\}$/,
+    						alias: 'punctuation'
+    					},
+    					rest: Prism.languages.javascript
+    				}
+    			},
+    			'string': /[\s\S]+/
+    		}
+    	},
+    	'string-property': {
+    		pattern: /((?:^|[,{])[ \t]*)(["'])(?:\\(?:\r\n|[\s\S])|(?!\2)[^\\\r\n])*\2(?=\s*:)/m,
+    		lookbehind: true,
+    		greedy: true,
+    		alias: 'property'
+    	}
+    });
+
+    Prism.languages.insertBefore('javascript', 'operator', {
+    	'literal-property': {
+    		pattern: /((?:^|[,{])[ \t]*)(?!\s)[_$a-zA-Z\xA0-\uFFFF](?:(?!\s)[$\w\xA0-\uFFFF])*(?=\s*:)/m,
+    		lookbehind: true,
+    		alias: 'property'
+    	},
+    });
+
+    if (Prism.languages.markup) {
+    	Prism.languages.markup.tag.addInlined('script', 'javascript');
+
+    	// add attribute support for all DOM events.
+    	// https://developer.mozilla.org/en-US/docs/Web/Events#Standard_events
+    	Prism.languages.markup.tag.addAttribute(
+    		/on(?:abort|blur|change|click|composition(?:end|start|update)|dblclick|error|focus(?:in|out)?|key(?:down|up)|load|mouse(?:down|enter|leave|move|out|over|up)|reset|resize|scroll|select|slotchange|submit|unload|wheel)/.source,
+    		'javascript'
+    	);
+    }
+
+    Prism.languages.js = Prism.languages.javascript;
+
+
+    /* **********************************************
+         Begin prism-file-highlight.js
+    ********************************************** */
+
+    (function () {
+
+    	if (typeof Prism === 'undefined' || typeof document === 'undefined') {
+    		return;
+    	}
+
+    	// https://developer.mozilla.org/en-US/docs/Web/API/Element/matches#Polyfill
+    	if (!Element.prototype.matches) {
+    		Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+    	}
+
+    	var LOADING_MESSAGE = 'Loading…';
+    	var FAILURE_MESSAGE = function (status, message) {
+    		return '✖ Error ' + status + ' while fetching file: ' + message;
+    	};
+    	var FAILURE_EMPTY_MESSAGE = '✖ Error: File does not exist or is empty';
+
+    	var EXTENSIONS = {
+    		'js': 'javascript',
+    		'py': 'python',
+    		'rb': 'ruby',
+    		'ps1': 'powershell',
+    		'psm1': 'powershell',
+    		'sh': 'bash',
+    		'bat': 'batch',
+    		'h': 'c',
+    		'tex': 'latex'
+    	};
+
+    	var STATUS_ATTR = 'data-src-status';
+    	var STATUS_LOADING = 'loading';
+    	var STATUS_LOADED = 'loaded';
+    	var STATUS_FAILED = 'failed';
+
+    	var SELECTOR = 'pre[data-src]:not([' + STATUS_ATTR + '="' + STATUS_LOADED + '"])'
+    		+ ':not([' + STATUS_ATTR + '="' + STATUS_LOADING + '"])';
+
+    	/**
+    	 * Loads the given file.
+    	 *
+    	 * @param {string} src The URL or path of the source file to load.
+    	 * @param {(result: string) => void} success
+    	 * @param {(reason: string) => void} error
+    	 */
+    	function loadFile(src, success, error) {
+    		var xhr = new XMLHttpRequest();
+    		xhr.open('GET', src, true);
+    		xhr.onreadystatechange = function () {
+    			if (xhr.readyState == 4) {
+    				if (xhr.status < 400 && xhr.responseText) {
+    					success(xhr.responseText);
+    				} else {
+    					if (xhr.status >= 400) {
+    						error(FAILURE_MESSAGE(xhr.status, xhr.statusText));
+    					} else {
+    						error(FAILURE_EMPTY_MESSAGE);
+    					}
+    				}
+    			}
+    		};
+    		xhr.send(null);
+    	}
+
+    	/**
+    	 * Parses the given range.
+    	 *
+    	 * This returns a range with inclusive ends.
+    	 *
+    	 * @param {string | null | undefined} range
+    	 * @returns {[number, number | undefined] | undefined}
+    	 */
+    	function parseRange(range) {
+    		var m = /^\s*(\d+)\s*(?:(,)\s*(?:(\d+)\s*)?)?$/.exec(range || '');
+    		if (m) {
+    			var start = Number(m[1]);
+    			var comma = m[2];
+    			var end = m[3];
+
+    			if (!comma) {
+    				return [start, start];
+    			}
+    			if (!end) {
+    				return [start, undefined];
+    			}
+    			return [start, Number(end)];
+    		}
+    		return undefined;
+    	}
+
+    	Prism.hooks.add('before-highlightall', function (env) {
+    		env.selector += ', ' + SELECTOR;
+    	});
+
+    	Prism.hooks.add('before-sanity-check', function (env) {
+    		var pre = /** @type {HTMLPreElement} */ (env.element);
+    		if (pre.matches(SELECTOR)) {
+    			env.code = ''; // fast-path the whole thing and go to complete
+
+    			pre.setAttribute(STATUS_ATTR, STATUS_LOADING); // mark as loading
+
+    			// add code element with loading message
+    			var code = pre.appendChild(document.createElement('CODE'));
+    			code.textContent = LOADING_MESSAGE;
+
+    			var src = pre.getAttribute('data-src');
+
+    			var language = env.language;
+    			if (language === 'none') {
+    				// the language might be 'none' because there is no language set;
+    				// in this case, we want to use the extension as the language
+    				var extension = (/\.(\w+)$/.exec(src) || [, 'none'])[1];
+    				language = EXTENSIONS[extension] || extension;
+    			}
+
+    			// set language classes
+    			Prism.util.setLanguage(code, language);
+    			Prism.util.setLanguage(pre, language);
+
+    			// preload the language
+    			var autoloader = Prism.plugins.autoloader;
+    			if (autoloader) {
+    				autoloader.loadLanguages(language);
+    			}
+
+    			// load file
+    			loadFile(
+    				src,
+    				function (text) {
+    					// mark as loaded
+    					pre.setAttribute(STATUS_ATTR, STATUS_LOADED);
+
+    					// handle data-range
+    					var range = parseRange(pre.getAttribute('data-range'));
+    					if (range) {
+    						var lines = text.split(/\r\n?|\n/g);
+
+    						// the range is one-based and inclusive on both ends
+    						var start = range[0];
+    						var end = range[1] == null ? lines.length : range[1];
+
+    						if (start < 0) { start += lines.length; }
+    						start = Math.max(0, Math.min(start - 1, lines.length));
+    						if (end < 0) { end += lines.length; }
+    						end = Math.max(0, Math.min(end, lines.length));
+
+    						text = lines.slice(start, end).join('\n');
+
+    						// add data-start for line numbers
+    						if (!pre.hasAttribute('data-start')) {
+    							pre.setAttribute('data-start', String(start + 1));
+    						}
+    					}
+
+    					// highlight code
+    					code.textContent = text;
+    					Prism.highlightElement(code);
+    				},
+    				function (error) {
+    					// mark as failed
+    					pre.setAttribute(STATUS_ATTR, STATUS_FAILED);
+
+    					code.textContent = error;
+    				}
+    			);
+    		}
+    	});
+
+    	Prism.plugins.fileHighlight = {
+    		/**
+    		 * Executes the File Highlight plugin for all matching `pre` elements under the given container.
+    		 *
+    		 * Note: Elements which are already loaded or currently loading will not be touched by this method.
+    		 *
+    		 * @param {ParentNode} [container=document]
+    		 */
+    		highlight: function highlight(container) {
+    			var elements = (container || document).querySelectorAll(SELECTOR);
+
+    			for (var i = 0, element; (element = elements[i++]);) {
+    				Prism.highlightElement(element);
+    			}
+    		}
+    	};
+
+    	var logged = false;
+    	/** @deprecated Use `Prism.plugins.fileHighlight.highlight` instead. */
+    	Prism.fileHighlight = function () {
+    		if (!logged) {
+    			console.warn('Prism.fileHighlight is deprecated. Use `Prism.plugins.fileHighlight.highlight` instead.');
+    			logged = true;
+    		}
+    		Prism.plugins.fileHighlight.highlight.apply(this, arguments);
+    	};
+
+    }());
+    });
+
+    /* src/Chord/Chord_Code.svelte generated by Svelte v3.46.4 */
+    const file$3 = "src/Chord/Chord_Code.svelte";
+
+    function create_fragment$3(ctx) {
+    	let button0;
+    	let button1;
+    	let t2;
+    	let pre0;
+    	let code0;
+    	let raw0_value = prism.highlight(/*code*/ ctx[0], prism.languages['javascript']) + "";
+    	let t3;
+    	let pre1;
+    	let code1;
+    	let raw1_value = prism.highlight(/*data*/ ctx[1], prism.languages['javascript']) + "";
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			button0 = element("button");
+    			button0.textContent = "Code";
+    			button1 = element("button");
+    			button1.textContent = "Data";
+    			t2 = space();
+    			pre0 = element("pre");
+    			code0 = element("code");
+    			t3 = space();
+    			pre1 = element("pre");
+    			code1 = element("code");
+    			attr_dev(button0, "class", "page_selected svelte-tddqmq");
+    			attr_dev(button0, "id", "page1");
+    			add_location(button0, file$3, 147, 2, 6508);
+    			attr_dev(button1, "class", "page_selected svelte-tddqmq");
+    			attr_dev(button1, "id", "page2");
+    			add_location(button1, file$3, 148, 5, 6607);
+    			attr_dev(code0, "class", "language-javascript");
+    			add_location(code0, file$3, 151, 5, 6768);
+    			attr_dev(pre0, "id", "page1_desc");
+    			attr_dev(pre0, "class", "codeMirror svelte-tddqmq");
+    			attr_dev(pre0, "contenteditable", "");
+    			add_location(pre0, file$3, 150, 2, 6702);
+    			attr_dev(code1, "class", "language-javascript");
+    			add_location(code1, file$3, 162, 5, 7019);
+    			attr_dev(pre1, "id", "page2_desc");
+    			attr_dev(pre1, "class", "codeMirror svelte-tddqmq");
+    			attr_dev(pre1, "contenteditable", "");
+    			add_location(pre1, file$3, 161, 2, 6953);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, button0, anchor);
+    			insert_dev(target, button1, anchor);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, pre0, anchor);
+    			append_dev(pre0, code0);
+    			code0.innerHTML = raw0_value;
+    			insert_dev(target, t3, anchor);
+    			insert_dev(target, pre1, anchor);
+    			append_dev(pre1, code1);
+    			code1.innerHTML = raw1_value;
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(button0, "click", /*click_handler*/ ctx[3], false, false, false),
+    					listen_dev(button1, "click", /*click_handler_1*/ ctx[4], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*code*/ 1 && raw0_value !== (raw0_value = prism.highlight(/*code*/ ctx[0], prism.languages['javascript']) + "")) code0.innerHTML = raw0_value;		},
+    		i: noop$4,
+    		o: noop$4,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(button0);
+    			if (detaching) detach_dev(button1);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(pre0);
+    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(pre1);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$3.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function showCode(id) {
+    	if (id === 'page1') {
+    		document.getElementById('page1_desc').style.display = 'block';
+    		document.getElementById('page2_desc').style.display = 'none';
+    	} else {
+    		document.getElementById('page1_desc').style.display = 'none';
+    		document.getElementById('page2_desc').style.display = 'block';
+    	}
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let code;
+    	let $ChordChartDocs;
+    	validate_store(ChordChartDocs, 'ChordChartDocs');
+    	component_subscribe($$self, ChordChartDocs, $$value => $$invalidate(2, $ChordChartDocs = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Chord_Code', slots, []);
+
+    	const data = `const sampleData = [
+  [0.096899, 0.008859, 0.000554, 0.00443, 0.025471, 0.024363, 0.005537, 0.025471],
+  [0.001107, 0.018272, 0, 0.004983, 0.011074, 0.01052, 0.002215, 0.004983],
+  [0.000554, 0.002769, 0.002215, 0.002215, 0.003876, 0.008306, 0.000554, 0.003322],
+  [0.000554, 0.001107, 0.000554, 0.012182, 0.011628, 0.006645, 0.004983, 0.01052],
+  [0.002215, 0.00443, 0, 0.002769, 0.104097, 0.012182, 0.004983, 0.028239],
+  [0.011628, 0.026024, 0, 0.013843, 0.087486, 0.168328, 0.017165, 0.055925],
+  [0.000554, 0.004983, 0, 0.003322, 0.00443, 0.008859, 0.017719, 0.00443],
+  [0.002215, 0.007198, 0, 0.003322, 0.016611, 0.01495, 0.001107, 0.054264]
+];
+
+export { sampleData };`;
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Chord_Code> was created with unknown prop '${key}'`);
+    	});
+
+    	const click_handler = () => showCode('page1');
+    	const click_handler_1 = () => showCode('page2');
+
+    	$$self.$capture_state = () => ({
+    		Prism: prism,
+    		ChordChartDocs,
+    		data,
+    		showCode,
+    		code,
+    		$ChordChartDocs
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('code' in $$props) $$invalidate(0, code = $$props.code);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*$ChordChartDocs*/ 4) {
+    			$$invalidate(0, code = `<script>
+  import * as d3 from 'd3';
+  import { sampleData } from './sampleData.js'
+
+  const data = sampleData;
+  const marginOffset = ${$ChordChartDocs[1].value} //the margin top, bottom, left, right margin offset relative to the radius
+  const width = ${$ChordChartDocs[2].value}; // the outer width of the chart, in pixels
+  const height = width; // the outer height of the chart, in pixels
+  const bandThickness = ${$ChordChartDocs[3].value}; // the thickness of the color band representing each dataset
+  const fontSize = ${$ChordChartDocs[4].value} //the label font size relative to 1% of the width of the viewport
+  const tickStep = ${$ChordChartDocs[5].value}; //the chart label tick spread factor
+  const scaleFormat = '${$ChordChartDocs[6].value}'; // a format specifier string for the scale ticks
+  const names = [${"'" + $ChordChartDocs[7].value.join("','") + "'"}]; // section names
+  const colors = [${"'" + $ChordChartDocs[8].value.join("','") + "'"}]; // section fill colors && number of colors in fill array MUST match number of subsets in data
+  const chordOpacity = ${$ChordChartDocs[9].value}; //the opacity for the charts overall chords
+  const unselectOpacity = ${$ChordChartDocs[10].value}; //the opacity of non-select chart elements
+  const selectOpacity = ${$ChordChartDocs[11].value}; //the opacity of select chart elements
+  const tooltipBackground = '${$ChordChartDocs[12].value}'; // background color of tooltip
+  const tooltipTextColor = '${$ChordChartDocs[13].value}'; // text color of tooltip
+  const outerRadius = Math.min(width, height) * 0.5 - marginOffset; // should connect to margin
+  const innerRadius = outerRadius - bandThickness; // should make adjustable
+  
+  let groupInfo, ribbonInfo;
+
+  $: selectedChord = null;
+
+  const chord = d3.chord()
+    .padAngle(10 / innerRadius)
+    .sortSubgroups(d3.descending)
+    .sortChords(d3.descending);
+  const chords = chord(data);
+
+  const arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+  const ribbon = d3.ribbon()
+    .radius(innerRadius - 1)
+    .padAngle(1 / innerRadius);
+
+  function ticks({startAngle, endAngle, value}) {
+    const k = (endAngle - startAngle) / value;
+    return d3.range(0, value, (tickStep/100)).map(value => {
+      return {value, angle: value * k + startAngle};
+    });
+  }
+
+  function formatValue(val) {
+    return (val * 100).toFixed(2) + scaleFormat;
+  }
+<\/script>
+
+<svg {width} {height} viewBox="{-width / 2} {-height / 2} {width} {height}">
+  {#each chords.groups as group, i}
+    <path fill={colors[i]} d={arc(group)}
+      on:mouseover="{(e) => groupInfo = [i, e, group.value]}"
+      on:focus="{(e) => groupInfo = [i, e]}"
+      on:mouseout="{() => groupInfo = null}"
+      on:blur="{() => groupInfo = null}" />
+    {#each ticks(group) as groupTick}
+      <g transform="rotate({groupTick.angle * 180 / Math.PI - 90}) translate({outerRadius}, 0)">
+        <line stroke='black' x2='6'/>
+        <text x='8' dy='0.35em' font-size="{fontSize}vw"
+          transform="{groupTick.angle > Math.PI ? "rotate(180) translate(-16)" : null}"
+          text-anchor="{groupTick.angle > Math.PI ? "end" : null}"
+          font-weight="{groupTick.value !== 0 ? "normal" : "bold"}">
+          {groupTick.value !== 0 ? Math.round(groupTick.value * 100) + scaleFormat : names[i]}
+        </text>
+      </g>
+    {/each}
+  {/each}
+  
+  {#each chords as chord}
+    {#if selectedChord}
+      <path fill-opacity={selectedChord === chord ? selectOpacity : unselectOpacity} fill={colors[chord.source.index]} d={ribbon(chord)} 
+        on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
+        on:focus="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
+        on:mouseout="{() => { ribbonInfo = null; selectedChord = null; }}"
+        on:blur="{() => { ribbonInfo = null; selectedChord = null; }}"
+      />
+    {:else}
+    <path fill-opacity={chordOpacity} fill={colors[chord.source.index]} d={ribbon(chord)} 
+      on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
+      on:focus="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
+      on:mouseout="{() => { ribbonInfo = null; selectedChord = null; }}"
+      on:blur="{() => { ribbonInfo = null; selectedChord = null; }}"
+    />
+    {/if}
+  {/each}
+</svg>
+
+<!-- Group Tooltip -->
+{#if groupInfo}  
+  <div style="position:absolute; left:{groupInfo[1].clientX + 12}px; top:{groupInfo[1].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+    {names[groupInfo[0]]}: {(groupInfo[2] * 100).toFixed(2)}{scaleFormat}
+  </div>
+{/if}
+
+<!-- Ribbon Tooltip -->
+{#if ribbonInfo}  
+  <div style="position:absolute; left:{ribbonInfo[0].clientX + 12}px; top:{ribbonInfo[0].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+    {formatValue(ribbonInfo[1].source.value)} {names[ribbonInfo[1].target.index]} → {names[ribbonInfo[1].source.index]}
+    {ribbonInfo[1].source.index === ribbonInfo[1].target.index 
+    ? '' 
+    // eslint-disable-next-line max-len
+    : \`\\n\${formatValue(ribbonInfo[1].target.value)} \${names[ribbonInfo[1].source.index]} → \${names[ribbonInfo[1].target.index]}\`}
+  </div>
+{/if}
+  
+<style>
+  div {
+    white-space: pre;
+  }
+</style>
+`);
+    		}
+    	};
+
+    	return [code, data, $ChordChartDocs, click_handler, click_handler_1];
+    }
+
+    class Chord_Code extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$3, create_fragment$3, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Chord_Code",
+    			options,
+    			id: create_fragment$3.name
+    		});
+    	}
+    }
+
+    /* src/Chord/Chord_Docs.svelte generated by Svelte v3.46.4 */
+    const file$2 = "src/Chord/Chord_Docs.svelte";
+
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[5] = list[i];
+    	child_ctx[6] = list;
+    	child_ctx[7] = i;
+    	return child_ctx;
+    }
+
+    // (43:16) {#if doc.dataType === "Boolean"}
+    function create_if_block_2(ctx) {
+    	let li0;
+    	let b;
+    	let t1;
+    	let label;
+    	let input;
+    	let t2;
+    	let span;
+    	let t3;
+    	let li1;
+    	let t4_value = /*doc*/ ctx[5].value + "";
+    	let t4;
+    	let mounted;
+    	let dispose;
+
+    	function input_change_handler() {
+    		/*input_change_handler*/ ctx[2].call(input, /*each_value*/ ctx[6], /*i*/ ctx[7]);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			li0 = element("li");
+    			b = element("b");
+    			b.textContent = "Adjusted Value:";
+    			t1 = space();
+    			label = element("label");
+    			input = element("input");
+    			t2 = space();
+    			span = element("span");
+    			t3 = space();
+    			li1 = element("li");
+    			t4 = text$1(t4_value);
+    			add_location(b, file$2, 43, 48, 1638);
+    			attr_dev(li0, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li0, file$2, 43, 20, 1610);
+    			attr_dev(input, "type", "checkbox");
+    			attr_dev(input, "class", "svelte-cfmsux");
+    			add_location(input, file$2, 45, 24, 1734);
+    			attr_dev(span, "class", "slider svelte-cfmsux");
+    			add_location(span, file$2, 46, 24, 1809);
+    			attr_dev(label, "class", "switch svelte-cfmsux");
+    			add_location(label, file$2, 44, 20, 1687);
+    			attr_dev(li1, "class", "input-value svelte-cfmsux");
+    			add_location(li1, file$2, 48, 20, 1882);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li0, anchor);
+    			append_dev(li0, b);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, label, anchor);
+    			append_dev(label, input);
+    			input.checked = /*doc*/ ctx[5].value;
+    			append_dev(label, t2);
+    			append_dev(label, span);
+    			insert_dev(target, t3, anchor);
+    			insert_dev(target, li1, anchor);
+    			append_dev(li1, t4);
+
+    			if (!mounted) {
+    				dispose = listen_dev(input, "change", input_change_handler);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*$ChordChartDocs*/ 1) {
+    				input.checked = /*doc*/ ctx[5].value;
+    			}
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && t4_value !== (t4_value = /*doc*/ ctx[5].value + "")) set_data_dev(t4, t4_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li0);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(label);
+    			if (detaching) detach_dev(t3);
+    			if (detaching) detach_dev(li1);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2.name,
+    		type: "if",
+    		source: "(43:16) {#if doc.dataType === \\\"Boolean\\\"}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (51:16) {#if doc.max}
+    function create_if_block_1(ctx) {
+    	let li0;
+    	let b;
+    	let t1;
+    	let input;
+    	let input_step_value;
+    	let input_min_value;
+    	let input_max_value;
+    	let t2;
+    	let li1;
+    	let t3_value = /*doc*/ ctx[5].value + "";
+    	let t3;
+    	let mounted;
+    	let dispose;
+
+    	function input_change_input_handler() {
+    		/*input_change_input_handler*/ ctx[3].call(input, /*each_value*/ ctx[6], /*i*/ ctx[7]);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			li0 = element("li");
+    			b = element("b");
+    			b.textContent = "Adjusted Value:";
+    			t1 = space();
+    			input = element("input");
+    			t2 = space();
+    			li1 = element("li");
+    			t3 = text$1(t3_value);
+    			add_location(b, file$2, 51, 48, 2023);
+    			attr_dev(li0, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li0, file$2, 51, 20, 1995);
+    			attr_dev(input, "class", "input svelte-cfmsux");
+    			attr_dev(input, "type", "range");
+    			attr_dev(input, "step", input_step_value = /*doc*/ ctx[5].max === 1 ? 0.1 : 1);
+    			attr_dev(input, "min", input_min_value = /*doc*/ ctx[5].min);
+    			attr_dev(input, "max", input_max_value = /*doc*/ ctx[5].max);
+    			add_location(input, file$2, 52, 20, 2072);
+    			attr_dev(li1, "class", "input-value svelte-cfmsux");
+    			add_location(li1, file$2, 53, 20, 2209);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li0, anchor);
+    			append_dev(li0, b);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, input, anchor);
+    			set_input_value(input, /*doc*/ ctx[5].value);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, li1, anchor);
+    			append_dev(li1, t3);
+
+    			if (!mounted) {
+    				dispose = [
+    					listen_dev(input, "change", input_change_input_handler),
+    					listen_dev(input, "input", input_change_input_handler)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && input_step_value !== (input_step_value = /*doc*/ ctx[5].max === 1 ? 0.1 : 1)) {
+    				attr_dev(input, "step", input_step_value);
+    			}
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && input_min_value !== (input_min_value = /*doc*/ ctx[5].min)) {
+    				attr_dev(input, "min", input_min_value);
+    			}
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && input_max_value !== (input_max_value = /*doc*/ ctx[5].max)) {
+    				attr_dev(input, "max", input_max_value);
+    			}
+
+    			if (dirty & /*$ChordChartDocs*/ 1) {
+    				set_input_value(input, /*doc*/ ctx[5].value);
+    			}
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && t3_value !== (t3_value = /*doc*/ ctx[5].value + "")) set_data_dev(t3, t3_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li0);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(input);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(li1);
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(51:16) {#if doc.max}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (56:16) {#if !doc.max && i > 0 && doc.dataType !== "Boolean"}
+    function create_if_block(ctx) {
+    	let li;
+    	let b;
+    	let t1;
+    	let input;
+    	let mounted;
+    	let dispose;
+
+    	function input_input_handler() {
+    		/*input_input_handler*/ ctx[4].call(input, /*each_value*/ ctx[6], /*i*/ ctx[7]);
+    	}
+
+    	const block = {
+    		c: function create() {
+    			li = element("li");
+    			b = element("b");
+    			b.textContent = "Adjusted Value:";
+    			t1 = space();
+    			input = element("input");
+    			add_location(b, file$2, 56, 48, 2390);
+    			attr_dev(li, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li, file$2, 56, 20, 2362);
+    			attr_dev(input, "class", "input svelte-cfmsux");
+    			add_location(input, file$2, 57, 20, 2439);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, li, anchor);
+    			append_dev(li, b);
+    			insert_dev(target, t1, anchor);
+    			insert_dev(target, input, anchor);
+    			set_input_value(input, /*doc*/ ctx[5].value);
+
+    			if (!mounted) {
+    				dispose = listen_dev(input, "input", input_input_handler);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+
+    			if (dirty & /*$ChordChartDocs*/ 1 && input.value !== /*doc*/ ctx[5].value) {
+    				set_input_value(input, /*doc*/ ctx[5].value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(li);
+    			if (detaching) detach_dev(t1);
+    			if (detaching) detach_dev(input);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block.name,
+    		type: "if",
+    		source: "(56:16) {#if !doc.max && i > 0 && doc.dataType !== \\\"Boolean\\\"}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (36:4) {#each $ChordChartDocs as doc, i}
+    function create_each_block(ctx) {
+    	let ul;
+    	let li0;
+    	let t0_value = /*doc*/ ctx[5].variable + "";
+    	let t0;
+    	let t1;
+    	let li1;
+    	let b0;
+    	let t3_value = /*doc*/ ctx[5].dataType + "";
+    	let t3;
+    	let t4;
+    	let li2;
+    	let b1;
+    	let t6_value = /*doc*/ ctx[5].description + "";
+    	let t6;
+    	let t7;
+    	let li3;
+    	let b2;
+    	let span;
+    	let t9_value = /*doc*/ ctx[5].defaultValue + "";
+    	let t9;
+    	let t10;
+    	let div;
+    	let t11;
+    	let t12;
+    	let t13;
+    	let if_block0 = /*doc*/ ctx[5].dataType === "Boolean" && create_if_block_2(ctx);
+    	let if_block1 = /*doc*/ ctx[5].max && create_if_block_1(ctx);
+    	let if_block2 = !/*doc*/ ctx[5].max && /*i*/ ctx[7] > 0 && /*doc*/ ctx[5].dataType !== "Boolean" && create_if_block(ctx);
+
+    	const block = {
+    		c: function create() {
+    			ul = element("ul");
+    			li0 = element("li");
+    			t0 = text$1(t0_value);
+    			t1 = space();
+    			li1 = element("li");
+    			b0 = element("b");
+    			b0.textContent = "Data Type: ";
+    			t3 = text$1(t3_value);
+    			t4 = space();
+    			li2 = element("li");
+    			b1 = element("b");
+    			b1.textContent = "Description: ";
+    			t6 = text$1(t6_value);
+    			t7 = space();
+    			li3 = element("li");
+    			b2 = element("b");
+    			b2.textContent = "Default Value: ";
+    			span = element("span");
+    			t9 = text$1(t9_value);
+    			t10 = space();
+    			div = element("div");
+    			if (if_block0) if_block0.c();
+    			t11 = space();
+    			if (if_block1) if_block1.c();
+    			t12 = space();
+    			if (if_block2) if_block2.c();
+    			t13 = space();
+    			attr_dev(li0, "class", "prop-value svelte-cfmsux");
+    			add_location(li0, file$2, 37, 12, 1168);
+    			add_location(b0, file$2, 38, 40, 1251);
+    			attr_dev(li1, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li1, file$2, 38, 12, 1223);
+    			add_location(b1, file$2, 39, 40, 1329);
+    			attr_dev(li2, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li2, file$2, 39, 12, 1301);
+    			add_location(b2, file$2, 40, 40, 1412);
+    			set_style(span, "color", "#FF7550");
+    			add_location(span, file$2, 40, 62, 1434);
+    			attr_dev(li3, "class", "prop-value-docs svelte-cfmsux");
+    			add_location(li3, file$2, 40, 12, 1384);
+    			attr_dev(div, "class", "adjustable-container svelte-cfmsux");
+    			add_location(div, file$2, 41, 12, 1506);
+    			attr_dev(ul, "class", "svelte-cfmsux");
+    			add_location(ul, file$2, 36, 8, 1151);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, ul, anchor);
+    			append_dev(ul, li0);
+    			append_dev(li0, t0);
+    			append_dev(ul, t1);
+    			append_dev(ul, li1);
+    			append_dev(li1, b0);
+    			append_dev(li1, t3);
+    			append_dev(ul, t4);
+    			append_dev(ul, li2);
+    			append_dev(li2, b1);
+    			append_dev(li2, t6);
+    			append_dev(ul, t7);
+    			append_dev(ul, li3);
+    			append_dev(li3, b2);
+    			append_dev(li3, span);
+    			append_dev(span, t9);
+    			append_dev(ul, t10);
+    			append_dev(ul, div);
+    			if (if_block0) if_block0.m(div, null);
+    			append_dev(div, t11);
+    			if (if_block1) if_block1.m(div, null);
+    			append_dev(div, t12);
+    			if (if_block2) if_block2.m(div, null);
+    			append_dev(ul, t13);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*$ChordChartDocs*/ 1 && t0_value !== (t0_value = /*doc*/ ctx[5].variable + "")) set_data_dev(t0, t0_value);
+    			if (dirty & /*$ChordChartDocs*/ 1 && t3_value !== (t3_value = /*doc*/ ctx[5].dataType + "")) set_data_dev(t3, t3_value);
+    			if (dirty & /*$ChordChartDocs*/ 1 && t6_value !== (t6_value = /*doc*/ ctx[5].description + "")) set_data_dev(t6, t6_value);
+    			if (dirty & /*$ChordChartDocs*/ 1 && t9_value !== (t9_value = /*doc*/ ctx[5].defaultValue + "")) set_data_dev(t9, t9_value);
+
+    			if (/*doc*/ ctx[5].dataType === "Boolean") {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+    				} else {
+    					if_block0 = create_if_block_2(ctx);
+    					if_block0.c();
+    					if_block0.m(div, t11);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
+
+    			if (/*doc*/ ctx[5].max) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block_1(ctx);
+    					if_block1.c();
+    					if_block1.m(div, t12);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+
+    			if (!/*doc*/ ctx[5].max && /*i*/ ctx[7] > 0 && /*doc*/ ctx[5].dataType !== "Boolean") {
+    				if (if_block2) {
+    					if_block2.p(ctx, dirty);
+    				} else {
+    					if_block2 = create_if_block(ctx);
+    					if_block2.c();
+    					if_block2.m(div, null);
+    				}
+    			} else if (if_block2) {
+    				if_block2.d(1);
+    				if_block2 = null;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(ul);
+    			if (if_block0) if_block0.d();
+    			if (if_block1) if_block1.d();
+    			if (if_block2) if_block2.d();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(36:4) {#each $ChordChartDocs as doc, i}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$2(ctx) {
+    	let div0;
+    	let h10;
+    	let t1;
+    	let pre;
+    	let code;
+    	let raw_value = prism.highlight(/*dataSchema*/ ctx[1], prism.languages['javascript']) + "";
+    	let t2;
+    	let div1;
+    	let h11;
+    	let t4;
+    	let each_value = /*$ChordChartDocs*/ ctx[0];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			div0 = element("div");
+    			h10 = element("h1");
+    			h10.textContent = "Chart Data Schema";
+    			t1 = space();
+    			pre = element("pre");
+    			code = element("code");
+    			t2 = space();
+    			div1 = element("div");
+    			h11 = element("h1");
+    			h11.textContent = "Properties";
+    			t4 = space();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			add_location(h10, file$2, 26, 4, 794);
+    			attr_dev(code, "class", "language-javascript svelte-cfmsux");
+    			add_location(code, file$2, 28, 7, 867);
+    			attr_dev(pre, "class", "data-schema-code svelte-cfmsux");
+    			add_location(pre, file$2, 27, 4, 825);
+    			attr_dev(div0, "class", "data-schema-container");
+    			add_location(div0, file$2, 25, 0, 754);
+    			attr_dev(h11, "class", "Properties");
+    			add_location(h11, file$2, 34, 4, 1066);
+    			attr_dev(div1, "class", "data-schema-container");
+    			add_location(div1, file$2, 33, 0, 1026);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div0, anchor);
+    			append_dev(div0, h10);
+    			append_dev(div0, t1);
+    			append_dev(div0, pre);
+    			append_dev(pre, code);
+    			code.innerHTML = raw_value;
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, h11);
+    			append_dev(div1, t4);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div1, null);
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*$ChordChartDocs*/ 1) {
+    				each_value = /*$ChordChartDocs*/ ctx[0];
     				validate_each_argument(each_value);
     				let i;
 
@@ -21287,7 +24720,7 @@ var app = (function () {
     					} else {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(g1, null);
+    						each_blocks[i].m(div1, null);
     					}
     				}
 
@@ -21301,11 +24734,191 @@ var app = (function () {
     		i: noop$4,
     		o: noop$4,
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(svg_1);
-    			destroy_each(each_blocks_1, detaching);
+    			if (detaching) detach_dev(div0);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(div1);
     			destroy_each(each_blocks, detaching);
-    			mounted = false;
-    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$2.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$2($$self, $$props, $$invalidate) {
+    	let $ChordChartDocs;
+    	validate_store(ChordChartDocs, 'ChordChartDocs');
+    	component_subscribe($$self, ChordChartDocs, $$value => $$invalidate(0, $ChordChartDocs = $$value));
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Chord_Docs', slots, []);
+
+    	const dataSchema = `
+    const relationalData = [
+        [A_A, A_B, A_C, A_D, A_E, A_F, A_G, A_H], 
+        [B_A, B_B, B_C, B_D, B_E, B_F, B_G, B_H],
+        [C_A, C_B, C_C, C_D, C_E, C_F, C_G, C_H],
+        [D_A, D_B, D_C, D_D, D_E, D_F, D_G, D_H],
+        [E_A, E_B, E_C, E_D, E_E, E_F, E_G, E_H],
+        [F_A, F_B, F_C, F_D, F_E, F_F, F_G, F_H],
+        [G_A, G_B, G_C, G_D, G_E, G_F, G_G, G_H],
+        [H_A, H_B, H_C, H_D, H_E, H_F, H_G, H_H],
+        //insert additional inter-relational matrixed data..."
+    ];
+
+    //Note array length and element length must be equal for a relational dataset
+
+    export { sampleData };
+    `;
+
+    	const writable_props = [];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Chord_Docs> was created with unknown prop '${key}'`);
+    	});
+
+    	function input_change_handler(each_value, i) {
+    		each_value[i].value = this.checked;
+    		ChordChartDocs.set($ChordChartDocs);
+    	}
+
+    	function input_change_input_handler(each_value, i) {
+    		each_value[i].value = to_number(this.value);
+    		ChordChartDocs.set($ChordChartDocs);
+    	}
+
+    	function input_input_handler(each_value, i) {
+    		each_value[i].value = this.value;
+    		ChordChartDocs.set($ChordChartDocs);
+    	}
+
+    	$$self.$capture_state = () => ({
+    		Prism: prism,
+    		ChordChartDocs,
+    		dataSchema,
+    		$ChordChartDocs
+    	});
+
+    	return [
+    		$ChordChartDocs,
+    		dataSchema,
+    		input_change_handler,
+    		input_change_input_handler,
+    		input_input_handler
+    	];
+    }
+
+    class Chord_Docs extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init$1(this, options, instance$2, create_fragment$2, safe_not_equal, {});
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Chord_Docs",
+    			options,
+    			id: create_fragment$2.name
+    		});
+    	}
+    }
+
+    /* src/Chord/Chord_Container.svelte generated by Svelte v3.46.4 */
+    const file$1 = "src/Chord/Chord_Container.svelte";
+
+    function create_fragment$1(ctx) {
+    	let div5;
+    	let h1;
+    	let t1;
+    	let div4;
+    	let div2;
+    	let div0;
+    	let chord_chart;
+    	let t2;
+    	let div1;
+    	let chord_codemirror;
+    	let t3;
+    	let div3;
+    	let chord_docs;
+    	let current;
+    	chord_chart = new Chord_Chart({ $$inline: true });
+    	chord_codemirror = new Chord_Code({ $$inline: true });
+    	chord_docs = new Chord_Docs({ $$inline: true });
+
+    	const block = {
+    		c: function create() {
+    			div5 = element("div");
+    			h1 = element("h1");
+    			h1.textContent = "CHORD DIAGRAM";
+    			t1 = space();
+    			div4 = element("div");
+    			div2 = element("div");
+    			div0 = element("div");
+    			create_component(chord_chart.$$.fragment);
+    			t2 = space();
+    			div1 = element("div");
+    			create_component(chord_codemirror.$$.fragment);
+    			t3 = space();
+    			div3 = element("div");
+    			create_component(chord_docs.$$.fragment);
+    			attr_dev(h1, "class", "page-title svelte-7sv4ac");
+    			add_location(h1, file$1, 7, 4, 218);
+    			attr_dev(div0, "class", "chart-render svelte-7sv4ac");
+    			add_location(div0, file$1, 10, 12, 338);
+    			attr_dev(div1, "class", "code-mirror svelte-7sv4ac");
+    			add_location(div1, file$1, 13, 12, 428);
+    			attr_dev(div2, "class", "code-container svelte-7sv4ac");
+    			add_location(div2, file$1, 9, 8, 297);
+    			attr_dev(div3, "class", "chart-Docs svelte-7sv4ac");
+    			add_location(div3, file$1, 17, 8, 532);
+    			attr_dev(div4, "class", "chart-page svelte-7sv4ac");
+    			add_location(div4, file$1, 8, 4, 264);
+    			attr_dev(div5, "class", "bar-chart-container");
+    			add_location(div5, file$1, 6, 0, 180);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div5, anchor);
+    			append_dev(div5, h1);
+    			append_dev(div5, t1);
+    			append_dev(div5, div4);
+    			append_dev(div4, div2);
+    			append_dev(div2, div0);
+    			mount_component(chord_chart, div0, null);
+    			append_dev(div2, t2);
+    			append_dev(div2, div1);
+    			mount_component(chord_codemirror, div1, null);
+    			append_dev(div4, t3);
+    			append_dev(div4, div3);
+    			mount_component(chord_docs, div3, null);
+    			current = true;
+    		},
+    		p: noop$4,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(chord_chart.$$.fragment, local);
+    			transition_in(chord_codemirror.$$.fragment, local);
+    			transition_in(chord_docs.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(chord_chart.$$.fragment, local);
+    			transition_out(chord_codemirror.$$.fragment, local);
+    			transition_out(chord_docs.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div5);
+    			destroy_component(chord_chart);
+    			destroy_component(chord_codemirror);
+    			destroy_component(chord_docs);
     		}
     	};
 
@@ -21320,153 +24933,32 @@ var app = (function () {
     	return block;
     }
 
-    function createStroke(e) {
-    	this.style.stroke = "#000";
-    }
-
-    function removeStroke(e) {
-    	this.style.stroke = null;
-    }
-
     function instance$1($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
-    	validate_slots('Zoomable_Circle_Packing', slots, []);
-    	let width = 932;
-    	let height = width;
-    	let marginTB = 0;
-    	let marginRL = -14;
-    	let backgroundColor = "rgb(163, 245, 207)";
-    	let cursorType = "pointer";
-    	let format$1 = format(",d");
-    	let color = linear().domain([0, 5]).range(["hsl(152,80%,80%)", "hsl(228,30%,40%)"]).interpolate(hcl$1);
-
-    	// let d3 = require("d3@6")
-    	let pack = data => index$1().size([width, height]).padding(3)(hierarchy(data).sum(d => d.value).sort((a, b) => b.value - a.value));
-
-    	let data = sampleData;
-    	const root = pack(data);
-    	let focus = root;
-    	let view;
-    	console.log(root.descendants().slice(1));
-    	console.log(root);
-
-    	//D3 zoomTo Function
-    	function zoomTo(v) {
-    		const k = width / v[2];
-    		view = v;
-    		(d.x - v[0]) * k;
-    		(d.y - v[1]) * k;
-    		d.r * k;
-    	} // label.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
-    	// node.attr("transform", d => `translate(${(d.x - v[0]) * k},${(d.y - v[1]) * k})`);
-
-    	// node.attr("r", d => d.r * k);
-    	// //invoke zoomTo
-    	// zoomTo([root.x, root.y, root.r * 2]);
-    	//D3 zoom Function
-    	function zoom(event, d) {
-    		//both node and label transform values are the same before and after transformation.
-    		// zoomTo([root.x, root.y, root.r * 2]); set as onload value?
-    		function zoomTo(v) {
-    			const k = width / v[2];
-    			view = v;
-    			(d.x - v[0]) * k;
-    			(d.y - v[1]) * k;
-    			d.r * k;
-    		}
-
-    		$$invalidate(0, focus = d);
-
-    		const transition = svg.transition().duration(event.altKey ? 7500 : 750).tween("zoom", d => {
-    			const i = interpolateZoom(view, [focus.x, focus.y, focus.r * 2]);
-    			return t => zoomTo(i(t));
-    		});
-
-    		this.transitionDuration = event.altKey ? 7500 : 750;
-
-    		document.getElementById(`index-${ind}`).filter(function (d) {
-    			return d.parent === focus || this.style.display === "inline";
-    		}).transition(transition).style("fill-opacity", d => d.parent === focus ? 1 : 0).on("start", function (d) {
-    			if (d.parent === focus) this.style.display = "inline";
-    		}).on("end", function (d) {
-    			if (d.parent !== focus) this.style.display = "none";
-    		});
-    	}
-
+    	validate_slots('Chord_Container', slots, []);
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<Zoomable_Circle_Packing> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Chord_Container> was created with unknown prop '${key}'`);
     	});
-
-    	const click_handler = (event, rootData) => focus !== rootData && (zoom(event, rootData), event.stopPropagation());
-    	const click_handler_1 = event => zoom(event, root);
 
     	$$self.$capture_state = () => ({
-    		d3,
-    		sampleData,
-    		width,
-    		height,
-    		marginTB,
-    		marginRL,
-    		backgroundColor,
-    		cursorType,
-    		format: format$1,
-    		color,
-    		pack,
-    		data,
-    		root,
-    		focus,
-    		view,
-    		zoomTo,
-    		zoom,
-    		createStroke,
-    		removeStroke
+    		Chord_Chart,
+    		Chord_CodeMirror: Chord_Code,
+    		Chord_Docs
     	});
 
-    	$$self.$inject_state = $$props => {
-    		if ('width' in $$props) $$invalidate(1, width = $$props.width);
-    		if ('height' in $$props) $$invalidate(2, height = $$props.height);
-    		if ('marginTB' in $$props) $$invalidate(3, marginTB = $$props.marginTB);
-    		if ('marginRL' in $$props) $$invalidate(4, marginRL = $$props.marginRL);
-    		if ('backgroundColor' in $$props) $$invalidate(5, backgroundColor = $$props.backgroundColor);
-    		if ('cursorType' in $$props) $$invalidate(6, cursorType = $$props.cursorType);
-    		if ('format' in $$props) format$1 = $$props.format;
-    		if ('color' in $$props) $$invalidate(7, color = $$props.color);
-    		if ('pack' in $$props) pack = $$props.pack;
-    		if ('data' in $$props) data = $$props.data;
-    		if ('focus' in $$props) $$invalidate(0, focus = $$props.focus);
-    		if ('view' in $$props) view = $$props.view;
-    	};
-
-    	if ($$props && "$$inject" in $$props) {
-    		$$self.$inject_state($$props.$$inject);
-    	}
-
-    	return [
-    		focus,
-    		width,
-    		height,
-    		marginTB,
-    		marginRL,
-    		backgroundColor,
-    		cursorType,
-    		color,
-    		root,
-    		zoom,
-    		click_handler,
-    		click_handler_1
-    	];
+    	return [];
     }
 
-    class Zoomable_Circle_Packing extends SvelteComponentDev {
+    class Chord_Container extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
     		init$1(this, options, instance$1, create_fragment$1, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
-    			tagName: "Zoomable_Circle_Packing",
+    			tagName: "Chord_Container",
     			options,
     			id: create_fragment$1.name
     		});
@@ -21479,18 +24971,18 @@ var app = (function () {
     function create_fragment(ctx) {
     	let body;
     	let div;
-    	let zoomable_circle_packing;
+    	let chord_container;
     	let current;
-    	zoomable_circle_packing = new Zoomable_Circle_Packing({ $$inline: true });
+    	chord_container = new Chord_Container({ $$inline: true });
 
     	const block = {
     		c: function create() {
     			body = element("body");
     			div = element("div");
-    			create_component(zoomable_circle_packing.$$.fragment);
-    			add_location(div, file, 19, 2, 850);
-    			attr_dev(body, "class", "svelte-xzc24z");
-    			add_location(body, file, 18, 0, 841);
+    			create_component(chord_container.$$.fragment);
+    			add_location(div, file, 22, 2, 1163);
+    			attr_dev(body, "class", "svelte-1nszbcz");
+    			add_location(body, file, 21, 0, 1154);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -21498,22 +24990,22 @@ var app = (function () {
     		m: function mount(target, anchor) {
     			insert_dev(target, body, anchor);
     			append_dev(body, div);
-    			mount_component(zoomable_circle_packing, div, null);
+    			mount_component(chord_container, div, null);
     			current = true;
     		},
     		p: noop$4,
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(zoomable_circle_packing.$$.fragment, local);
+    			transition_in(chord_container.$$.fragment, local);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(zoomable_circle_packing.$$.fragment, local);
+    			transition_out(chord_container.$$.fragment, local);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(body);
-    			destroy_component(zoomable_circle_packing);
+    			destroy_component(chord_container);
     		}
     	};
 
@@ -21537,7 +25029,7 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
-    	$$self.$capture_state = () => ({ Zoomable_Circle_Packing });
+    	$$self.$capture_state = () => ({ Chord_Container });
     	return [];
     }
 
@@ -21557,9 +25049,9 @@ var app = (function () {
 
     const app = new App({
       target: document.body,
-      props: {
-        name: "world",
-      },
+      // props: {
+      //   name: "world",
+      // },
     });
 
     return app;
