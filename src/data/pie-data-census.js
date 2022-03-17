@@ -18,7 +18,7 @@ const csv = `Ages,Count
 80-84,6050
 ≥85,5893`;
 
-const data = csv
+const pieData = csv
   .split('\n')
   .slice(1)
   .map((str) => {
@@ -26,4 +26,4 @@ const data = csv
     return { ages, count };
   });
 
-export default data;
+export { pieData };
