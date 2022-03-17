@@ -10,6 +10,22 @@ import ColumnChart from './columnChart.svelte';
 	
 	// const github = 'images/github-dark.png';
 	// const barIcon = '/icons/bar.svg';
+
+	const chartList = [
+		{title: 'Area Chart', icon: 'area-main'}, 
+		{title: 'Bar Chart', icon: 'bar-main'},
+		{title: 'Bubble Chart', icon: 'bubble-main'},
+		{title: 'Chord Diagram', icon: 'chord-main'},
+		{title: 'Choropleth', icon: 'choropleth-main'},
+		{title: 'Circle Packing', icon: 'circlePack-main'},
+		{title: 'Donut Chart', icon: 'donut-main'},
+		{title: 'Hexbin', icon: 'hexbin-main'},
+		{title: 'Line Chart', icon: 'line-main'},
+		{title: 'Radial Stacked Bar Chart', icon: 'radialStacked-main'},
+		{title: 'Ridgeline Plot', icon: 'ridgeline-main'},
+		{title: 'Sankey Diagram', icon: 'sankey-main'},
+		{title: 'Scatterplot', icon: 'scatter-main'}
+	];
 </script>
 
 <svelte:head>
@@ -23,25 +39,26 @@ import ColumnChart from './columnChart.svelte';
 <!-- <img src='/images/github-dark.png' alt='github'> -->
 <!-- <img src={github} alt='github'> -->
 <!-- <img src='$img/github-dark.png' alt='github'> -->
-<div class="grid grid-rows-3 text-white">
+<div class="grid grid-rows-4 gap-8 text-white">
 	<!-- <img src="/bar.svg" alt="site logo"> -->
 	<div>
 		<ChartsDisplay
-			title="Distribution"
-			chartIcons={['github', 'github', 'github', 'github']}
-			pages={[]}
-		/>
-	</div>
-	<!-- <div>
-		<ChartsDisplay
-			title="Distribution"
-			chartIcons={[barIcon, barIcon, barIcon, barIcon]}
+			chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]}
 		/>
 	</div>
 	<div>
 		<ChartsDisplay
-			title="Distribution"
-			chartIcons={[barIcon, barIcon, barIcon, barIcon]}
+			chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]}
 		/>
-	</div> -->
+	</div>
+	<div>
+		<ChartsDisplay
+			chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]}
+		/>
+	</div>
+	<div>
+		<ChartsDisplay
+			chartCards={[chartList[12]]}
+		/>
+	</div>
 </div>
