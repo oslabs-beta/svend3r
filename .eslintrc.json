@@ -1,0 +1,39 @@
+{
+    "root": true,
+    "ignorePatterns": ["**/test", "**/__tests__"],
+    "env": {
+      "node": true,
+      "browser": true,
+      "es2021": true
+    },
+    "plugins": ["svelte3"],
+    "extends": ["eslint:recommended"],
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
+    "overrides": [
+      {
+        "files": ["*.svelte"],
+        "processor": "svelte3/svelte3",
+        "rules": {
+          "no-useless-escape": "off"
+        }
+      }
+    ],
+    "rules": {
+      "indent": ["warn", 2],
+      "no-unused-vars": ["off", { "vars": "local" }],
+      "no-case-declarations": "off",
+      "prefer-const": "warn",
+      "quotes": ["warn", "single"], 
+      "no-confusing-arrow": "warn",
+      "semi": ["warn", "always"],
+      "space-infix-ops": "warn"
+    },
+    "settings": {
+      "react": { "version": "detect"}
+    }
+  } 

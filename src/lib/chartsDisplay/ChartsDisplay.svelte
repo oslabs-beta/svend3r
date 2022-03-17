@@ -1,5 +1,5 @@
 
-	
+<script>
 	export let title;
 	export let chartIcons;
 	console.log('icons', chartIcons)
