@@ -8,7 +8,7 @@
 	<h1 class="cardTitle"><b>{chartCard.title}</b></h1>
 		<section class=cardSvg>
 			<!-- <Choropleth /> -->
-			<img class=cardSvg src="/main/{chartCard.icon}.png"/>
+			<a href='/charts/{chartCard.icon}' ><img class=cardSvg src="/main/{chartCard.icon}-main.png" alt={chartCard.title} /></a>
 		</section>
 </div>
 
