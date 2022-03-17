@@ -8,9 +8,7 @@
 	<h1 class="cardTitle"><b>{chartCard.title}</b></h1>
 		<section class=cardSvg>
 			<!-- <Choropleth /> -->
-			<svg width=87% height=87%>
-				<use href='#{chartCard.icon}' />
-			</svg>
+			<img class=cardSvg src="/main/{chartCard.icon}.png"/>
 		</section>
 </div>
 
@@ -48,8 +46,7 @@
 	}
 
 	.cardSvg{
-		width: 87%;
-		height: 87%;
+		height: 85%;
 		margin: auto;
 	}
 	
