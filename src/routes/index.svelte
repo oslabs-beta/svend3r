@@ -24,7 +24,8 @@ import ColumnChart from './columnChart.svelte';
 		{title: 'Radial Stacked Bar Chart', icon: 'radialStacked-main'},
 		{title: 'Ridgeline Plot', icon: 'ridgeline-main'},
 		{title: 'Sankey Diagram', icon: 'sankey-main'},
-		{title: 'Scatterplot', icon: 'scatter-main'}
+		{title: 'Scatterplot', icon: 'scatter-main'},
+		{title: 'Pie Chart', icon: 'pie-main'}
 	];
 </script>
 
@@ -39,26 +40,34 @@ import ColumnChart from './columnChart.svelte';
 <!-- <img src='/images/github-dark.png' alt='github'> -->
 <!-- <img src={github} alt='github'> -->
 <!-- <img src='$img/github-dark.png' alt='github'> -->
-<div class="grid grid-rows-4 gap-8 text-white">
+<div id="card-container" class="h-4/6 mt-8 overflow-auto ml-12">
 	<!-- <img src="/bar.svg" alt="site logo"> -->
-	<div>
+	<div class="mb-8">
 		<ChartsDisplay
 			chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]}
 		/>
 	</div>
-	<div>
+	<div class="mb-8">
 		<ChartsDisplay
 			chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]}
 		/>
 	</div>
-	<div>
+	<div class="mb-8">
 		<ChartsDisplay
 			chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]}
 		/>
 	</div>
-	<div>
+	<div class="mb-1">
 		<ChartsDisplay
-			chartCards={[chartList[12]]}
+			chartCards={[chartList[12], chartList[13]]} 
 		/>
 	</div>
 </div>
+
+<style>
+
+#card-container::-webkit-scrollbar {
+      display: none;
+}
+
+</style>

@@ -21,7 +21,8 @@
 		{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
 		{title: 'Ridgeline Plot', slug: 'ridgeline'},
 		{title: 'Sankey Diagram', slug: 'sankey'},
-		{title: 'Scatterplot', slug: 'scatter'}
+		{title: 'Scatterplot', slug: 'scatter'},
+		{title: 'Pie Chart', slug: 'pie'}
 	];
 	
 	// $: chartList = charts.map((chart) => ({
@@ -47,5 +48,6 @@
 		background-color: #1E1E1E;
 		width: 100vw;
 		height: 100vh;
+		position: fixed;
 	}
 </style>
