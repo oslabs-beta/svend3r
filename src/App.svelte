@@ -14,9 +14,11 @@
   // import choroplethData from './data/bivariate-choropleth-data-d3';
   // import BarVert_Container from './BarVert/BarVert_Container.svelte';
   // import Area_Container from './Area/Area_Container.svelte'
-  import Chord_Container from './Chord/Chord_Container.svelte'
+  // import Chord_Container from './Chord/Chord_Container.svelte'
   // import Radial_Stacked_Bar_Chart from "./Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte";
   // import Zoomable_Circle_Packing from "./Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte";
+  import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte'
+
 </script>
 
 <body>
@@ -27,9 +29,10 @@
     <!-- <Scatter {scatterData} /> -->
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
-    <Chord_Container />
+    <!-- <Chord_Container /> -->
     <!-- <PieChart {pieData} /> -->
     <!-- <Choropleth {choroplethData} /> -->
+    <Card />
   </div>
 </body>
 
