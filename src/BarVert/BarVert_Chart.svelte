@@ -45,7 +45,7 @@
   // Construct scales, axes, and formats.
   $: xRange = [marginLeft, width - marginRight]; // [left, right] //*****Remove reactivepermalink for production use
   $: yRange = [height - marginBottom, marginTop * 2]; // [bottom, top] //*****Remove reactivepermalink for production use
-  const yType = d3.scaleLinear; // y-scale type
+  $: yType = d3.scaleLinear; // y-scale type
   $: xScale = d3.scaleBand(xDomain, xRange).padding(xPadding);
   $: yScale = yType(yDomain, yRange);
 

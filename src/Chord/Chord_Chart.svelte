@@ -1,5 +1,6 @@
 <script>
   import * as d3 from 'd3';
+  import { fade} from 'svelte/transition';
   import { sampleData } from '../data/observable-chord-data'
   import { ChordChartDocs } from './Chord_Store.js';
 
@@ -81,7 +82,7 @@
         on:blur="{() => { ribbonInfo = null; selectedChord = null; }}"
       />
     {:else}
-    <path fill-opacity={chordOpacity} fill={colors[chord.source.index]} d={ribbon(chord)} 
+    <path fill-opacity={chordOpacity} fill={colors[chord.source.index]} d={ribbon(chord)}
       on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
       on:focus="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
       on:mouseout="{() => { ribbonInfo = null; selectedChord = null; }}"
