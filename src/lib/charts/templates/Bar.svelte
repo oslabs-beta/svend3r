@@ -57,8 +57,8 @@
   }
 </script>
 
-<div class="c" dir="auto">
-  <!-- <select
+<div class="chart-container" dir="auto">
+  <select
     on:change={showSort(this.selectedIndex)}
     onfocus={(this.selectedIndex = -1)}
   >
@@ -66,7 +66,7 @@
     <option value="1">Default</option>
     <option value="2">{y}, Ascending</option>
     <option value="3">{y}, Descending</option>
-  </select> -->
+  </select>
   <svg {width} {height} viewBox="0 0 {width} {height}">
     <g class="y-axis" transform="translate({marginLeft}, 0)">
       {#each yTicks as tick, i}
@@ -114,9 +114,23 @@
 </div>
 
 <style>
+  .chart-container {
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    margin-left: 8
+    0px;
+  }
+
+  select{
+    color: black;
+    padding: 5px;
+  }
+
   svg {
     max-width: 100%;
     max-height: 100%;
+    margin: auto;
   }
 
   .y-axis {
