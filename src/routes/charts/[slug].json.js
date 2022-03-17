@@ -26,8 +26,8 @@ import radialStacked from '$lib/charts/db/radialStacked.json';
 // 		}
 // 	};
 // }
-export function get({ params }) {
-  // console.log('slug.json', params.slug);
+export async function get({ params }) {
+  console.log('slug.json', params.slug);
   const charts = {
     area: area,
     bar: bar,

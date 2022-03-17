@@ -21,7 +21,7 @@
 	bg-transparent hover:bg-gray-400 dark:bg-none
 	hover:rounded-xl rounded-3xl
 	transition-all duration-300 ease-linear
-	cursor-pointer shadow-lg group"
+	cursor-pointer shadow-lg group" 
 	>
 		<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
 		<a href='/' alt='Svend3r Home'><Icon name='svend3r' /></a>
