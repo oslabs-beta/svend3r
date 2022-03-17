@@ -1,6 +1,6 @@
 <script>
   import Prism from 'prismjs';
-  import { ChordChartDocs } from './ChartStore';
+  import { ChartDocs } from './ChartStore';
   
   export let schema;
 
@@ -17,7 +17,7 @@
 </div>
 <div class="data-schema-container">
   <h1 class="Properties">Properties</h1>
-  {#each $ChordChartDocs as doc, i}
+  {#each $ChartDocs as doc, i}
       <ul>
           <li class="prop-value">{doc.variable}</li>
           <li class="prop-value-docs"><b>Data Type: </b>{doc.dataType}</li>

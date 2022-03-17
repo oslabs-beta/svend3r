@@ -6,6 +6,7 @@
 //   } 
 // }
 
+import area from '$lib/charts/db/area.json';
 import chord from '$lib/charts/db/chord.json';
 /** @type {import('@sveltejs/kit').RequestHandler} */
 // export async function get({ params }) {
@@ -24,8 +25,12 @@ import chord from '$lib/charts/db/chord.json';
 // 	};
 // }
 export function get({ params }) {
-  // console.log('slug.json chart', chart);
+  // console.log('slug.json', params.slug);
+  const charts = {
+    area: area,
+    chord: chord
+  }
   return {
-    body: chord
+    body: charts[params.slug]
   } 
 }

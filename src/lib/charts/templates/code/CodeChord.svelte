@@ -1,26 +1,28 @@
 <script>
-    import Prism from 'prismjs';
-    import { ChordChartDocs } from './Chord_Store.js';
-  
+  import Prism from 'prismjs';
+  import { ChartDocs } from '../../ChartStore';
+
+  export let chartData;
+
   $: code = `<script>
   import * as d3 from 'd3';
   import { sampleData } from './sampleData.js'
 
   const data = sampleData;
-  const marginOffset = ${$ChordChartDocs[1].value} //the margin top, bottom, left, right margin offset relative to the radius
-  const width = ${$ChordChartDocs[2].value}; // the outer width of the chart, in pixels
+  const marginOffset = ${$ChartDocs[1].value} //the margin top, bottom, left, right margin offset relative to the radius
+  const width = ${$ChartDocs[2].value}; // the outer width of the chart, in pixels
   const height = width; // the outer height of the chart, in pixels
-  const bandThickness = ${$ChordChartDocs[3].value}; // the thickness of the color band representing each dataset
-  const fontSize = ${$ChordChartDocs[4].value} //the label font size relative to 1% of the width of the viewport
-  const tickStep = ${$ChordChartDocs[5].value}; //the chart label tick spread factor
-  const scaleFormat = '${$ChordChartDocs[6].value}'; // a format specifier string for the scale ticks
-  const names = [${"'" + $ChordChartDocs[7].value.join("','") + "'"}]; // section names
-  const colors = [${"'" + $ChordChartDocs[8].value.join("','") + "'"}]; // section fill colors && number of colors in fill array MUST match number of subsets in data
-  const chordOpacity = ${$ChordChartDocs[9].value}; //the opacity for the charts overall chords
-  const unselectOpacity = ${$ChordChartDocs[10].value}; //the opacity of non-select chart elements
-  const selectOpacity = ${$ChordChartDocs[11].value}; //the opacity of select chart elements
-  const tooltipBackground = '${$ChordChartDocs[12].value}'; // background color of tooltip
-  const tooltipTextColor = '${$ChordChartDocs[13].value}'; // text color of tooltip
+  const bandThickness = ${$ChartDocs[3].value}; // the thickness of the color band representing each dataset
+  const fontSize = ${$ChartDocs[4].value} //the label font size relative to 1% of the width of the viewport
+  const tickStep = ${$ChartDocs[5].value}; //the chart label tick spread factor
+  const scaleFormat = '${$ChartDocs[6].value}'; // a format specifier string for the scale ticks
+  const names = [${"'" + $ChartDocs[7].value.join("','") + "'"}]; // section names
+  const colors = [${"'" + $ChartDocs[8].value.join("','") + "'"}]; // section fill colors && number of colors in fill array MUST match number of subsets in data
+  const chordOpacity = ${$ChartDocs[9].value}; //the opacity for the charts overall chords
+  const unselectOpacity = ${$ChartDocs[10].value}; //the opacity of non-select chart elements
+  const selectOpacity = ${$ChartDocs[11].value}; //the opacity of select chart elements
+  const tooltipBackground = '${$ChartDocs[12].value}'; // background color of tooltip
+  const tooltipTextColor = '${$ChartDocs[13].value}'; // text color of tooltip
   const outerRadius = Math.min(width, height) * 0.5 - marginOffset; // should connect to margin
   const innerRadius = outerRadius - bandThickness; // should make adjustable
   
@@ -117,86 +119,64 @@
   }
 </style>
 `;
-  
-    // outputs the content of the text file
-  
-    const data = `const sampleData = [
-  [0.096899, 0.008859, 0.000554, 0.00443, 0.025471, 0.024363, 0.005537, 0.025471],
-  [0.001107, 0.018272, 0, 0.004983, 0.011074, 0.01052, 0.002215, 0.004983],
-  [0.000554, 0.002769, 0.002215, 0.002215, 0.003876, 0.008306, 0.000554, 0.003322],
-  [0.000554, 0.001107, 0.000554, 0.012182, 0.011628, 0.006645, 0.004983, 0.01052],
-  [0.002215, 0.00443, 0, 0.002769, 0.104097, 0.012182, 0.004983, 0.028239],
-  [0.011628, 0.026024, 0, 0.013843, 0.087486, 0.168328, 0.017165, 0.055925],
-  [0.000554, 0.004983, 0, 0.003322, 0.00443, 0.008859, 0.017719, 0.00443],
-  [0.002215, 0.007198, 0, 0.003322, 0.016611, 0.01495, 0.001107, 0.054264]
-];
 
-export { sampleData };`;
-  
   function showCode(id) {
-      if(id === 'page1') {
-        document.getElementById('page1_desc').style.display = 'block';
-        document.getElementById('page2_desc').style.display = 'none';
-      } else {
-        document.getElementById('page1_desc').style.display = 'none';
-        document.getElementById('page2_desc').style.display = 'block';
-      }
+    if(id === 'page1') {
+      document.getElementById('page1_desc').style.display = 'block';
+      document.getElementById('page2_desc').style.display = 'none';
+    } else {
+      document.getElementById('page1_desc').style.display = 'none';
+      document.getElementById('page2_desc').style.display = 'block';
+    }
   }
-  
-  </script>
-  
-  <button class="page_selected" id="page1" on:click={() => showCode('page1')}>Code</button><!--
-  --><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button>
-  
-  <pre id="page1_desc" class="codeMirror" contenteditable><!--
-  --><code class="language-javascript"
-      ><!--
-       -->{@html Prism.highlight(
-        code,
-        Prism.languages['javascript']
-      )}<!--
-   --></code
+</script>
+
+<button class="page_selected" id="page1" on:click={() => showCode('page1')}>Code</button><!--
+--><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button>
+
+<pre id="page1_desc" class="codeMirror" contenteditable><!--
+--><code class="language-javascript"
     ><!--
-  --></pre>
-  
-  <pre id="page2_desc" class="codeMirror" contenteditable><!--
-  --><code class="language-javascript"
-      ><!--
-       -->{@html Prism.highlight(
-        data,
-        Prism.languages['javascript']
-      )}<!--
-   --></code
+     -->{@html Prism.highlight(
+      code,
+      Prism.languages['javascript']
+    )}<!--
+ --></code
+  ><!--
+--></pre>
+
+<pre id="page2_desc" class="codeMirror" contenteditable><!--
+--><code class="language-javascript"
     ><!--
-  --></pre>
-  
-  <style>
-  .codeMirror {
-    white-space: pre-wrap;
-  }
-  
-  #page2_desc {
-    display: none;
-  }
-  
-  .page_selected {
-    width: 50%;
-    border-style: none;
-    border-radius: 0;
-    background-color: #494949;
-    color: rgba(255, 255, 255, 0.87);
-  }
-  
-  #page2{
-    border-left: #1E1E1E;
-    border-left-width: 2px;
-    border-left-style: solid;
-  }
-  
-  .page_selected:hover {
-    background-color: #1E1E1E;
-    color: rgba(255, 255, 255, 0.87);
-  }
-  
-  </style>
-  
+     -->{@html Prism.highlight(
+      chartData,
+      Prism.languages['javascript']
+    )}<!--
+ --></code
+  ><!--
+--></pre>
+
+<style>
+.codeMirror {
+  white-space: pre-wrap;
+}
+#page2_desc {
+  display: none;
+}
+.page_selected {
+  width: 50%;
+  border-style: none;
+  border-radius: 0;
+  background-color: #494949;
+  color: rgba(255, 255, 255, 0.87);
+}
+#page2{
+  border-left: #1E1E1E;
+  border-left-width: 2px;
+  border-left-style: solid;
+}
+.page_selected:hover {
+  background-color: #1E1E1E;
+  color: rgba(255, 255, 255, 0.87);
+}
+</style>

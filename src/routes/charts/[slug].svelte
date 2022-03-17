@@ -54,7 +54,8 @@
               <ChartDisplay {slug} {chartData} />
           </div>
           <div class="code-mirror">
-              <CodeMirror {code} {chartData} />
+              <!-- <CodeMirror {code} {chartData} /> -->
+              <CodeMirror {slug} {chartData} />
           </div>
       </div>
       <div class="chart-properties">
