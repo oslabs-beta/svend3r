@@ -2,22 +2,22 @@
   import * as d3 from 'd3';
   import { fade} from 'svelte/transition';
   import { sampleData } from '../data/observable-chord-data'
-  import { ChordChartDocs } from '../ChartStore';
-  const data = sampleData;
-  $: marginOffset = $ChordChartDocs[1].value //the margin top, bottom, left, right margin offset relative to the radius
-  $: width = $ChordChartDocs[2].value; // the outer width of the chart, in pixels
+  import { ChartDocs } from '../ChartStore';
+  const data = sampleData;  
+  $: marginOffset = $ChartDocs[1].value //the margin top, bottom, left, right margin offset relative to the radius
+  $: width = $ChartDocs[2].value; // the outer width of the chart, in pixels
   $: height = width; // the outer height of the chart, in pixels
-  $: bandThickness = $ChordChartDocs[3].value; // the thickness of the color band representing each dataset
-  $: fontSize = $ChordChartDocs[4].value //the label font size relative to 1% of the width of the viewport
-  $: tickStep = $ChordChartDocs[5].value; //the chart label tick spread factor
-  $: scaleFormat = $ChordChartDocs[6].value; // a format specifier string for the scale ticks
-  $: names = $ChordChartDocs[7].value; // section names
-  $: colors = $ChordChartDocs[8].value; // section fill colors && number of colors in fill array MUST match number of subsets in data
-  $: chordOpacity = $ChordChartDocs[9].value; //the opacity for the charts overall chords
-  $: unselectOpacity = $ChordChartDocs[10].value; //the opacity of non-select chart elements
-  $: selectOpacity = $ChordChartDocs[11].value; //the opacity of select chart elements
-  $: tooltipBackground = $ChordChartDocs[12].value; // background color of tooltip
-  $: tooltipTextColor = $ChordChartDocs[13].value; // text color of tooltip
+  $: bandThickness = $ChartDocs[3].value; // the thickness of the color band representing each dataset
+  $: fontSize = $ChartDocs[4].value //the label font size relative to 1% of the width of the viewport
+  $: tickStep = $ChartDocs[5].value; //the chart label tick spread factor
+  $: scaleFormat = $ChartDocs[6].value; // a format specifier string for the scale ticks
+  $: names = $ChartDocs[7].value; // section names
+  $: colors = $ChartDocs[8].value; // section fill colors && number of colors in fill array MUST match number of subsets in data
+  $: chordOpacity = $ChartDocs[9].value; //the opacity for the charts overall chords
+  $: unselectOpacity = $ChartDocs[10].value; //the opacity of non-select chart elements
+  $: selectOpacity = $ChartDocs[11].value; //the opacity of select chart elements
+  $: tooltipBackground = $ChartDocs[12].value; // background color of tooltip
+  $: tooltipTextColor = $ChartDocs[13].value; // text color of tooltip
   $: outerRadius = Math.min(width, height) * 0.5 - marginOffset; // should connect to margin
   $: innerRadius = outerRadius - bandThickness; // should make adjustable
   

@@ -2,7 +2,7 @@
   import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay } from 'd3';
   import { csvVtsax, csvVgenx, csvVbtlx } from '../data/line-data-multi';
   // import { AreaChartDocs } from '../Store.svelte';
-  // import { AreaChartDocs } from '../ChartStore';
+  import { ChartDocs } from '../ChartStore';
 
   export let chartData;
 
@@ -39,35 +39,35 @@ const sampleData = [
   }
 ];
   let data = sampleData;
-  $: r = $AreaChartDocs[1].value; // (fixed) radius of dots, in pixels
-  $: marginTop = $AreaChartDocs[2].value; // the top margin, in pixels
-  $: marginRight = $AreaChartDocs[3].value; // the right margin, in pixels
-  $: marginBottom = $AreaChartDocs[4].value; // the bottom margin, in pixels
-  $: marginLeft = $AreaChartDocs[5].value; // the left margin, in pixels
-  $: inset = $AreaChartDocs[6].value; // inset the default range, in pixels
+  $: r = $ChartDocs[1].value; // (fixed) radius of dots, in pixels
+  $: marginTop = $ChartDocs[2].value; // the top margin, in pixels
+  $: marginRight = $ChartDocs[3].value; // the right margin, in pixels
+  $: marginBottom = $ChartDocs[4].value; // the bottom margin, in pixels
+  $: marginLeft = $ChartDocs[5].value; // the left margin, in pixels
+  $: inset = $ChartDocs[6].value; // inset the default range, in pixels
   $: insetTop = inset; // inset the default y-range
   $: insetRight = inset; // inset the default x-range
   $: insetBottom = inset; // inset the default y-range
   $: insetLeft = inset; // inset the default x-range
-  $: width = $AreaChartDocs[7].value; // the outer width of the chart, in pixels
-  $: height = $AreaChartDocs[8].value; // the outer height of the chart, in pixels
-  $: xLabel = $AreaChartDocs[9].value; // a label for the y-axis
-  $: yLabel = $AreaChartDocs[10].value; // a label for the y-axis
-  $: xFormat = $AreaChartDocs[11].value; // a format specifier string for the y-axis
-  $: yFormat = $AreaChartDocs[12].value; // a format specifier string for the y-axis
-  $: horizontalGrid = $AreaChartDocs[13].value; // show horizontal grid lines
-  $: verticalGrid = $AreaChartDocs[14].value; // show vertical grid lines
+  $: width = $ChartDocs[7].value; // the outer width of the chart, in pixels
+  $: height = $ChartDocs[8].value; // the outer height of the chart, in pixels
+  $: xLabel = $ChartDocs[9].value; // a label for the y-axis
+  $: yLabel = $ChartDocs[10].value; // a label for the y-axis
+  $: xFormat = $ChartDocs[11].value; // a format specifier string for the y-axis
+  $: yFormat = $ChartDocs[12].value; // a format specifier string for the y-axis
+  $: horizontalGrid = $ChartDocs[13].value; // show horizontal grid lines
+  $: verticalGrid = $ChartDocs[14].value; // show vertical grid lines
   $: xScalefactor = width / 80; //y-axis number of values
   $: yScalefactor = height / 40; //y-axis number of values
-  $: colors = $AreaChartDocs[15].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
+  $: colors = $ChartDocs[15].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
   $: showDots = false; // whether dots should be displayed
   $: dotsFilled = false; // whether dots should be filled or outlined
   $: strokeLinecap = 'round'; // stroke line cap of the line
   $: strokeLinejoin = 'round'; // stroke line join of the line
-  $: strokeWidth = $AreaChartDocs[16].value; // stroke width of line, in pixels
-  $: strokeOpacity = $AreaChartDocs[17].value; // stroke opacity of line
-  $: tooltipBackground = $AreaChartDocs[18].value; // background color of tooltip
-  $: tooltipTextColor = $AreaChartDocs[19].value; // text color of tooltip
+  $: strokeWidth = $ChartDocs[16].value; // stroke width of line, in pixels
+  $: strokeOpacity = $ChartDocs[17].value; // stroke opacity of line
+  $: tooltipBackground = $ChartDocs[18].value; // background color of tooltip
+  $: tooltipTextColor = $ChartDocs[19].value; // text color of tooltip
   $: curve = curveLinear; // method of interpolation between points
   $: xType = scaleUtc; // type of x-scale
   $: xRange = [marginLeft + insetLeft, width - marginRight - insetRight]; // [left, right]
