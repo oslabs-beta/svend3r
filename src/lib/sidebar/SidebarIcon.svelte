@@ -1,9 +1,11 @@
 <script lang="ts">
-	export let icon;
-	export let page;
+	// export let icon;
+	// export let page = '#';
+	// export let tooltip;
+	// import { goto } from '$app/navigation';
+	import Icon from '$lib/components/Icon.svelte';
 
-	export let tooltip;
-	import { goto } from '$app/navigation';
+	export let chart;
 </script>
 
 <div
@@ -14,7 +16,8 @@ hover:rounded-xl rounded-3xl
 transition-all duration-300 ease-linear
 cursor-pointer shadow-lg group"
 >
-	<a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a>
+	<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
+	<a href='/charts/{chart.slug}' alt={chart.title}><Icon name={chart.slug} /></a>
 
 	<span
 		class="absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md dark:bg-white dark:text-black
@@ -22,6 +25,6 @@ cursor-pointer shadow-lg group"
     text-xs font-bold 
     transition-all duration-100 scale-0 origin-left group-hover:scale-100"
 	>
-		{tooltip}
+		{chart.title}
 	</span>
 </div>
