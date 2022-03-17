@@ -6,7 +6,7 @@ export const BarChartDocs = writable([
     value: 'sampleData',
     dataType: 'Array',
     description: 'An array of objects with x-axis and y-axis key value pairs.',
-    defaultValue: 'sampleData'  
+    defaultValue: 'sampleData',
   },
   {
     variable: 'marginTop',
@@ -15,7 +15,7 @@ export const BarChartDocs = writable([
     description: 'The top margin, in pixels.',
     defaultValue: 20,
     min: 15,
-    max: 80
+    max: 80,
   },
   {
     variable: 'marginRight',
@@ -24,7 +24,7 @@ export const BarChartDocs = writable([
     description: 'The right margin, in pixels.',
     defaultValue: 0,
     min: -5,
-    max: 150
+    max: 150,
   },
   {
     variable: 'marginBottom',
@@ -33,7 +33,7 @@ export const BarChartDocs = writable([
     description: 'The bottom margin, in pixels.',
     defaultValue: 30,
     min: 20,
-    max: 50
+    max: 50,
   },
   {
     variable: 'marginLeft',
@@ -42,7 +42,7 @@ export const BarChartDocs = writable([
     description: 'The left margin, in pixels.',
     defaultValue: 40,
     min: 30,
-    max: 100
+    max: 100,
   },
   {
     variable: 'width',
@@ -51,7 +51,7 @@ export const BarChartDocs = writable([
     description: 'The outer width of the chart, in pixels.',
     defaultValue: 600,
     min: 570,
-    max: 700
+    max: 700,
   },
   {
     variable: 'height',
@@ -60,7 +60,7 @@ export const BarChartDocs = writable([
     description: 'The outer height of the chart, in pixels.',
     defaultValue: 300,
     min: 160,
-    max: 380
+    max: 380,
   },
   {
     variable: 'xPadding',
@@ -68,13 +68,14 @@ export const BarChartDocs = writable([
     dataType: 'Number',
     description: 'The amount of seperation in the x-range between each bar.',
     defaultValue: 0.2,
-    max: 0.9
+    max: 0.9,
   },
   {
     variable: 'yFormat',
     value: '%',
     dataType: 'String',
-    description: 'The format specifier string attached to the end of each y-axis value.',
+    description:
+      'The format specifier string attached to the end of each y-axis value.',
     defaultValue: '%',
   },
   {
@@ -93,10 +94,10 @@ export const BarChartDocs = writable([
   },
   {
     variable: 'yScalefactor',
-    value: 2,
+    value: 6,
     dataType: 'Number',
     description: 'The number of y-axis values.',
-    defaultValue: 2,
-    max: 12
-  }
+    defaultValue: 6,
+    max: 12,
+  },
 ]);
