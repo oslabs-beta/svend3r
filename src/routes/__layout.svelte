@@ -18,7 +18,7 @@
 
 <Icons />
 
-<div class:dark>
+<div id="main-body" class:dark>
 	<div class="grid grid-cols-12">
 		<div class="col-start-2 col-span-10">
 			<Header bind:dark />
@@ -27,3 +27,11 @@
 	</div>
 	<Sidebar {chartList} />
 </div>
+
+<style>
+	#main-body{
+		background-color: #1E1E1E;
+		width: 100vw;
+		height: 100vh;
+	}
+</style>

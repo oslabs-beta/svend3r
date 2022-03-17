@@ -8,7 +8,7 @@
 </script>
 
 <div class="data-schema-container">
-  <h1>Chart Data Schema</h1>
+  <h1 class="section-title">Chart Data Schema</h1>
   <pre class="data-schema-code"><!--
   --><code class="language-javascript"><!--
        -->{@html Prism.highlight(schema, Prism.languages['javascript'])}<!--
@@ -16,7 +16,7 @@
 --></pre>
 </div>
 <div class="data-schema-container">
-  <h1 class="Properties">Properties</h1>
+  <h1 class="section-title">Properties</h1>
   {#each $ChartDocs as doc, i}
       <ul>
           <li class="prop-value">{doc.variable}</li>
@@ -39,24 +39,44 @@
 </div>
 
 <style>
+
+.data-schema-container{
+  margin-bottom: 1vw;
+}
+
 .data-schema-code {
   border-radius: 0.5vw;
+  background-color: #2D2D2D;
 }
 pre, code {
-  padding:0;
+  padding:0 0 0 1vw;
   margin:0;
   white-space: pre-wrap;
 }
+
+.section-title{
+  font-family: 'Roboto', sans-serif;
+  font-size: 1.5vw;
+  margin-bottom: 1vw;
+}
+
 ul {
 list-style-type: none;
 border-bottom: 1px solid darkgrey;
+margin-left: 2vw;
 }
+
+input{
+    color: black;
+    padding: 5px;
+}
+
 .prop-value{
   font-size: 1.5vw;
 }
 .prop-value-docs{
   font-size: 0.7vw;
-  margin-left: 1em;
+  margin-left: 2em;
 }
 .adjustable-container{
   display: flex;
