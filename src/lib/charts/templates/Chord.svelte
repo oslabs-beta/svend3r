@@ -3,7 +3,7 @@
   import { fade} from 'svelte/transition';
   import { sampleData } from '../data/observable-chord-data'
   import { ChartDocs } from '../ChartStore';
-  const data = sampleData;
+  const data = sampleData;  
   $: marginOffset = $ChartDocs[1].value //the margin top, bottom, left, right margin offset relative to the radius
   $: width = $ChartDocs[2].value; // the outer width of the chart, in pixels
   $: height = width; // the outer height of the chart, in pixels
