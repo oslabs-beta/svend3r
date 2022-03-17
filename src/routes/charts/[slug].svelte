@@ -107,12 +107,10 @@
   .chart-render {
     border-radius: 0.5vw;
     background-color: rgba(255, 255, 255, 0.87);
-    display: flex;
-    align-items: center;
-    justify-content: center;
     text-align: center;
     width:40vw;
     height: 45vh;
+    overflow: auto;
   }
   
   .chart-properties{
