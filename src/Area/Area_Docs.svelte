@@ -31,7 +31,7 @@
 </script>
 
 <div class="data-schema-container">
-    <h1>Chart Data Schema</h1>
+    <h1 class="schema-title"><b>Chart Data Schema</b></h1>
     <pre class="data-schema-code"><!--
     --><code class="language-javascript"><!--
          -->{@html Prism.highlight(dataSchema, Prism.languages['javascript'])}<!--
@@ -70,8 +70,10 @@
 </div>
 
 <style>
+
 .data-schema-code {
     border-radius: 0.5vw;
+    background: #2D2D2D;
 }
 
 pre, code {

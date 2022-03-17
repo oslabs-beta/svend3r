@@ -65,20 +65,28 @@
 </div>
 
 <style>
+  .container {
+    background-color: #1E1E1E;
+    width: 100%;
+    height: 90%;
+    margin: auto;
+  }
+
   .page-title{
     color: rgba(255, 255, 255, 0.87);
-    height: 5%;
+    height: 5vh;
+    font-family: 'Roboto', sans-serif;
+    font-size: 2vw;
     text-align: center;
     text-decoration: underline;
+    margin-bottom: 1vw;
   }
   
   .chart-page{
     color: rgba(255, 255, 255, 0.87);
-    background-color: #1E1E1E;
     display: flex;
     height: fit-content;
     width: fit-content;
-    margin: 0% 5% 0% 5%;
   }
   
   .code-container {
@@ -91,12 +99,13 @@
     background-color: #2D2D2D;
     border-radius: 0.5vw;
     width:40vw;
-    height: 35vh;
+    height: 30vh;
     margin-top: 2vw;
     overflow: auto;
   }
   
   .chart-render {
+    border-radius: 0.5vw;
     background-color: rgba(255, 255, 255, 0.87);
     display: flex;
     align-items: center;
@@ -107,8 +116,8 @@
   }
   
   .chart-properties{
-    height: 83vh;
-    width: 45vw;
+    height: 79vh;
+    width: 36vw;
     overflow: auto;
   }
   

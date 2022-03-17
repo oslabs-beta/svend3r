@@ -159,6 +159,7 @@
 <style>
 .codeMirror {
   white-space: pre-wrap;
+  padding:1vw 0 0 1vw;
 }
 #page2_desc {
   display: none;

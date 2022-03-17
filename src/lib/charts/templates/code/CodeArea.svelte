@@ -319,12 +319,14 @@
 <style>
 .codeMirror {
   white-space: pre-wrap;
+  padding:1vw 0 0 1vw;
 }
 #page2_desc {
   display: none;
 }
 .page_selected {
   width: 50%;
+  height: 12%;
   border-style: none;
   border-radius: 0;
   background-color: #494949;
