@@ -1,12 +1,12 @@
 <script>
 	import CodeArea from './templates/code/CodeArea.svelte';
-	// import Bar from './templates/Bar.svelte';
+	import CodeBar from './templates/code/CodeBar.svelte';
 	import CodeChord from './templates/code/CodeChord.svelte';
 	// import Choropleth from './templates/Choropleth.svelte';
 	// import CirclePack from './templates/CirclePack.svelte';
 	// import Line from './templates/Line.svelte';
 	// import Pie from './templates/Pie.svelte';
-	// import RadialStacked from './templates/RadialStacked.svelte';
+	import CodeRadialStacked from './templates/code/CodeRadialStacked.svelte';
 	// import Scatter from './templates/Scatter.svelte';
 
   export let slug,
@@ -16,13 +16,13 @@
 
   const codeComponents = {
     area: CodeArea,
-    // bar: Bar,
+    bar: CodeBar,
     chord: CodeChord,
     // choropleth: Choropleth,
     // circlePack: CirclePack,
     // line: Line,
     // pie: Pie,
-    // radialStacked: RadialStacked,
+    radialStacked: CodeRadialStacked,
     // scatter: Scatter
   }
 
