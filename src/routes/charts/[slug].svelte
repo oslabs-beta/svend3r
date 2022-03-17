@@ -29,12 +29,13 @@
   import CodeMirror from '$lib/charts/CodeMirror.svelte';
   import Properties from '$lib/charts/Properties.svelte';
 
-	export let chart;
+  // '= {}' makes the sidebar function
+	export let chart = {};
 	
   // console.log('[slug].svelte page', chart);
 
   const { slug, title, code, chartData, schema, properties } = chart;
-
+  // console.log('slug props', properties);
 </script>
 
 <svelte:head>

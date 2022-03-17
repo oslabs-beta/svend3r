@@ -3,9 +3,14 @@
 
   export let properties;
 
-  // console.log(properties);
+  // console.log('storemaker pre', properties, $ChartDocs);
+
+  // This resets the store
+  ChartDocs.update(obj => []);
 
   properties.forEach((prop) => {
     ChartDocs.update(obj => ([...obj, prop]));
   })
+
+  // console.log('storemaker', $ChartDocs);
 </script>
