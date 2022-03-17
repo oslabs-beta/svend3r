@@ -1,11 +1,16 @@
 <script>
-	import Choropleth from "../../src/assets/cards/choropleth - main.svelte"
+	import Choropleth from '../../assets/cards/choropleth - main.svelte'
+
+	export let chartCard;
 </script>
 
 <div class="card-container">
-	<h1 class="cardTitle"><b>Choropleth</b></h1>
+	<h1 class="cardTitle"><b>{chartCard.title}</b></h1>
 		<section class=cardSvg>
-			<Choropleth />
+			<!-- <Choropleth /> -->
+			<svg width=87% height=87%>
+				<use href='#{chartCard.icon}' />
+			</svg>
 		</section>
 </div>
 
