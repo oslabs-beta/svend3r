@@ -3,6 +3,7 @@
   import { ChartDocs } from '../../ChartStore';
 
   export let chartData;
+  export let schema;
 
   $: code = `<script>
     import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay } from 'd3';
@@ -292,7 +293,8 @@
 </script>
 
 <button class="page_selected" id="page1" on:click={() => showCode('page1')}>Code</button><!--
---><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button>
+--><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button><!--
+--><button class="page_selected" id="page3" on:click={() => showCode('page3')}>Data Schema</button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code class="language-javascript"
@@ -316,27 +318,52 @@
   ><!--
 --></pre>
 
+<pre id="page3_desc" class="codeMirror" contenteditable><!--
+--><code class="language-javascript"
+    ><!--
+     -->{@html Prism.highlight(
+      chartData,
+      Prism.languages['javascript']
+    )}<!--
+ --></code
+  ><!--
+--></pre>
+
 <style>
 .codeMirror {
   white-space: pre-wrap;
   padding:1vw 0 0 1vw;
 }
+
 #page2_desc {
   display: none;
 }
+
+#page3_desc {
+  display: none;
+}
+
 .page_selected {
-  width: 50%;
+  width: 33.33%;
   height: 12%;
   border-style: none;
   border-radius: 0;
   background-color: #494949;
   color: rgba(255, 255, 255, 0.87);
 }
+
 #page2{
   border-left: #1E1E1E;
   border-left-width: 2px;
   border-left-style: solid;
 }
+
+#page3{
+  border-left: #1E1E1E;
+  border-left-width: 2px;
+  border-left-style: solid;
+}
+
 .page_selected:hover {
   background-color: #1E1E1E;
   color: rgba(255, 255, 255, 0.87);
