@@ -166,6 +166,7 @@
 }
 .page_selected {
   width: 50%;
+  height: 12%;
   border-style: none;
   border-radius: 0;
   background-color: #494949;

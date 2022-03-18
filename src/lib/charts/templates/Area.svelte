@@ -147,68 +147,70 @@ const sampleData = [
       };
   }
 </script>
-<svg {width} {height} viewBox="0 0 {width} {height}"
-  cursor='crosshair'
-  on:mousemove="{(e) => mousemoved(e)}"  
-  on:mouseout="{() => dotInfo = null}"
-  on:blur="{() => dotInfo = null}"
->
-  <!-- Dots (if enabled) -->
-  {#if showDots && !dotInfo}
-    {#each I as i}
-      <g class='dot' pointer-events='none'>
-        <circle
-          cx={xScale(xVals[i])}
-          cy={yScale(yVals[i])}
-          r={r}
-          stroke={colors[colorVals[i]]}
-          filled={dotsFilled ? colors[colorVals[i]] : 'none'}
-        />
+<div class="chart-container">
+  <svg {width} {height} viewBox="0 0 {width} {height}"
+    cursor='crosshair'
+    on:mousemove="{(e) => mousemoved(e)}"  
+    on:mouseout="{() => dotInfo = null}"
+    on:blur="{() => dotInfo = null}"
+  >
+    <!-- Dots (if enabled) -->
+    {#if showDots && !dotInfo}
+      {#each I as i}
+        <g class='dot' pointer-events='none'>
+          <circle
+            cx={xScale(xVals[i])}
+            cy={yScale(yVals[i])}
+            r={r}
+            stroke={colors[colorVals[i]]}
+            filled={dotsFilled ? colors[colorVals[i]] : 'none'}
+          />
+        </g>
+      {/each}
+    {/if}
+    <!-- Chart Areas -->
+    {#each areas as subsetArea, i}
+      <g class='chartlines' pointer-events='none'>
+        {#if dotInfo}
+          <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '1' : '0.4'} stroke={colors[i]} d={subsetArea} />
+          <circle cx={xScale(dotInfo.x)} cy={yScale(dotInfo.y)} r=3 stroke={colors[dotInfo.index]} fill='none' />
+        {:else}
+          <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
+            stroke-opacity={strokeOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
+        {/if}
       </g>
     {/each}
-  {/if}
-  <!-- Chart Areas -->
-  {#each areas as subsetArea, i}
-    <g class='chartlines' pointer-events='none'>
-      {#if dotInfo}
-        <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '1' : '0.4'} stroke={colors[i]} d={subsetArea} />
-        <circle cx={xScale(dotInfo.x)} cy={yScale(dotInfo.y)} r=3 stroke={colors[dotInfo.index]} fill='none' />
-      {:else}
-        <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
-          stroke-opacity={strokeOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
-      {/if}
+    
+    <!-- Y-axis and horizontal grid lines -->
+    <g class="y-axis" transform="translate({marginLeft}, 0)" pointer-events='none'>
+      <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
+      {#each yTicks as tick, i}
+        <g class="tick" transform="translate(0, {yScale(tick)})">
+          <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
+          {#if horizontalGrid}
+            <line class="tick-grid" x1={insetLeft} x2={width - marginLeft - marginRight}/>
+          {/if}
+          <text x={-marginLeft} y="10">{tick + yFormat}</text>
+        </g>
+      {/each}
+      <text x="-{marginLeft}" y={marginTop/2}>{yLabel}</text>
     </g>
-  {/each}
-  
-  <!-- Y-axis and horizontal grid lines -->
-  <g class="y-axis" transform="translate({marginLeft}, 0)" pointer-events='none'>
-    <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
-    {#each yTicks as tick, i}
-      <g class="tick" transform="translate(0, {yScale(tick)})">
-        <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
-        {#if horizontalGrid}
-          <line class="tick-grid" x1={insetLeft} x2={width - marginLeft - marginRight}/>
-        {/if}
-        <text x={-marginLeft} y="10">{tick + yFormat}</text>
-      </g>
-    {/each}
-    <text x="-{marginLeft}" y={marginTop/2}>{yLabel}</text>
-  </g>
-  <!-- X-axis and vertical grid lines -->
-  <g class="x-axis" transform="translate(0,{height - marginBottom - insetBottom})" pointer-events='none'>
-    <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width}"/>
-    {#each xTicks as tick, i}
-      <g class="tick" transform="translate({xScale(tick)}, 0)">
-        <line class="tick-start" stroke='black' y2='6' />
-        {#if verticalGrid}
-          <line class="tick-grid" y2={-height} />
-        {/if}
-        <text font-size='8px' x={-marginLeft} y="20">{xTicksFormatted[i] + xFormat}</text>
-      </g>
-    {/each}
-    <text x={width - marginLeft - marginRight - 40} y={marginBottom}>{xLabel}</text>
-  </g>
-</svg>
+    <!-- X-axis and vertical grid lines -->
+    <g class="x-axis" transform="translate(0,{height - marginBottom - insetBottom})" pointer-events='none'>
+      <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width}"/>
+      {#each xTicks as tick, i}
+        <g class="tick" transform="translate({xScale(tick)}, 0)">
+          <line class="tick-start" stroke='black' y2='6' />
+          {#if verticalGrid}
+            <line class="tick-grid" y2={-height} />
+          {/if}
+          <text font-size='8px' x={-marginLeft} y="20">{xTicksFormatted[i] + xFormat}</text>
+        </g>
+      {/each}
+      <text x={width - marginLeft - marginRight - 40} y={marginBottom}>{xLabel}</text>
+    </g>
+  </svg>
+</div>
 <!-- Tooltip -->
 {#if dotInfo}
   <div style='position:absolute; left:{xScale(dotInfo.x) + 12}px; top:{yScale(dotInfo.y) + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
@@ -216,10 +218,23 @@ const sampleData = [
   </div>
 {/if}
 <style>
+  .chart-container {
+    justify-content: center;
+    align-items: center;
+    margin-top: 50px;
+    margin-left: 8
+    0px;
+  }
+
+  select{
+    color: black;
+    padding: 5px;
+  }
   svg {
     max-width: 100%;
     height: auto;
     height: "intrinsic";
+    margin: auto;
   }
   path {
     fill: "green"
