@@ -102,3 +102,6 @@ public/build/
 
 # TernJS port file
 .tern-port
+
+# SvelteKit (not necessary for rollup playground)
+.svelte-kit/
