@@ -50,17 +50,19 @@
 <div class="container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
-      <div class="code-container">
+      <div class="left-container">
           <div class="chart-render">
               <ChartDisplay {slug} {chartData} />
           </div>
-          <div class="code-mirror">
-              <!-- <CodeMirror {code} {chartData} /> -->
-              <CodeMirror {slug} {chartData} />
-          </div>
       </div>
-      <div class="chart-properties">
-          <Properties {schema} />
+      <div class="right-container">
+        <div class="code-mirror">
+          <!-- <CodeMirror {code} {chartData} /> -->
+          <CodeMirror {slug} {chartData} {schema} />
+        </div>
+        <div class="chart-properties">
+          <Properties />
+        </div>
       </div>
   </div>
 </div>
@@ -68,8 +70,8 @@
 <style>
   .container {
     background-color: #1E1E1E;
-    width: 100%;
-    height: 90%;
+    width: fit-content;
+    height: fit-content;
     margin: auto;
   }
 
@@ -90,42 +92,39 @@
     width: fit-content;
   }
   
-  .code-container {
+  .left-container {
     align-items: center;
     width:45vw; 
-    height: 95%;
+    height: 90vh;
+  }
+
+  .right-container {
+    align-items: center;
+    height: 90vh;
   }
   
-  .code-mirror {
-    background-color: #2D2D2D;
+  /* .code-mirror {
     border-radius: 0.5vw;
-    width:40vw;
-    height: 30vh;
-    margin-top: 2vw;
-    overflow: auto;
-  }
+    width: 36vw;
+    height: 35vh;
+    margin-bottom: 1vw;
+  } */
   
   .chart-render {
     border-radius: 0.5vw;
     background-color: rgba(255, 255, 255, 0.87);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     text-align: center;
     width:40vw;
-    height: 45vh;
+    height: 80vh;
     overflow: auto;
   }
   
   .chart-properties{
-    height: 79vh;
+    height: fit-content;
     width: 36vw;
-    overflow: auto;
-  }
-  
-  .chart-properties::-webkit-scrollbar {
-      display: none;
-  }
-  
-  .code-mirror::-webkit-scrollbar {
-      display: none;
   }
   
   @media all and (min-width:0px) and (max-width: 700px) {

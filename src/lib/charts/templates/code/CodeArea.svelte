@@ -1,11 +1,11 @@
 <script>
-  import Prism from 'prismjs';
-  import { ChartDocs } from '../../ChartStore';
+	import Prism from 'prismjs';
+	import { ChartDocs } from '../../ChartStore';
 
-  export let chartData;
+	export let chartData;
   export let schema;
 
-  $: code = `<script>
+	$: code = `<script>
     import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay } from 'd3';
     import { csvVtsax, csvVgenx, csvVbtlx } from './sampleData.js'
 
@@ -60,7 +60,9 @@
     verticalGrid = ${$ChartDocs[14].value}, // show vertical grid lines
     xScalefactor = width / 80, //y-axis number of values
     yScalefactor = height / 40, //y-axis number of values
-    colors = [${"'" + $ChartDocs[15].value.join("','") + "'"}], // fill color for dots && number of colors in fill array MUST match number of subsets in data
+    colors = [${
+			"'" + $ChartDocs[15].value.join("','") + "'"
+		}], // fill color for dots && number of colors in fill array MUST match number of subsets in data
     showDots = false, // whether dots should be displayed
     dotsFilled = false, // whether dots should be filled or outlined
     strokeLinecap = 'round', // stroke line cap of the line
@@ -281,91 +283,136 @@
   }
 </style>`;
 
-  function showCode(id) {
-    if(id === 'page1') {
-      document.getElementById('page1_desc').style.display = 'block';
-      document.getElementById('page2_desc').style.display = 'none';
-    } else {
-      document.getElementById('page1_desc').style.display = 'none';
-      document.getElementById('page2_desc').style.display = 'block';
+	function showCode(id) {
+    let idArr = ['page1', 'page2', 'page3'];
+    for(let i = 0; i < idArr.length; i++) {
+      if(id === idArr[i]) {
+        document.getElementById(`${idArr[i]}_desc`).style.display = 'block';
+        document.getElementById(`${idArr[i]}`).style.opacity = "100%"
+      } else {
+        document.getElementById(`${idArr[i]}_desc`).style.display = 'none';
+        document.getElementById(`${idArr[i]}`).style.opacity = "50%"
+      }
     }
-  }
+	}
 </script>
 
-<button class="page_selected" id="page1" on:click={() => showCode('page1')}>Code</button><!--
---><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button><!--
---><button class="page_selected" id="page3" on:click={() => showCode('page3')}>Data Schema</button>
+<div class="data-schema-container">
+  <h1 class="section-title">Chart Data Schema</h1>
+</div>
+<div class="code-mirror">
+<button class="page_selected" id="page1" on:click={() => showCode('page1')}>
+  <section class="button-text_icon">
+  <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
+  Code</section>
+</button><!--
+--><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
+    Data</section>
+</button><!--
+--><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
+    Data Schema</section>
+</button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code class="language-javascript"
-    ><!--
-     -->{@html Prism.highlight(
-      code,
-      Prism.languages['javascript']
-    )}<!--
+		><!--
+     -->{@html Prism.highlight(code, Prism.languages['javascript'])}<!--
  --></code
-  ><!--
+	><!--
 --></pre>
 
 <pre id="page2_desc" class="codeMirror" contenteditable><!--
 --><code class="language-javascript"
-    ><!--
-     -->{@html Prism.highlight(
-      chartData,
-      Prism.languages['javascript']
-    )}<!--
+		><!--
+     -->{@html Prism.highlight(chartData, Prism.languages['javascript'])}<!--
  --></code
-  ><!--
+	><!--
 --></pre>
 
 <pre id="page3_desc" class="codeMirror" contenteditable><!--
 --><code class="language-javascript"
-    ><!--
-     -->{@html Prism.highlight(
-      chartData,
-      Prism.languages['javascript']
-    )}<!--
+		><!--
+     -->{@html Prism.highlight(schema, Prism.languages['javascript'])}<!--
  --></code
-  ><!--
+	><!--
 --></pre>
+</div>
 
 <style>
-.codeMirror {
-  white-space: pre-wrap;
-  padding:1vw 0 0 1vw;
-}
+  .section-title{
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.5vw;
+    margin-bottom: 0.5vw;
+  }
 
-#page2_desc {
-  display: none;
-}
+	.codeMirror {
+		white-space: pre-wrap;
+		padding: 1vw 0 0 1vw;
+    min-height: 31vh;
+    outline: none;
+	}
 
-#page3_desc {
-  display: none;
-}
+  .code-mirror {
+    background-color: #2D2D2D;
+    border-radius: 0.5vw;
+    width: 36vw;
+    height: 35vh;
+    margin-bottom: 1vw;
+    overflow: auto;
+  }
 
-.page_selected {
-  width: 33.33%;
-  height: 12%;
-  border-style: none;
-  border-radius: 0;
-  background-color: #494949;
-  color: rgba(255, 255, 255, 0.87);
-}
+	#page2_desc, #page3_desc {
+		display: none;
+	}
 
-#page2{
-  border-left: #1E1E1E;
-  border-left-width: 2px;
-  border-left-style: solid;
-}
+	.page_selected {
+		width: 33.33%;
+		height: 9%;
+		border-style: none;
+		border-radius: 0;
+		background-color: #494949;
+		color: rgba(255, 255, 255, 0.87);
+	}
 
-#page3{
-  border-left: #1E1E1E;
-  border-left-width: 2px;
-  border-left-style: solid;
-}
+	#page2, #page3 {
+		border-left: #1e1e1e;
+		border-left-width: 2px;
+		border-left-style: solid;
+    opacity: 50%;
+	}
 
-.page_selected:hover {
-  background-color: #1E1E1E;
-  color: rgba(255, 255, 255, 0.87);
-}
+  #page1:hover, #page2:hover, #page3:hover {
+    opacity: 100%;
+  }
+
+	.page_selected:hover {
+		background-color: #1e1e1e;
+		color: rgba(255, 255, 255, 0.87);
+	}
+
+  .codeMirror-icon {
+    width: 8%;
+    height: 8%;
+    margin-right: 3%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .button-text_icon{
+    display: flex;
+    justify-content: center;
+  }
+
+  .code-mirror::-webkit-scrollbar {
+      display: none;
+  }
+
+  .codeMirror::-webkit-scrollbar {
+      display: none;
+  }
+
 </style>
