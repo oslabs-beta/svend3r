@@ -10,7 +10,8 @@
 	// import Scatter from './templates/Scatter.svelte';
 
   export let slug,
-    chartData;
+    chartData,
+    schema;
 
   // console.log('ChartDisplay slug and chartData', slug, chartData)
 
@@ -29,4 +30,4 @@
   const selectedCode = codeComponents[slug];
   </script>
 
-  <svelte:component this={selectedCode} {chartData} />
+  <svelte:component this={selectedCode} {chartData} {schema} />
