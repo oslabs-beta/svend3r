@@ -8,10 +8,10 @@
   // import lineData from './data/line-data-vtsax';
   // import AreaChart from './Area/Area_Chart.svelte';
   // import areaData from './data/line-data-multi';
-  // import PieChart from './Pie/Pie_Chart.svelte';
-  // import pieData from './data/pie-data-census';
-  import Choropleth from './Choropleth/Choropleth_Chart.svelte';
-  import choroplethData from './data/bivariate-choropleth-data-d3';
+  import PieChart from './Pie/Pie_Chart.svelte';
+  import pieData from './data/pie-data-census';
+  // import Choropleth from './Choropleth/Choropleth_Chart.svelte';
+  // import choroplethData from './data/bivariate-choropleth-data-d3';
   // import BarVert_Container from './BarVert/BarVert_Container.svelte';
   // import Area_Container from './Area/Area_Container.svelte';
   // import Chord_Container from './Chord/Chord_Container.svelte';
@@ -31,8 +31,8 @@
     <!-- <Chord {chordData} /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
-    <!-- <PieChart {pieData} /> -->
-    <Choropleth {choroplethData} />
+    <PieChart {pieData} />
+    <!-- <Choropleth {choroplethData} /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
   </div>
