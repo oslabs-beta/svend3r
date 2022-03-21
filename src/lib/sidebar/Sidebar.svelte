@@ -11,7 +11,7 @@
 </script>
 
 <div
-	class="z-50 fixed pt-5 top-0 left-0 h-screen w-1/32  flex flex-col
+	class="z-50 fixed pt-5 top-0 left-0 h-screen w-1/32  flex 
     bg-zinc-50 dark:bg-zinc-800 shadow-lg z-100"
 >
 	<nav>
@@ -24,7 +24,7 @@
 	cursor-pointer shadow-lg group" 
 	>
 		<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
-		<a href='/' alt='Svend3r Home'><img src="/home-1.png" /></a>
+		<a href='/' alt='Svend3r Home'><img alt="svend3r svender home page" src='/home-1.png' /></a>
 	
 		<span
 			class="absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md dark:bg-white dark:text-black
@@ -32,7 +32,7 @@
 			text-xs font-bold 
 			transition-all duration-100 scale-0 origin-left group-hover:scale-100"
 		>
-		'Svend3r Home'
+		Home
 		</span>
 	</div>
 		<div class="pt-4" />
