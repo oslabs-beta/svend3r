@@ -1,6 +1,6 @@
 <script>
     import * as d3 from "d3";
-    import { sampleData } from "./sampleData.js" 
+    import { sampleData } from "../data/circle-pack-data.js" 
 
     let width = 932;
     let height = width;

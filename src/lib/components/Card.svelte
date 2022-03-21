@@ -1,6 +1,4 @@
 <script>
-	import Choropleth from '../../assets/cards/choropleth - main.svelte'
-
 	export let chartCard;
 </script>
 
