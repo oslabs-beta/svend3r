@@ -4,7 +4,7 @@
 </script>
 
 <ul class="top-0 relative w-full h-28 z-10">
-	<img src="/logo.png">
+	<img src="/images/logo.png">
 	<div class=" text-md text-gray-400">Svelte x D3 "plug and play" charting library</div>
 	<li class="z-0 absolute top-0 right-0 pt-5">
 		<a on:click={() => goto('/')} class="text-gray-400 hover:text-gray-100 pr-5" href="#">Home</a>
@@ -16,7 +16,7 @@
 		<a
 			on:click={() => goto('/contributers')}
 			class="text-gray-400 hover:text-gray-100 pr-5"
-			href="#">Contributers</a
+			href="#">Contributors</a
 		>
 		<a
 			class="text-gray-400 hover:text-gray-100 pr-5"

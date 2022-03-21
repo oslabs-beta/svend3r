@@ -2,10 +2,7 @@
 	export const prerender = true;
 </script> -->
 <script lang="ts">
-	import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
-	import ChartsDisplay from '$lib/chartsDisplay/ChartsDisplay.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-import ColumnChart from './columnChart.svelte';
+	import ChartCardRow from '$lib/components/ChartCardRow.svelte';
 	// import Github from '/images/github-dark.png';
 	
 	// const github = 'images/github-dark.png';
@@ -43,22 +40,22 @@ import ColumnChart from './columnChart.svelte';
 <div id="card-container" class="h-4/6 mt-8 overflow-auto ml-12">
 	<!-- <img src="/bar.svg" alt="site logo"> -->
 	<div class="mb-8">
-		<ChartsDisplay
+		<ChartCardRow
 			chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]}
 		/>
 	</div>
 	<div class="mb-8">
-		<ChartsDisplay
+		<ChartCardRow
 			chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]}
 		/>
 	</div>
 	<div class="mb-8">
-		<ChartsDisplay
+		<ChartCardRow
 			chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]}
 		/>
 	</div>
 	<div class="mb-1">
-		<ChartsDisplay
+		<ChartCardRow
 			chartCards={[chartList[12], chartList[13]]} 
 		/>
 	</div>
