@@ -1,9 +1,8 @@
 <script lang="ts">
 	import '../app.css';
 	import Icons from '$lib/components/Icons.svelte';
-	import Header from '$lib/header/Header.svelte';
-	import Sidebar from '$lib/sidebar/Sidebar.svelte';
-	import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
+	import Header from '$lib/components/Header.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
 
 	export let dark = 'dark';
 	// export let charts;
