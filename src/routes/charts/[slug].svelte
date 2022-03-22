@@ -26,13 +26,14 @@
 	// import Store from '$lib/charts/Store.svelte';
   import StoreMaker from '$lib/charts/StoreMaker.svelte';
   import ChartDisplay from '$lib/charts/ChartDisplay.svelte';
-  import CodeMirror from '$lib/charts/CodeMirror.svelte';
+  import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
   import Properties from '$lib/charts/Properties.svelte';
 
   // '= {}' makes the sidebar function
 	export let chart = {};
 	
   // console.log('[slug].svelte page', chart);
+
 
   const { slug, title, code, chartData, schema, properties } = chart;
   // console.log('slug props', properties);
@@ -57,8 +58,8 @@
       </div>
       <div class="right-container">
         <div class="code-mirror">
-          <!-- <CodeMirror {code} {chartData} /> -->
-          <CodeMirror {slug} {chartData} {schema} />
+          <CodeMirror {code} {chartData} />
+          <!-- <CodeMirror {slug} {chartData} {schema} /> -->
         </div>
         <div class="chart-properties">
           <Properties />
