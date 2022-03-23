@@ -79,36 +79,54 @@ const sampleData = [
   let yVals = []; 
   let points = []; 
   let dotInfo;
-  let subsets = []; 
-  let colorVals = [];
+  const subsets = []; 
+  const colorVals = [];
   // For a single set of data
-  $: if (colors.length === 1) {
-    x = Object.keys(data[0])[0];
-    y = Object.keys(data[0])[1];
-    xVals = data.map((el) => el[x]);
-    yVals = data.map((el) => el[y]);
-    points = data.map((el) => [el[x], el[y], 0]);
-  }
-  // For data with subsets (NOTE: expects 'id' and 'data' keys)
-  else {
-    console.log('colors');
-    x = Object.keys(data[0]?.data[0])[0];
-    y = Object.keys(data[0]?.data[0])[1];
-    data.forEach((subset, i) => {
-      subset.data.forEach((coordinate) => {
-        xVals.push(coordinate[x]);
-        yVals.push(coordinate[y]);
-        colorVals.push(i);
-        points.push(
-          { 
-            x: coordinate[x],
-            y: coordinate[y],
-            color: i
-          });
-      });
-      subsets.push(subset.id);
+  // $: if (colors.length === 1) {
+  //   x = Object.keys(data[0])[0];
+  //   y = Object.keys(data[0])[1];
+  //   xVals = data.map((el) => el[x]);
+  //   yVals = data.map((el) => el[y]);
+  //   points = data.map((el) => [el[x], el[y], 0]);
+  // }
+  // // For data with subsets (NOTE: expects 'id' and 'data' keys)
+  // else {
+  //   console.log('colors');
+  //   x = Object.keys(data[0]?.data[0])[0];
+  //   y = Object.keys(data[0]?.data[0])[1];
+  //   data.forEach((subset, i) => {
+  //     subset.data.forEach((coordinate) => {
+  //       xVals.push(coordinate[x]);
+  //       yVals.push(coordinate[y]);
+  //       colorVals.push(i);
+  //       points.push(
+  //         { 
+  //           x: coordinate[x],
+  //           y: coordinate[y],
+  //           color: i
+  //         });
+  //     });
+  //     subsets.push(subset.id);
+  //   });
+  // }
+
+  x = Object.keys(data[0]?.data[0])[0];
+  y = Object.keys(data[0]?.data[0])[1];
+  data.forEach((subset, i) => {
+    subset.data.forEach((coordinate) => {
+      xVals.push(coordinate[x]);
+      yVals.push(coordinate[y]);
+      colorVals.push(i);
+      points.push(
+        { 
+          x: coordinate[x],
+          y: coordinate[y],
+          color: i
+        });
     });
-  }
+    subsets.push(subset.id);
+  });
+
   $: I = range(xVals.length);
   $: gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   $: cleanData = points.map(gaps);
@@ -128,6 +146,8 @@ const sampleData = [
     const filteredI = I.filter((el, i) => colorVals[i] === j);
     areas.push(chartArea(filteredI));
   });
+
+  $: console.log('areas', areas);
   
   $:  xTicks = xScale.ticks(xScalefactor);
   $:  xTicksFormatted = xTicks.map((el, i, t) => {
@@ -139,6 +159,7 @@ const sampleData = [
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
+    console.log('mouse', clientX, clientY);
     const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
     dotInfo = 
       { 
