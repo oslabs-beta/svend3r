@@ -38,7 +38,7 @@ const sampleData = [
     data: ThirdDataSet
   }
 ];
-  let data = sampleData;
+  const data = sampleData;
   $: r = $ChartDocs[1].value; // (fixed) radius of dots, in pixels
   $: marginTop = $ChartDocs[2].value; // the top margin, in pixels
   $: marginRight = $ChartDocs[3].value; // the right margin, in pixels
@@ -91,6 +91,7 @@ const sampleData = [
   }
   // For data with subsets (NOTE: expects 'id' and 'data' keys)
   else {
+    console.log('colors');
     x = Object.keys(data[0]?.data[0])[0];
     y = Object.keys(data[0]?.data[0])[1];
     data.forEach((subset, i) => {
@@ -122,7 +123,7 @@ const sampleData = [
     .x(i => xScale(xVals[i]))
     .y0(yScale(0))
     .y1(i => yScale(yVals[i])); // TODO: should this be niceY?
-  $: areas = [];
+  const areas = [];
   $: colors.forEach((color, j) => {
     const filteredI = I.filter((el, i) => colorVals[i] === j);
     areas.push(chartArea(filteredI));
@@ -135,7 +136,7 @@ const sampleData = [
     else return el.getFullYear();
   });
   $:  yTicks = niceY.ticks(yScalefactor);
-  $: hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
+  const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
     const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
