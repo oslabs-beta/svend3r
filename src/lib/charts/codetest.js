@@ -186,6 +186,8 @@ const string = `<script>
   }
 </style>`;
 
+console.log(eval('string'));
+
 const splitcode = string.split(/<\/?script>|<\/?style>/);
 
 // console.log(splitcode[1] + splitcode[2] + splitcode[3]);
@@ -204,3 +206,46 @@ for (let i = 1; i < 14; i++) {
 
 console.log(repstring);
 // console.log(splitcode[1].replace(/\$ChartDocs\[\d].value/, 5));
+
+$: chordcode = Chord;
+
+  // const splitcode = Chord.split(/<\/?script>|<\/?style>/);
+
+  // console.log(splitcode[1] + splitcode[2] + splitcode[3]);
+
+  // console.log(eval(splitcode[1].split(/ChartStore/)[1]));
+
+  const getdocs = get(ChartDocs);
+
+  // function updateCode(_) {
+  //   for (let i = 1; i < $ChartDocs.length; i++) {
+  //     chordcode = chordcode.replace(/\$ChartDocs\[\d+].value/, $ChartDocs[i].value)
+  //   }
+  //   return chordcode;
+  // }
+
+  $: updateCode = () => {
+    for (let i = 1; i < $ChartDocs.length; i++) {
+      chordcode = chordcode.replace(/\$ChartDocs\[\d+].value/, $ChartDocs[i].value)
+    }
+    return chordcode;
+  }
+  
+  // $: {
+  //   console.log('update', $ChartDocs);
+  //   updateCode();
+  // } 
+
+  // console.log('$', $ChartDocs);
+  // console.log('get', get(ChartDocs));
+
+  const quoteData = `${chartData}`;
+
+  $: evalcode = () => {
+    // get(ChartDocs);
+    console.log('eval', $ChartDocs);
+    return eval(code);
+  }
+
+
+  -->{@html Prism.highlight(evalcode(), Prism.languages['javascript'])}<!--
