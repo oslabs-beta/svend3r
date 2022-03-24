@@ -4,7 +4,7 @@
   // import { AreaChartDocs } from '../Store.svelte';
   import { ChartDocs } from '../ChartStore';
 
-  export let chartData;
+  // export let chartData;
 
   // console.log('data', chartData);
   // console.log('area', $AreaChartDocs);
@@ -79,7 +79,7 @@ const sampleData = [
   let yVals = []; 
   let points = []; 
   let dotInfo;
-  let subsets = []; 
+  let subsets = []; // TODO make reactive in case of single data set
   let colorVals = [];
   // For a single set of data
   $: if (colors.length === 1) {
@@ -109,24 +109,27 @@ const sampleData = [
     });
   }
   $: I = range(xVals.length);
-  $: gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
+  const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   $: cleanData = points.map(gaps);
   $: xDomain = [xVals[0], xVals[xVals.length - 1]];
   $: yDomain = [0, Math.max(...yVals)];
   $: xScale = xType(xDomain, xRange);
   $: yScale = yType(yDomain, yRange);
-  $:  niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
+  $: niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
   $: chartArea = area()
     .defined(i => cleanData[i])
     .curve(curve)
     .x(i => xScale(xVals[i]))
     .y0(yScale(0))
     .y1(i => yScale(yVals[i])); // TODO: should this be niceY?
-  $: areas = [];
-  $: colors.forEach((color, j) => {
-    const filteredI = I.filter((el, i) => colorVals[i] === j);
-    areas.push(chartArea(filteredI));
-  });
+  let areas = [];
+  $: {
+    areas = [];
+    colors.forEach((color, j) => {
+      const filteredI = I.filter((el, i) => colorVals[i] === j);
+      areas.push(chartArea(filteredI));
+    });
+  }
   
   $:  xTicks = xScale.ticks(xScalefactor);
   $:  xTicksFormatted = xTicks.map((el, i, t) => {
@@ -135,7 +138,7 @@ const sampleData = [
     else return el.getFullYear();
   });
   $:  yTicks = niceY.ticks(yScalefactor);
-  $: hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
+  const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
     const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
