@@ -4,7 +4,7 @@
   // import { AreaChartDocs } from '../Store.svelte';
   import { ChartDocs } from '../ChartStore';
 
-  export let chartData;
+  // export let chartData;
 
   // console.log('data', chartData);
   // console.log('area', $AreaChartDocs);
@@ -146,6 +146,7 @@ const sampleData = [
         index: colorVals[closest]
       };
   }
+  console.log('area', $ChartDocs);
 </script>
 <div class="chart-container">
   <svg {width} {height} viewBox="0 0 {width} {height}"
