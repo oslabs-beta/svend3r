@@ -23,7 +23,7 @@
 	cursor-pointer shadow-lg group" 
 	>
 		<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
-		<a href='/' alt='Svend3r Home'><img alt="svend3r home page" src='/icon/home-1.png' /></a>
+		<a href='/' alt='Svend3r Home'><img alt="svender home page" src='/icon/home-1.png' /></a>
 	
 		<span
 			class="absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md dark:bg-white dark:text-black

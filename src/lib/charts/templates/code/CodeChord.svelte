@@ -17,7 +17,7 @@
   const fontSize = ${$ChartDocs[4].value} //the label font size relative to 1% of the width of the viewport
   const tickStep = ${$ChartDocs[5].value}; //the chart label tick spread factor
   const scaleFormat = '${$ChartDocs[6].value}'; // a format specifier string for the scale ticks
-  const names = [${"'" + $ChartDocs[7].value.join("','") + "'"}]; // section names
+  const names = '${$ChartDocs[7].value}'; // section names
   const colors = [${"'" + $ChartDocs[8].value.join("','") + "'"}]; // section fill colors && number of colors in fill array MUST match number of subsets in data
   const chordOpacity = ${$ChartDocs[9].value}; //the opacity for the charts overall chords
   const unselectOpacity = ${$ChartDocs[10].value}; //the opacity of non-select chart elements
