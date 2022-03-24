@@ -1,55 +1,93 @@
 <script>
-  import { curveLinear, scaleUtc, scaleLinear, line, range } from 'd3';
+  import { curveLinear, scaleUtc, scaleLinear, line, area, range } from 'd3';
 
-  export let lineData;
+  import sampleData from '../data/line-data-multi';
+  import { AreaChartDocs } from './Line_Store.js';
 
-  const data = lineData,
-    r = 3, // (fixed) radius of dots, in pixels
-    curve = curveLinear, // method of interpolation between points
-    marginTop = 20, // the top margin, in pixels
-    marginRight = 0, // the right margin, in pixels
-    marginBottom = 30, // the bottom margin, in pixels
-    marginLeft = 40, // the left margin, in pixels
-    inset = r * 2, // inset the default range, in pixels
-    insetTop = inset, // inset the default y-range
-    insetRight = inset, // inset the default x-range
-    insetBottom = inset, // inset the default y-range
-    insetLeft = inset, // inset the default x-range
-    width = 900, // the outer width of the chart, in pixels
-    height = 600, // the outer height of the chart, in pixels
-    xType = scaleUtc, // type of x-scale
-    xRange = [marginLeft + insetLeft, width - marginRight - insetRight], // [left, right]
-    yType = scaleLinear, // type of y-scale
-    yRange = [height - marginBottom - insetBottom, marginTop + insetTop], // [bottom, top]
-    xLabel = '', // a label for the y-axis
-    yLabel = '↑ Daily Close', // a label for the y-axis
-    xFormat = '', // a format specifier string for the y-axis
-    yFormat = '', // a format specifier string for the y-axis
-    horizontalGrid = true, // show horizontal grid lines
-    verticalGrid = false, // show vertical grid lines
-    xScalefactor = width / 80, //y-axis number of values
-    yScalefactor = height / 40, //y-axis number of values
-    // number of colors in fill array MUST match number of subsets in data
-    colors = ['blue', 'red', 'green'], // fill color for dots
-    showDots = false, // whether dots should be displayed
-    dotsFilled = false, // whether dots should be filled or outlined
-    strokeLinecap = 'round', // stroke line cap of the line
-    strokeLinejoin = 'round', // stroke line join of the line
-    strokeWidth = 1, // stroke width of line, in pixels
-    strokeOpacity = 0.8, // stroke opacity of line
-    tooltipBackground = 'black', // background color of tooltip
-    tooltipTextColor = 'white'; // text color of tooltip
+  const data = sampleData;
+  $: r = $AreaChartDocs[1].value; // (fixed) radius of dots, in pixels
+  $: marginTop = $AreaChartDocs[2].value; // the top margin, in pixels
+  $: marginRight = $AreaChartDocs[3].value; // the right margin, in pixels
+  $: marginBottom = $AreaChartDocs[4].value; // the bottom margin, in pixels
+  $: marginLeft = $AreaChartDocs[5].value; // the left margin, in pixels
+  $: inset = $AreaChartDocs[6].value; // inset the default range, in pixels
+  $: insetTop = inset; // inset the default y-range
+  $: insetRight = inset; // inset the default x-range
+  $: insetBottom = inset; // inset the default y-range
+  $: insetLeft = inset; // inset the default x-range
+  $: width = $AreaChartDocs[7].value; // the outer width of the chart, in pixels
+  $: height = $AreaChartDocs[8].value; // the outer height of the chart, in pixels
+  $: xLabel = $AreaChartDocs[9].value; // a label for the y-axis
+  $: yLabel = $AreaChartDocs[10].value; // a label for the y-axis
+  $: xFormat = $AreaChartDocs[11].value; // a format specifier string for the y-axis
+  $: yFormat = $AreaChartDocs[12].value; // a format specifier string for the y-axis
+  $: horizontalGrid = $AreaChartDocs[13].value; // show horizontal grid lines
+  $: verticalGrid = $AreaChartDocs[14].value; // show vertical grid lines
+  $: xScalefactor = width / 80; //y-axis number of values
+  $: yScalefactor = height / 40; //y-axis number of values
+  $: colors = $AreaChartDocs[15].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
+  $: showDots = false; // whether dots should be displayed
+  $: dotsFilled = false; // whether dots should be filled or outlined
+  $: strokeLinecap = 'round'; // stroke line cap of the line
+  $: strokeLinejoin = 'round'; // stroke line join of the line
+  $: strokeWidth = $AreaChartDocs[16].value; // stroke width of line, in pixels
+  $: strokeOpacity = $AreaChartDocs[17].value; // stroke opacity of line
+  $: tooltipBackground = $AreaChartDocs[18].value; // background color of tooltip
+  $: tooltipTextColor = $AreaChartDocs[19].value; // text color of tooltip
+  $: curve = curveLinear; // method of interpolation between points
+  $: xType = scaleUtc; // type of x-scale
+  $: xRange = [marginLeft + insetLeft, width - marginRight - insetRight]; // [left, right]
+  $: yType = scaleLinear; // type of y-scale
+  $: yRange = [height - marginBottom - insetBottom, marginTop + insetTop]; // [bottom, top]
+  $: dataId = []; // for single line only; multi-line IDs provided with data
+  
+  // $: r = 3; // (fixed) radius of dots, in pixels
+  // $: curve = curveLinear; // method of interpolation between points
+  // $: marginTop = 20; // the top margin, in pixels
+  // $: marginRight = 0; // the right margin, in pixels
+  // $: marginBottom = 30; // the bottom margin, in pixels
+  // $: marginLeft = 40; // the left margin, in pixels
+  // $: inset = r * 2; // inset the default range, in pixels
+  // $: insetTop = inset; // inset the default y-range
+  // $: insetRight = inset; // inset the default x-range
+  // $: insetBottom = inset; // inset the default y-range
+  // $: insetLeft = inset; // inset the default x-range
+  // $: width = 900; // the outer width of the chart, in pixels
+  // $: height = 600; // the outer height of the chart, in pixels
+  // $: xType = scaleUtc; // type of x-scale
+  // $: xRange = [marginLeft + insetLeft, width - marginRight - insetRight]; // [left, right]
+  // $: yType = scaleLinear; // type of y-scale
+  // $: yRange = [height - marginBottom - insetBottom, marginTop + insetTop]; // [bottom, top]
+  // $: xLabel = ''; // a label for the y-axis
+  // $: yLabel = '↑ Daily Close'; // a label for the y-axis
+  // $: xFormat = ''; // a format specifier string for the y-axis
+  // $: yFormat = ''; // a format specifier string for the y-axis
+  // $: horizontalGrid = true; // show horizontal grid lines
+  // $: verticalGrid = false; // show vertical grid lines
+  // $: xScalefactor = width / 80; //y-axis number of values
+  // $: yScalefactor = height / 40; //y-axis number of values
+  // // number of colors in fill array MUST match number of subsets in data
+  // $: colors = ['blue', 'red', 'green']; // fill color for dots
+  // $: dataId = []; // for single line only; multi-line IDs provided with data
+  // $: showDots = false; // whether dots should be displayed
+  // $: dotsFilled = false; // whether dots should be filled or outlined
+  // $: strokeLinecap = 'round'; // stroke line cap of the line
+  // $: strokeLinejoin = 'round'; // stroke line join of the line
+  // $: strokeWidth = 1; // stroke width of line, in pixels
+  // $: strokeOpacity = 0.8; // stroke opacity of line
+  // $: tooltipBackground = 'black'; // background color of tooltip
+  // $: tooltipTextColor = 'white'; // text color of tooltip
 
-  let x, y, xVals = [], yVals = [], points = [], dotInfo;
-  const subsets = [], colorVals = [];
-
+  let x, y, xVals = [], yVals = [], points = [], colorVals = [], dotInfo;
+  $: subsets = dataId ? dataId : [];
   // For a single set of data
-  if (colors.length === 1) {
+  $: if (colors.length === 1) {
     x = Object.keys(data[0])[0];
     y = Object.keys(data[0])[1];
     xVals = data.map((el) => el[x]);
     yVals = data.map((el) => el[y]);
     points = data.map((el) => [el[x], el[y], 0]);
+    colorVals = data.map((el) => 0);
   }
   // For data with subsets (NOTE: expects 'id' and 'data' keys)
   else {
@@ -71,37 +109,59 @@
     });
   }
 
-  const I = range(xVals.length);
+  $: I = range(xVals.length);
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
-  const cleanData = points.map(gaps);
+  $: cleanData = points.map(gaps);
 
-  const xDomain = [xVals[0], xVals[xVals.length - 1]];
-  const yDomain = [0, Math.max(...yVals)];
-  const xScale = xType(xDomain, xRange);
-  const yScale = yType(yDomain, yRange);
-  const niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
+  $: xDomain = [xVals[0], xVals[xVals.length - 1]];
+  $: yDomain = [0, Math.max(...yVals)];
+  $: xScale = xType(xDomain, xRange);
+  $: yScale = yType(yDomain, yRange);
+  $: niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
 
-  const chartLine = line()
+  $: chartLine = line()
     .defined(i => cleanData[i])
     .curve(curve)
     .x(i => xScale(xVals[i]))
     .y(i => yScale(yVals[i])); // TODO: should this be niceY?
 
-  const lines = [];
+  let lines = [];
 
-  colors.forEach((color, j) => {
-    const filteredI = I.filter((el, i) => colorVals[i] === j);
-    lines.push(chartLine(filteredI));
-  });
+  $: {
+    lines = [];
+    colors.forEach((color, j) => {
+      const filteredI = I.filter((el, i) => colorVals[i] === j);
+      lines.push(chartLine(filteredI));
+    });
+  }
 
-  const xTicks = xScale.ticks(xScalefactor);
-  const xTicksFormatted = xTicks.map((el, i, t) => {
+  $: chartArea = area()
+    .defined(i => cleanData[i])
+    .curve(curve)
+    .x(i => xScale(xVals[i]))
+    .y0(yScale(0))
+    .y1(i => yScale(yVals[i])); // TODO: should this be niceY?
+
+  let areas = [];
+
+  $: {
+    areas = [];
+    colors.forEach((color, j) => {
+      const filteredI = I.filter((el, i) => colorVals[i] === j);
+      areas.push(chartLine(filteredI));
+    });
+  }
+
+  $: console.log('colors', colors, 'lines', lines, 'I', I, 'areas', areas);
+
+  $: xTicks = xScale.ticks(xScalefactor);
+  $: xTicksFormatted = xTicks.map((el, i, t) => {
     if (i === 0 || el.getFullYear() === t[i - 1].getFullYear())
       return el.toLocaleString('en-US', { month: 'long' });
     else return el.getFullYear();
   });
 
-  const yTicks = niceY.ticks(yScalefactor);
+  $: yTicks = niceY.ticks(yScalefactor);
 
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {

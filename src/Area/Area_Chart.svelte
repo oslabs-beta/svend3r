@@ -1,39 +1,40 @@
 <script>
   import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay } from 'd3';
-  import { csvVtsax, csvVgenx, csvVbtlx } from '../data/line-data-multi';
-  import { AreaChartDocs } from './Area_Store.js'
+  // import { csvVtsax, csvVgenx, csvVbtlx } from '../data/line-data-multi';
+  import { sampleData } from '../data/line-data-multi';
+  import { AreaChartDocs } from './Area_Store.js';
 
   //CSV to JSON Converter Function
-  function csvConvert(csv) {
-    return csv.split('\n').slice(1).map(str => {
-      const [date, close] = str.split(',')
-      .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
-      return { date, close };
-    });
-  }
+//   function csvConvert(csv) {
+//     return csv.split('\n').slice(1).map(str => {
+//       const [date, close] = str.split(',')
+//       .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
+//       return { date, close };
+//     });
+//   }
 
-const firstDataSet = csvConvert(csvVtsax)
-const SecondDataSet = csvConvert(csvVgenx)
-const ThirdDataSet = csvConvert(csvVbtlx)
+// const firstDataSet = csvConvert(csvVtsax)
+// const SecondDataSet = csvConvert(csvVgenx)
+// const ThirdDataSet = csvConvert(csvVbtlx)
 
-//Create Array of objects for converted CSV datasets
-const sampleData = [
-  {
-    id: 'VTSAX',
-    data: firstDataSet
-  },
-  {
-    id: 'VGENX',
-    data: SecondDataSet
-  },
-  {
-    id: 'VBTLX',
-    data: ThirdDataSet
-  }
-];
+// //Create Array of objects for converted CSV datasets
+// const sampleData = [
+//   {
+//     id: 'VTSAX',
+//     data: firstDataSet
+//   },
+//   {
+//     id: 'VGENX',
+//     data: SecondDataSet
+//   },
+//   {
+//     id: 'VBTLX',
+//     data: ThirdDataSet
+//   }
+// ];
 
 
-  let data = sampleData;
+  const data = sampleData;
   $: r = $AreaChartDocs[1].value; // (fixed) radius of dots, in pixels
   $: marginTop = $AreaChartDocs[2].value; // the top margin, in pixels
   $: marginRight = $AreaChartDocs[3].value; // the right margin, in pixels
@@ -75,8 +76,8 @@ const sampleData = [
   let yVals = []; 
   let points = []; 
   let dotInfo;
-  let subsets = []; 
-  let colorVals = [];
+  const subsets = []; 
+  const colorVals = [];
 
   // For a single set of data
   $: if (colors.length === 1) {
@@ -199,7 +200,7 @@ const sampleData = [
         <text x={-marginLeft} y="10">{tick + yFormat}</text>
       </g>
     {/each}
-    <text x="-{marginLeft}" y={marginTop/2}>{yLabel}</text>
+    <text x="-{marginLeft}" y={marginTop / 2}>{yLabel}</text>
   </g>
 
   <!-- X-axis and vertical grid lines -->
