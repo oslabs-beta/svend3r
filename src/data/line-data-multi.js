@@ -3787,4 +3787,33 @@ const csvVbtlx = `Date,Adj Close
 12/30/2021,11.143635
 12/31/2021,11.171588`;
 
-export { csvVtsax, csvVgenx, csvVbtlx };
+function csvConvert(csv) {
+  return csv.split('\n').slice(1).map(str => {
+    const [date, close] = str.split(',')
+      .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
+    return { date, close };
+  });
+}
+
+const firstDataSet = csvConvert(csvVtsax);
+const SecondDataSet = csvConvert(csvVgenx);
+const ThirdDataSet = csvConvert(csvVbtlx);
+
+//Create Array of objects for converted CSV datasets
+const sampleData = [
+  {
+    id: 'VTSAX',
+    data: firstDataSet
+  },
+  {
+    id: 'VGENX',
+    data: SecondDataSet
+  },
+  {
+    id: 'VBTLX',
+    data: ThirdDataSet
+  }
+];
+
+// export { csvVtsax, csvVgenx, csvVbtlx };
+export default sampleData;
