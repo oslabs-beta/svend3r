@@ -3,6 +3,20 @@
   import { ChartDocs } from './ChartStore';
   
   // console.log('Properties schema and properties', schema, properties);
+  // $: colors = ["#c4c4c4","#69b40f","#ec1d25","#c8125c","#008fc8","#10218b","#134b24","#737373"];
+  // let colorsArray;
+  // $: if (!Array.isArray(colors)) {
+  //   console.log(colors, typeof colors, colors.split(','))
+  //   // colorsArray = JSON.parse(`[${colors}]`);
+  //   colorsArray = colors.split(',');
+  // } 
+  // $: console.log(Array.isArray(colorsArray));
+
+  // $ChartDocs.forEach((doc) => {
+  //   if (Array.isArray(doc)) {
+
+  //   }
+  // })
 </script>
 
 <div class="data-schema-container">
@@ -28,7 +42,12 @@
                   <input class="input" type="range" step={doc.max === 1 ? 0.1 : 1} bind:value={doc.value} min={doc.min} max={doc.max}>
                   <li class="input-value">{doc.value}</li>
               {/if}
-              {#if !doc.max && i > 0 && doc.dataType !== "Boolean"}
+              {#if Array.isArray(doc.value)}
+                  <li class="prop-value-docs"><b>Adjusted Values: </b></li>
+                  {#each doc.value as el}
+                    <input class="input" on:input={(e) => el = e.target.value} value={el}>
+                  {/each}
+              {:else if !doc.max && i > 0 && doc.dataType !== "Boolean"}
                   <li class="prop-value-docs"><b>Adjusted Value: </b></li>
                   <input class="input" bind:value={doc.value}>
               {/if}

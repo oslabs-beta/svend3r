@@ -2,14 +2,7 @@
 	export const prerender = true;
 </script> -->
 <script lang="ts">
-<<<<<<< HEAD
-	import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
-	import ChartsDisplay from '$lib/chartsDisplay/ChartsDisplay.svelte';
-	import Icon from '$lib/components/Icon.svelte';
-	import ColumnChart from './columnChart.svelte';
-=======
 	import ChartCardRow from '$lib/components/ChartCardRow.svelte';
->>>>>>> main
 	// import Github from '/images/github-dark.png';
 
 	// const github = 'images/github-dark.png';
@@ -48,16 +41,16 @@
 	<div id="card-container" class="col-start-1 col-span-18 h-[82vh] my-8 overflow-auto ml-4">
 		<!-- <img src="/bar.svg" alt="site logo"> -->
 		<div class="mb-8">
-			<ChartsDisplay chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]} />
+			<ChartCardRow chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]} />
 		</div>
 		<div class="mb-8">
-			<ChartsDisplay chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]} />
+			<ChartCardRow chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]} />
 		</div>
 		<div class="mb-8">
-			<ChartsDisplay chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]} />
+			<ChartCardRow chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]} />
 		</div>
 		<div class="mb-1">
-			<ChartsDisplay chartCards={[chartList[12], chartList[13]]} />
+			<ChartCardRow chartCards={[chartList[12], chartList[13]]} />
 		</div>
 	</div>
 	<div class="grid col-start-19 col-span-6 bg-code-gray my-8 mx-3 h-[82vh] rounded-lg">
