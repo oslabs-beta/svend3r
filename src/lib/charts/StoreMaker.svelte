@@ -11,6 +11,6 @@
   properties.forEach((prop) => {
     ChartDocs.update(obj => ([...obj, prop]));
   })
-  console.log('storemaker', $ChartDocs);
+  // console.log('storemaker', $ChartDocs);
   // console.log('storemaker', $ChartDocs);
 </script>

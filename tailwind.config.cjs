@@ -8,6 +8,7 @@ module.exports = {
 				'code-gray': '#494949',
 				'white87': 'rgba(255, 255, 255, 0.87)',
 				'grey119': '#888888',
+				'bgGrey': '#343434',
 			  },
 			gridTemplateColumns: {
 				// Simple 16 column grid
