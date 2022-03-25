@@ -17,7 +17,7 @@
 		width: 14vw;
 		height: 9.5vw;
         border-radius: 5%;
-        box-shadow: 0.3vw 0.3vw .5vw rgb(121, 119, 119);
+        box-shadow: 0.3vw 0.3vw .5vw rgba(0,0,0,0.75);
 		background: #343434;
         color: rgba(255, 255, 255, 0.87);
 	}

@@ -56,7 +56,7 @@
 			<ChartCardRow chartCards={[chartList[12], chartList[13]]} />
 		</div>
 	</div>
-	<div class="grid col-start-19 col-span-6 bg-code-gray my-8 mx-3 h-[82vh] rounded-lg">
+	<div class="grid col-start-19 col-span-6 bg-code-gray my-8 mx-3 h-[82vh] rounded-lg shadow-3xl">
 		<section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-[1.25vw] text-white87">How to get Started</h1>
 			<p class="text-sm text-grey119 text-justify">
@@ -91,7 +91,7 @@
 				When we say Svend3r is 'plug and play' we truly mean it.
 
 				<li>Navigate to any desired chart page</li>
-				<li>Make sure to review the data schema to ensure conformity to your data set</li>
+				<li>Review the data schema to ensure conformity to your data set</li>
 				<li>Update the adjustable properties to your desired taste (or do that later)</li>
 				<li>
 					Create a new svelte file and js file for your component and data respectively in your project directory

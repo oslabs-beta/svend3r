@@ -28,6 +28,12 @@ module.exports = {
 				'span-23': 'span 23 / span 23',
 				'span-24': 'span 24 / span 24',
 			},
+			dropShadow: {
+				'3xl': '0.3vw 0.3vw .5vw rgba(0,0,0,0.9)',
+			},
+			boxShadow: {
+				'3xl': '0.3vw 0.3vw .5vw rgba(0,0,0,0.25)',
+			},
 		}
 	},
 	plugins: [require('flowbite/plugin')]
