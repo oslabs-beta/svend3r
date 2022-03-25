@@ -11,7 +11,7 @@
 
 </script>
 
-<ul class="top-0 relative w-full h-28 z-10">
+<ul class="top-0 relative w-full h-28 z-10 ">
 	<a href="/" alt="Svend3r Home"><img alt="svend3 chart library" src="/images/logo-beta.png" /></a>
 	<div class=" text-md text-gray-400">Svelte x D3 "plug and play" charting library</div>
 	<li class="z-0 absolute top-0 right-0 pt-5 flex">
@@ -22,7 +22,7 @@
 			href="#">Getting Started</a
 		>
 		<a
-			on:click={() => goto('/contributers')}
+			on:click={() => goto('/contributors')}
 			class="text-gray-400 hover:text-gray-100 pr-5"
 			href="#">Contributors</a
 		>
@@ -74,7 +74,7 @@
 	<hr
 		class="mt-5 bg-gray-200 dark:bg-gray-200 
 	border border-gray-200 dark:border-gray-200 rounded-full
-	 w-full"
+	 w-full shadow-3xl"
 	/>
 </ul>
 
