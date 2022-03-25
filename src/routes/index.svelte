@@ -2,10 +2,7 @@
 	export const prerender = true;
 </script> -->
 <script lang="ts">
-	// import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
 	import ChartCardRow from '$lib/components/ChartCardRow.svelte';
-	// import Icon from '$lib/components/Icon.svelte';
-	// import ColumnChart from './columnChart.svelte';
 	// import Github from '/images/github-dark.png';
 
 	// const github = 'images/github-dark.png';
