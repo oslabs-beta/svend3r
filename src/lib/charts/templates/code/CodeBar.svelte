@@ -199,7 +199,7 @@
 </button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
 		><!--
      -->{@html Prism.highlight(code, Prism.languages['javascript'])}<!--
  --></code
@@ -207,7 +207,7 @@
 --></pre>
 
 <pre id="page2_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
 		><!--
      -->{@html Prism.highlight(chartData, Prism.languages['javascript'])}<!--
  --></code
@@ -215,7 +215,7 @@
 --></pre>
 
 <pre id="page3_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
 		><!--
      -->{@html Prism.highlight(schema, Prism.languages['javascript'])}<!--
  --></code
@@ -224,6 +224,7 @@
 </div>
 
 <style>
+
   .section-title{
     font-family: 'Roboto', sans-serif;
     font-size: 1.5vw;
@@ -244,6 +245,7 @@
     height: 35vh;
     margin-bottom: 1vw;
     overflow: auto;
+    box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
   }
 
 	#page2_desc, #page3_desc {

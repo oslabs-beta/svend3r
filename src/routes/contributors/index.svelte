@@ -41,8 +41,8 @@
             last_name: "Saunders",
             title: "Software Engineer",
             alt_text: "isaac saunders software engineer svend3r svender",
-            aboutMe: "Hello my name is Isaac.",
-            headshot: "/images/taochen_headshot.jpg",
+            aboutMe: "Former Chef passionate about the current and future role of web based technologies in the Food Service Industry and beyond. Excited about data visualization, accessibility and of course Svelte.",
+            headshot: "/images/isaacsaunders_headshot.jpg",
             linkedIn: "https://www.linkedin.com/in/isaac-l-saunders/",
             github: "https://github.com/IsaacLSaunders",
         },
@@ -60,7 +60,7 @@
 </script>
 
 <div class="svend3r_team">
-	<h1>Meet the Svend3r Team!</h1>
+	<h1 class="team_title">Meet the Svend3r Team!</h1>
     <div class="contributor_cards">
         {#each theTeam as member}
         <div class="contributor_member" transition:slide>
@@ -137,30 +137,33 @@
     }
 
     .link_section img{
-        width: 3vw;
-        margin-right: 0.5vw;
+        width: 60px;
+        margin-right: 10px;
         border-radius: 5px;
     }
 
     .svend3r_team{
         width: 100%;
+        height: auto;
     }
 
     .contributor_cards{
         display: flex;
-        justify-content: space-around;
-
+        width: 100%;
+        overflow-x: auto;
+        height: auto;
+        justify-content: space-evenly;
     }
 
     .contributor_member{
-        position: relative;
         width: 300px;
         height: 550px;
         background-color: rgba(255, 255, 255, 0.87);
 		border: 1px solid #aaa;
 		border-radius: 5px;
         box-shadow: 4px 4px 12px rgba(0,0,0,0.9);
-		margin: 0 0 1em 0;
+        margin: 0 10px;
+        padding-bottom: 10px;
     }
 
     .border-line{
@@ -182,11 +185,10 @@
         height: fit-content;
     }
 
-	@media (max-width: 768px) {
-		.faqs :global(.anchor) {
-			transform: scale(0.6);
-			opacity: 1;
-			left: -1em;
-		}
+	@media (max-width: 1420px) {
+        .contributor_cards{
+            justify-content: flex-start;
+            padding-bottom: 20px;
+        }
 	}
 </style>

@@ -2,7 +2,7 @@
 	export const prerender = true;
 </script> -->
 <script lang="ts">
-	import ChartCardRow from '$lib/components/ChartCardRow.svelte';
+	import Card from '$lib/components/Card.svelte'
 	// import Github from '/images/github-dark.png';
 
 	// const github = 'images/github-dark.png';
@@ -37,25 +37,18 @@
 <!-- <img src='/images/github-dark.png' alt='github'> -->
 <!-- <img src={github} alt='github'> -->
 <!-- <img src='$img/github-dark.png' alt='github'> -->
-<div id="home-page-layout" class="grid grid-cols-24">
-	<div id="card-container" class="col-start-1 col-span-18 h-[82vh] my-8 overflow-auto ml-4">
+<div id="home-page-layout" class="tablet:flex grid justify-center m-auto">
+	<div id="card-container" class="w-fit tablet:w-[66vw] grid tablet:flex flex-wrap gap-x-10 tablet:justify-center h-full tablet:h-[82vh] my-8 overflow-auto mx-auto tablet:ml-4 tablet:mr-8">
 		<!-- <img src="/bar.svg" alt="site logo"> -->
-		<div class="mb-8">
-			<ChartCardRow chartCards={[chartList[0], chartList[1], chartList[2], chartList[3]]} />
+		{#each chartList as chartCard}
+		<div class="mb-8 ">
+			<Card chartCard={chartCard} />
 		</div>
-		<div class="mb-8">
-			<ChartCardRow chartCards={[chartList[4], chartList[5], chartList[6], chartList[7]]} />
-		</div>
-		<div class="mb-8">
-			<ChartCardRow chartCards={[chartList[8], chartList[9], chartList[10], chartList[11]]} />
-		</div>
-		<div class="mb-1">
-			<ChartCardRow chartCards={[chartList[12], chartList[13]]} />
-		</div>
+		{/each}
 	</div>
-	<div class="grid col-start-19 col-span-6 bg-code-gray my-8 mx-3 h-[82vh] rounded-lg shadow-3xl">
+	<div id="card-container" class="grid content-between w-[80vw] tablet:w-[400px] min-w-[300px] bg-code-gray my-8 mx-3 tablet:h-[82vh] overflow-auto rounded-lg shadow-3xl ">
 		<section id="info-sect" class="mx-4 mt-4">
-			<h1 class="text-[1.25vw] text-white87">How to get Started</h1>
+			<h1 class="text-2xl text-white87">How to get Started</h1>
 			<p class="text-sm text-grey119 text-justify">
 				<b>Svend3r (or svend3r.js)</b> is your go-to Svelte data visuaization charting library with easy
 				to use pre-built modular components. Svend3r components provides beautiful graphics from the
@@ -64,8 +57,8 @@
 				data to life.
 			</p>
 		</section>
-		<section id="info-sect" class="mx-4">
-			<h1 class="text-[1.25vw] text-white87">Installation</h1>
+		<section id="info-sect" class="mx-4 mt-4">
+			<h1 class="text-2xl text-white87">Installation</h1>
 			<p class="text-sm text-grey119 text-justify ">
 				If you have previously installed Svend3r, please run the following command below before preceeding:
 				<br>
@@ -82,8 +75,8 @@
 				<code class="text-white87 bg-grey119">npm install d3</code>.
 			</p>
 		</section>
-		<section id="info-sect" class="mx-4">
-			<h1 class="text-[1.25vw] text-white87">Exporting a Chart Component</h1>
+		<section id="info-sect" class="mx-4 my-4">
+			<h1 class="text-2xl text-white87">Exporting a Chart Component</h1>
 			<p class="text-sm text-grey119 text-justify whitespace-pre-line">
 				When we say Svend3r is 'plug and play' we truly mean it.
 
