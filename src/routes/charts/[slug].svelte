@@ -38,8 +38,8 @@
 	// import Store from '$lib/charts/Store.svelte';
   import StoreMaker from '$lib/charts/StoreMaker.svelte';
   import ChartDisplay from '$lib/charts/ChartDisplay.svelte';
-  // import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
-  import CodeMirror from '$lib/charts/CodeMirror.svelte';
+  import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
+  // import CodeMirror from '$lib/charts/CodeMirror.svelte';
   import Properties from '$lib/charts/Properties.svelte';
   // import { ChartDocs } from '$lib/charts/ChartStore';
   import { setContext } from 'svelte';
@@ -68,7 +68,7 @@
     // properties.forEach((prop) => {
     //   ChartDocs.update(obj => ([...obj, prop]));
     // })
-  // $: console.log('update', $currentChart, slug, title, chartData, schema, properties);
+  $: console.log('update', slug, title, chartData, schema, properties);
   // $: console.log(currentChart);
   
   // console.log('slug props', properties);
@@ -95,7 +95,7 @@
       </div>
       <div class="right-container">
         <div class="code-mirror">
-          <CodeMirror {code} {chartData} />
+          <CodeMirror {slug} {chartData} />
           <!-- <CodeMirror {slug} {chartData} {schema} /> -->
           <!-- <CodeMirror {chart} /> -->
         </div>

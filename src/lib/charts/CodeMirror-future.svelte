@@ -3,12 +3,28 @@
   import { get } from 'svelte/store';
   import { ChartDocs } from './ChartStore';
 
-  export let code,
+  export let slug,
     chartData;
 
+  import Area from './templates/Area.svelte?raw';
+  import Bar from './templates/Bar.svelte?raw';
   import Chord from './templates/Chord.svelte?raw';
+  import RadialStacked from './templates/RadialStacked.svelte?raw';
   import Properties from './data/observable-chord-data?raw';
 
+  const chartComponents = {
+    area: Area,
+    bar: Bar,
+    chord: Chord,
+    // choropleth: Choropleth,
+    // circlePack: CirclePack,
+    // line: Line,
+    // pie: Pie,
+    radialStacked: RadialStacked,
+    // scatter: Scatter
+  }
+
+  console.log('mirror', slug);
 
   // console.log('CodeMirror code and chartData', code, chartData);
   // console.log('docs', $ChordChartDocs);
@@ -50,20 +66,20 @@
   // }
 
   $: updateCode = () => {
-    let chordcode = Chord.replace("import { ChartDocs } from '../ChartStore';", '');
+    let chordcode = chartComponents[slug].replace("import { ChartDocs } from '../ChartStore';", '');
     for (let i = 1; i < $ChartDocs.length; i++) {
       chordcode = chordcode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
     }
     return chordcode;
   };
 
-  $: evalcode = () => {
-    // get(ChartDocs);
-    console.log('eval', $ChartDocs);
-    return eval(code);
-  }
+  // $: evalcode = () => {
+  //   // get(ChartDocs);
+  //   console.log('eval', $ChartDocs);
+  //   return eval(code);
+  // }
 
-  console.log('evalcode', eval(code));
+  // console.log('evalcode', eval(code));
 
 
   // $: evalcode = () => {
@@ -80,7 +96,7 @@
   // console.log('$', $ChartDocs);
   // console.log('get', get(ChartDocs));
 
-  const quoteData = `${chartData}`;
+  // const quoteData = `${chartData}`;
 
 
   function showCode(id) {
