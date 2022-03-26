@@ -10,7 +10,7 @@
 </script>
 
 <div
-	class="z-50 fixed pt-5 top-0 left-0 h-screen w-1/32  flex 
+	class="z-50 tablet:flex fixed pt-5 top-0 left-0 h-screen w=[48px] hidden 
     bg-zinc-50 dark:bg-zinc-800 shadow-3xl z-100"
 >
 	<nav>

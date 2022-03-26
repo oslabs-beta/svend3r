@@ -32,7 +32,7 @@
 --><button class="page_selected" id="page2" on:click={() => showCode('page2')}>Data</button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
     ><!--
      -->{@html Prism.highlight(
       code,
@@ -43,7 +43,7 @@
 --></pre>
 
 <pre id="page2_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
     ><!--
      -->{@html Prism.highlight(
       chartData,
