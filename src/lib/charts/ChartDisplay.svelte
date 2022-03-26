@@ -1,3 +1,13 @@
+<script context="module">
+  export async function load({ stuff }) {
+    return {
+      props: {
+        currentChart: stuff.currentChart
+      }
+    }
+  }
+</script>
+
 <script>
 	import Area from './templates/Area.svelte';
 	import Bar from './templates/Bar.svelte';
@@ -9,8 +19,17 @@
 	import RadialStacked from './templates/RadialStacked.svelte';
 	// import Scatter from './templates/Scatter.svelte';
 
+  import { CurrentChart } from '$lib/charts/CurrentChart';
+
   export let slug,
     chartData;
+  
+  console.log('current store', $CurrentChart);
+  // $: ({ slug, chartData } = $CurrentChart);
+  
+    // export let currentChart;
+  // $: console.log('display', $currentChart);
+  // $: ({ slug, chartData } = $currentChart);
 
   // console.log('ChartDisplay slug and chartData', slug, chartData)
 
@@ -26,7 +45,7 @@
     // scatter: Scatter
   }
 
-  const selectedChart = chartComponents[slug];
+  $: selectedChart = chartComponents[slug];
   </script>
 
   <svelte:component this={selectedChart} {chartData} />

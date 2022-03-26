@@ -27,7 +27,7 @@
     // scatter: Scatter
   }
 
-  const selectedCode = codeComponents[slug];
+  $: selectedCode = codeComponents[slug];
   </script>
 
   <svelte:component this={selectedCode} {chartData} {schema} />

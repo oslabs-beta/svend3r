@@ -34,7 +34,8 @@ export async function get({ params }) {
     chord: chord,
     radialStacked: radialStacked
   }
+  const selected = charts[params.slug];
   return {
-    body: charts[params.slug]
+    body: selected
   } 
 }

@@ -1,17 +1,29 @@
 <script context="module">
-	export const prerender = true;
-
+  export const prerender = false;
+  import { CurrentChart } from '$lib/charts/CurrentChart';
+  import { ChartDocs } from '$lib/charts/ChartStore';
+  // import { writable } from 'svelte/store';
 	// TODO should use a shadow endpoint instead, need to fix a bug first
 	/** @type {import('@sveltejs/kit').Load} */
 	export async function load({ fetch, params }) {
 		// console.log('[slug].svelte load', params)
     const res = await fetch(`/charts/${params.slug}.json`);
 		const chart = await res.json();
+    CurrentChart.update(obj => chart);
+    ChartDocs.update(obj => []);
+    chart.properties.forEach((prop) => {
+      ChartDocs.update(obj => ([...obj, prop]));
+    })
+    console.log('slug module', chart.properties)
+    // const currentChart = writable(chart);
     // console.log('module loaded', chart);
 		return {
 			props: {
 				chart
 			}
+      // stuff: {
+      //   currentChart
+      // }
 		};
 	}
 </script>
@@ -28,13 +40,36 @@
   import ChartDisplay from '$lib/charts/ChartDisplay.svelte';
   import CodeMirror from '$lib/charts/CodeMirror.svelte';
   import Properties from '$lib/charts/Properties.svelte';
+  // import { ChartDocs } from '$lib/charts/ChartStore';
+  import { setContext } from 'svelte';
+  import { writable } from 'svelte/store';
 
+  // ChartDocs.subscribe(console.log)
   // '= {}' makes the sidebar function
-	export let chart = {};
-	
+	export let chart;
+  // let currentChart;
+  // $: chart, (() => {
+  //   currentChart = chart;
+  // })
+	// $: chart2 = {...chart};
   // console.log('[slug].svelte page', chart);
 
-  const { slug, title, code, chartData, schema, properties } = chart;
+  // export let currentChart;
+
+  // export let chart;
+  // let currentChart = writable(chart);
+  // $: currentChart.set(chart);
+  // $: setContext('currentChart', currentChart);
+
+
+  $: ({ slug, title, code, chartData, schema, properties } = chart);
+    // ChartDocs.update(obj => []);
+    // properties.forEach((prop) => {
+    //   ChartDocs.update(obj => ([...obj, prop]));
+    // })
+  // $: console.log('update', $currentChart, slug, title, chartData, schema, properties);
+  // $: console.log(currentChart);
+  
   // console.log('slug props', properties);
 </script>
 
@@ -46,19 +81,22 @@
 	<meta name="Description" content="{title} • Svend3r" />
 </svelte:head>
 
-<StoreMaker {properties} />
+<!-- <StoreMaker {properties} /> -->
+<!-- <StoreMaker /> -->
 <div class="container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
       <div class="left-container">
           <div class="chart-render">
               <ChartDisplay {slug} {chartData} />
+              <!-- <ChartDisplay {chart} /> -->
           </div>
       </div>
       <div class="right-container">
         <div class="code-mirror">
           <!-- <CodeMirror {code} {chartData} /> -->
           <CodeMirror {slug} {chartData} {schema} />
+          <!-- <CodeMirror {chart} /> -->
         </div>
         <div class="chart-properties">
           <Properties />
