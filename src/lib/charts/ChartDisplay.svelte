@@ -45,7 +45,9 @@
     // scatter: Scatter
   }
 
-  $: selectedChart = chartComponents[slug];
+  // $: selectedChart = chartComponents[slug];
+  $: selectedChart = chartComponents[$CurrentChart.slug];
+  $: console.log('selected', $CurrentChart.slug);
   </script>
 
   <svelte:component this={selectedChart} {chartData} />
