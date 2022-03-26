@@ -38,7 +38,8 @@
 	// import Store from '$lib/charts/Store.svelte';
   import StoreMaker from '$lib/charts/StoreMaker.svelte';
   import ChartDisplay from '$lib/charts/ChartDisplay.svelte';
-  import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
+  // import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
+  import CodeMirror from '$lib/charts/CodeMirror.svelte';
   import Properties from '$lib/charts/Properties.svelte';
   // import { ChartDocs } from '$lib/charts/ChartStore';
   import { setContext } from 'svelte';

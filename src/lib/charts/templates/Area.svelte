@@ -38,7 +38,7 @@ const sampleData = [
     data: ThirdDataSet
   }
 ];
-  let data = sampleData;
+  const data = sampleData;
   $: r = $ChartDocs[1].value; // (fixed) radius of dots, in pixels
   $: marginTop = $ChartDocs[2].value; // the top margin, in pixels
   $: marginRight = $ChartDocs[3].value; // the right margin, in pixels
@@ -82,32 +82,51 @@ const sampleData = [
   let subsets = []; // TODO make reactive in case of single data set
   let colorVals = [];
   // For a single set of data
-  $: if (colors.length === 1) {
-    x = Object.keys(data[0])[0];
-    y = Object.keys(data[0])[1];
-    xVals = data.map((el) => el[x]);
-    yVals = data.map((el) => el[y]);
-    points = data.map((el) => [el[x], el[y], 0]);
-  }
-  // For data with subsets (NOTE: expects 'id' and 'data' keys)
-  else {
-    x = Object.keys(data[0]?.data[0])[0];
-    y = Object.keys(data[0]?.data[0])[1];
-    data.forEach((subset, i) => {
-      subset.data.forEach((coordinate) => {
-        xVals.push(coordinate[x]);
-        yVals.push(coordinate[y]);
-        colorVals.push(i);
-        points.push(
-          { 
-            x: coordinate[x],
-            y: coordinate[y],
-            color: i
-          });
-      });
-      subsets.push(subset.id);
+  // $: if (colors.length === 1) {
+  //   x = Object.keys(data[0])[0];
+  //   y = Object.keys(data[0])[1];
+  //   xVals = data.map((el) => el[x]);
+  //   yVals = data.map((el) => el[y]);
+  //   points = data.map((el) => [el[x], el[y], 0]);
+  // }
+  // // For data with subsets (NOTE: expects 'id' and 'data' keys)
+  // else {
+  //   console.log('colors');
+  //   x = Object.keys(data[0]?.data[0])[0];
+  //   y = Object.keys(data[0]?.data[0])[1];
+  //   data.forEach((subset, i) => {
+  //     subset.data.forEach((coordinate) => {
+  //       xVals.push(coordinate[x]);
+  //       yVals.push(coordinate[y]);
+  //       colorVals.push(i);
+  //       points.push(
+  //         { 
+  //           x: coordinate[x],
+  //           y: coordinate[y],
+  //           color: i
+  //         });
+  //     });
+  //     subsets.push(subset.id);
+  //   });
+  // }
+
+  x = Object.keys(data[0]?.data[0])[0];
+  y = Object.keys(data[0]?.data[0])[1];
+  data.forEach((subset, i) => {
+    subset.data.forEach((coordinate) => {
+      xVals.push(coordinate[x]);
+      yVals.push(coordinate[y]);
+      colorVals.push(i);
+      points.push(
+        { 
+          x: coordinate[x],
+          y: coordinate[y],
+          color: i
+        });
     });
-  }
+    subsets.push(subset.id);
+  });
+
   $: I = range(xVals.length);
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   $: cleanData = points.map(gaps);
@@ -141,6 +160,7 @@ const sampleData = [
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
+    console.log('mouse', clientX, clientY);
     const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
     dotInfo = 
       { 
