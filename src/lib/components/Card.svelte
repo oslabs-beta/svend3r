@@ -14,10 +14,10 @@
 	@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 	
 	.single-card-container{
-		width: 14vw;
-		height: 9.5vw;
+		width: 268px;
+		height: 182px;
         border-radius: 5%;
-        box-shadow: 0.3vw 0.3vw .5vw rgb(121, 119, 119);
+        box-shadow: 0.3vw 0.3vw .5vw rgba(0,0,0,0.75);
 		background: #343434;
         color: rgba(255, 255, 255, 0.87);
 	}
@@ -35,9 +35,9 @@
 	.cardTitle{
 		width: 100%;
 		height: 18.18%;
-		margin: 0px 1vw;
+		margin: 0px 15px;
         font-family: 'Roboto', sans-serif;
-		font-size: 1vw;
+		font-size: 19px;
         display: flex;
         justify-content: left;
         align-items: center;

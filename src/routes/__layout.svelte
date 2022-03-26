@@ -33,7 +33,7 @@
 <Icons />
 
 <div id="main-body" class:dark>
-	<div class="grid grid-cols-24">
+	<div class="tablet:ml-[48px] grid grid-cols-24">
 		<div class="col-start-2 col-span-22">
 			<Header bind:dark />
 			<slot />
@@ -48,5 +48,6 @@
 		width: 100vw;
 		height: 100vh;
 		position: fixed;
+		overflow: auto;
 	}
 </style>

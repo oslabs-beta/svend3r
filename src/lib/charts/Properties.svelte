@@ -43,10 +43,14 @@
                   <li class="input-value">{doc.value}</li>
               {/if}
               {#if Array.isArray(doc.value)}
-                  <li class="prop-value-docs"><b>Adjusted Values: </b></li>
-                  {#each doc.value as el}
-                    <input class="input" on:input={(e) => el = e.target.value} value={el}>
+                <section class="array_container">
+                  {#each doc.value as el, i}
+                  <section class="array_container_sub">
+                    <li class="prop-value-docs"><b>Adjusted Value - Index {i}: </b></li>
+                    <input class="input-arr" on:input={(e) => el = e.target.value} value={el}>
+                  </section>
                   {/each}
+                </section>
               {:else if !doc.max && i > 0 && doc.dataType !== "Boolean"}
                   <li class="prop-value-docs"><b>Adjusted Value: </b></li>
                   <input class="input" bind:value={doc.value}>
@@ -81,8 +85,11 @@ margin-left: 2vw;
 }
 
 input{
+    display:list-item;
     color: black;
     padding: 5px;
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
 .prop-value{
@@ -106,9 +113,24 @@ input{
   margin-left: 1vw;
   margin-bottom: 0;
 }
+
 .input-value{
   margin-left: 1vw;
   color: lightgreen
+}
+
+.array_container{
+  width: 450px;
+  outline: none;
+}
+
+.array_container_sub{
+  display: flex;
+  align-items: center;
+}
+
+.input-arr{
+  margin: 1vw;
 }
 
 .switch {

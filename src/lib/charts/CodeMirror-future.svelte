@@ -131,7 +131,7 @@
 </button>
 
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
 		><!--
      -->{@html Prism.highlight(updateCode(), Prism.languages['javascript'])}<!--
  --></code
@@ -139,7 +139,7 @@
 --></pre>
 
 <pre id="page2_desc" class="codeMirror" contenteditable><!--
---><code class="language-javascript"
+--><code spellcheck="false" class="language-javascript"
 		><!--
      -->{@html Prism.highlight(Properties, Prism.languages['javascript'])}<!--
  --></code
