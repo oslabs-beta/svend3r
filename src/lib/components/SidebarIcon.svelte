@@ -17,7 +17,7 @@ transition-all duration-300 ease-linear
 cursor-pointer group"
 >
 	<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
-	<a href='/charts/{chart.slug}'><img src="/icon/{chart.slug}-icon.png" alt={chart.title} width="35"/></a>
+	<a sveltekit:prefetch href='/charts/{chart.slug}'><img src="/icon/{chart.slug}-icon.png" alt={chart.title} width="35"/></a>
 
 	<span
 		class="absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md dark:bg-white dark:text-black

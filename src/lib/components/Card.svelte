@@ -6,7 +6,7 @@
 	<h1 class="cardTitle"><b>{chartCard.title}</b></h1>
 		<section class="cardSvg">
 			<!-- <Choropleth /> -->
-			<a href='/charts/{chartCard.slug}' ><img class="cardSvg" src="/main/{chartCard.slug}-main.png" alt={chartCard.title} /></a>
+			<a sveltekit:prefetch href='/charts/{chartCard.slug}' ><img class="cardSvg" src="/main/{chartCard.slug}-main.png" alt={chartCard.title} /></a>
 		</section>
 </div>
 

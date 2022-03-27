@@ -1,7 +1,23 @@
 <script context="module">
-  export const prerender = false;
-  import { CurrentChart } from '$lib/charts/CurrentChart';
-  import { ChartDocs } from '$lib/charts/ChartStore';
+  // export const prerender = false;
+  // import { CurrentChart } from '$lib/charts/CurrentChart';
+  // import { ChartDocs } from '$lib/charts/ChartStore';
+  // const imports = {
+	// 	area: () => {
+  //     const component = import('$lib/charts/templates/Area.svelte');
+  //     const chartCode = import('$lib/charts/templates/Area.svelte?raw');
+  //     const chartData = import('$lib/charts/data/line-data-multi?raw');
+  //     return { 
+  //       component: component,
+  //       chartCode: chartCode,
+  //       chartData: chartData
+  //     }
+  //   },
+	// 	bar: (Data = '', raw = '') => import(`../../lib/charts/templates/Bar${Data}.svelte?${raw}`),
+	// 	chord: (Data = '', raw = '') => import(`../../lib/charts/templates/Chord${Data}.svelte?${raw}`),
+  //   radialStacked: (Data = '', raw = '') => import(`../../lib/charts/templates/RadialStacked${Data}.svelte?${raw}`)
+	// };
+  import imports from '$lib/charts/imports';
   // import { writable } from 'svelte/store';
 	// TODO should use a shadow endpoint instead, need to fix a bug first
 	/** @type {import('@sveltejs/kit').Load} */
@@ -9,12 +25,26 @@
 		// console.log('[slug].svelte load', params)
     const res = await fetch(`/charts/${params.slug}.json`);
 		const chart = await res.json();
-    CurrentChart.update(obj => chart);
-    ChartDocs.update(obj => []);
-    chart.properties.forEach((prop) => {
-      ChartDocs.update(obj => ([...obj, prop]));
-    })
-    console.log('slug module', chart.properties)
+    
+    // CurrentChart.update(obj => chart);
+    // ChartDocs.update(obj => []);
+    // chart.properties.forEach((prop) => {
+    //   ChartDocs.update(obj => ([...obj, prop]));
+    // })
+
+    // console.log('slug properties', chart.properties)
+    // const module = await imports[chart.slug]();
+    // console.log('slug module', module.component);
+    // const component = await module.component;
+    // console.log('slug component', component.default);
+    const component = await imports[chart.slug]().component;
+    const chartCode = await imports[chart.slug]().chartCode;
+    const chartData = await imports[chart.slug]().chartData;
+    console.log('slug imports', component.default, 'CODE', chartCode.default, 'DATA', chartData.default);
+    // const code = await imports[chart.slug]('', 'raw');
+    // console.log('slug code', code.default);
+    // const data = await imports[chart.slug]();
+    // console.log('slug module', module.default);
     // const currentChart = writable(chart);
     // console.log('module loaded', chart);
 		return {
@@ -44,6 +74,10 @@
   // import { ChartDocs } from '$lib/charts/ChartStore';
   import { setContext } from 'svelte';
   import { writable } from 'svelte/store';
+  
+  import { CurrentChart } from '$lib/charts/CurrentChart';
+  import { ChartDocs } from '$lib/charts/ChartStore';
+  import { beforeUpdate, onMount } from 'svelte';
 
   // ChartDocs.subscribe(console.log)
   // '= {}' makes the sidebar function
@@ -62,13 +96,21 @@
   // $: currentChart.set(chart);
   // $: setContext('currentChart', currentChart);
 
+  beforeUpdate(() => {
+    CurrentChart.update(obj => chart);
+    ChartDocs.update(obj => []);
+    chart.properties.forEach((prop) => {
+      ChartDocs.update(obj => ([...obj, prop]));
+    })
+  })
+
 
   $: ({ slug, title, code, chartData, schema, properties } = chart);
     // ChartDocs.update(obj => []);
     // properties.forEach((prop) => {
     //   ChartDocs.update(obj => ([...obj, prop]));
     // })
-  $: console.log('update', slug, title, chartData, schema, properties);
+  // $: console.log('update', slug, title, chartData, schema, properties);
   // $: console.log(currentChart);
   
   // console.log('slug props', properties);
