@@ -128,25 +128,26 @@
   //     ChartDocs.update(obj => ([...obj, prop]));
   //   })
   // })
-  let directNav = true;
+  let ready = false;
   beforeUpdate(() => {
     CurrentChart.update(obj => chart);
     ChartDocs.update(obj => []);
     properties.forEach((prop) => {
       ChartDocs.update(obj => ([...obj, prop]));
     });
-    directNav = false;
+    ready = true;
   })
 
-  if (directNav) {
-    onMount(() => {
-    CurrentChart.update(obj => chart);
-    ChartDocs.update(obj => []);
-    properties.forEach((prop) => {
-      ChartDocs.update(obj => ([...obj, prop]));
-    });
-  })
-  }
+  // if (directNav) {
+  //   onMount(() => {
+  //     CurrentChart.update(obj => chart);
+  //     ChartDocs.update(obj => []);
+  //     properties.forEach((prop) => {
+  //       ChartDocs.update(obj => ([...obj, prop]));
+  //     });
+  //     ready = true;
+  //   })
+  // }
   
 
 
@@ -171,6 +172,7 @@
 
 <!-- <StoreMaker {properties} /> -->
 <!-- <StoreMaker /> -->
+<!-- {#if ready} -->
 <div class="container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
@@ -178,7 +180,9 @@
           <div class="chart-render">
               <!-- <ChartDisplay {slug} {data} /> -->
               <!-- <ChartDisplay {chart} /> -->
-              <svelte:component this={component} />
+              {#if ready}
+                <svelte:component this={component} />
+              {/if}
           </div>
       </div>
       <div class="right-container">
@@ -194,6 +198,7 @@
       </div>
   </div>
 </div>
+<!-- {/if} -->
 
 <style>
   .container {

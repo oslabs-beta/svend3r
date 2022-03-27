@@ -1,33 +1,151 @@
 <script>
-	import CodeArea from './templates/code/CodeArea.svelte';
-	import CodeBar from './templates/code/CodeBar.svelte';
-	import CodeChord from './templates/code/CodeChord.svelte';
-	// import Choropleth from './templates/Choropleth.svelte';
-	// import CirclePack from './templates/CirclePack.svelte';
-	// import Line from './templates/Line.svelte';
-	// import Pie from './templates/Pie.svelte';
-	import CodeRadialStacked from './templates/code/CodeRadialStacked.svelte';
-	// import Scatter from './templates/Scatter.svelte';
+  import Prism from 'prismjs';
+  import { afterNavigate } from '$app/navigation';
+  import { ChartDocs } from './ChartStore';
 
-  export let slug,
-    chartData,
+  export let code,
+    data,
     schema;
+  
+  
+  afterNavigate(() => {
+    showCode('page1');
+  })
 
-  // console.log('ChartDisplay slug and chartData', slug, chartData)
+  $: updateCode = () => {
+    let userCode = code.replace("import { ChartDocs } from '../ChartStore';", '');
+    for (let i = 1; i < $ChartDocs.length; i++) {
+      userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
+    }
+    return userCode;
+  };
 
-  const codeComponents = {
-    area: CodeArea,
-    bar: CodeBar,
-    chord: CodeChord,
-    // choropleth: Choropleth,
-    // circlePack: CirclePack,
-    // line: Line,
-    // pie: Pie,
-    radialStacked: CodeRadialStacked,
-    // scatter: Scatter
+  function showCode(id) {
+    let idArr = ['page1', 'page2', 'page3'];
+    for(let i = 0; i < idArr.length; i++) {
+      if(id === idArr[i]) {
+        document.getElementById(`${idArr[i]}_desc`).style.display = 'block';
+        document.getElementById(`${idArr[i]}`).style.opacity = "100%"
+      } else {
+        document.getElementById(`${idArr[i]}_desc`).style.display = 'none';
+        document.getElementById(`${idArr[i]}`).style.opacity = "50%"
+      }
+    }
+	}
+</script>
+
+<div class="code-mirror">
+<button class="page_selected" id="page1" on:click={() => showCode('page1')}>
+  <section class="button-text_icon">
+  <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
+  Code</section>
+</button><!--
+--><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
+    Data</section>
+</button><!--
+--><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
+    Data Schema</section>
+</button>
+<pre id="page1_desc" class="codeMirror" contenteditable><!--
+--><code spellcheck="false" class="language-javascript"
+		><!--
+     -->{@html Prism.highlight(updateCode(), Prism.languages['javascript'])}<!--
+ --></code
+	><!--
+--></pre>
+
+<pre id="page2_desc" class="codeMirror" contenteditable><!--
+--><code spellcheck="false" class="language-javascript"
+		><!--
+     -->{@html Prism.highlight(data, Prism.languages['javascript'])}<!--
+ --></code
+	><!--
+--></pre>
+<pre id="page3_desc" class="codeMirror" contenteditable><!--
+--><code spellcheck="false" class="language-javascript"
+		><!--
+     -->{@html Prism.highlight(schema, Prism.languages['javascript'])}<!--
+ --></code
+	><!--
+--></pre>
+</div>
+
+
+<style>
+  .section-title{
+    font-family: 'Roboto', sans-serif;
+    font-size: 1.5vw;
+    margin-bottom: 0.5vw;
   }
 
-  $: selectedCode = codeComponents[slug];
-  </script>
+	.codeMirror {
+		white-space: pre-wrap;
+		padding: 1vw 0 0 1vw;
+    min-height: 31vh;
+    outline: none;
+	}
 
-  <svelte:component this={selectedCode} {chartData} {schema} />
+  .code-mirror {
+    background-color: #2D2D2D;
+    border-radius: 0.5vw;
+    width: 36vw;
+    height: 35vh;
+    margin-bottom: 1vw;
+    overflow: auto;
+    box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+  }
+
+	#page2_desc, #page3_desc {
+		display: none;
+	}
+
+	.page_selected {
+		width: 33.33%;
+		height: 9%;
+		border-style: none;
+		border-radius: 0;
+		background-color: #494949;
+		color: rgba(255, 255, 255, 0.87);
+	}
+
+	#page2, #page3 {
+		border-left: #1e1e1e;
+		border-left-width: 2px;
+		border-left-style: solid;
+    opacity: 50%;
+	}
+
+  #page1:hover, #page2:hover, #page3:hover {
+    opacity: 100%;
+  }
+
+	.page_selected:hover {
+		background-color: #1e1e1e;
+		color: rgba(255, 255, 255, 0.87);
+	}
+
+  .codeMirror-icon {
+    width: 8%;
+    height: 8%;
+    margin-right: 3%;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+
+  .button-text_icon{
+    display: flex;
+    justify-content: center;
+  }
+
+  .code-mirror::-webkit-scrollbar {
+      display: none;
+  }
+
+  .codeMirror::-webkit-scrollbar {
+      display: none;
+  }
+</style>
