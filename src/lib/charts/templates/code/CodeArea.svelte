@@ -346,7 +346,7 @@
 
   .section-title{
     font-family: 'Roboto', sans-serif;
-    font-size: 1.5vw;
+    font-size: 30px;
     margin-bottom: 0.5vw;
   }
 
