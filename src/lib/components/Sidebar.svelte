@@ -5,8 +5,10 @@
 	// import { goto } from '$app/navigation';
 	// import logo from './svelte-logo.svg';
 	import SidebarIcon from './SidebarIcon.svelte';
+	import { getContext } from 'svelte';
 
-	export let chartList;
+	// export let chartList;
+	const ChartList = getContext('ChartList');
 </script>
 
 <div
@@ -38,7 +40,7 @@
 			<Divider />
 		<div class="pt-5" />
 		
-		{#each chartList as chart}
+		{#each ChartList as chart}
 			
 		<SidebarIcon {chart} />
 		{/each}

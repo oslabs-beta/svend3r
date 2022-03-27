@@ -12,6 +12,13 @@
   import RadialStacked from './templates/RadialStacked.svelte?raw';
   import Properties from './data/observable-chord-data?raw';
 
+  const imports = {
+		area: (Data, raw) => import(`./templates/Area${Data}.svelte?${raw}`),
+		bar: (Data, raw) => import(`./templates/Bar${Data}.svelte?${raw}`),
+		chord: (Data, raw) => import(`./templates/Chord${Data}.svelte?${raw}`),
+    radialStacked: (Data, raw) => import(`./templates/RadialStacked${Data}.svelte?${raw}`)
+	};
+
   const chartComponents = {
     area: Area,
     bar: Bar,
@@ -65,12 +72,33 @@
   //   return chordcode;
   // }
 
-  $: updateCode = () => {
-    let chordcode = chartComponents[slug].replace("import { ChartDocs } from '../ChartStore';", '');
+  // $: updateCode = () => {
+  //   let chordcode = chartComponents[slug].replace("import { ChartDocs } from '../ChartStore';", '');
+  //   for (let i = 1; i < $ChartDocs.length; i++) {
+  //     chordcode = chordcode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
+  //   }
+  //   return chordcode;
+  // };
+
+  // $: console.log('mirror read', imports[slug]('','raw').default);
+
+  // $: updateCode = async () => {
+  //   let selected = await imports[slug]('','raw');
+  //   console.log('selected', selected);
+  //   let code = selected.default.replace("import { ChartDocs } from '../ChartStore';", '');
+  //   for (let i = 1; i < $ChartDocs.length; i++) {
+  //     code = code.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
+  //   }
+  //   return code;
+  // };
+
+  $: updateCode = (module) => {
+    console.log('selected', module);
+    let code = module.default.replace("import { ChartDocs } from '../ChartStore';", '');
     for (let i = 1; i < $ChartDocs.length; i++) {
-      chordcode = chordcode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
+      code = code.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
     }
-    return chordcode;
+    return code;
   };
 
   // $: evalcode = () => {
@@ -129,11 +157,11 @@
     <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
     Data Schema</section>
 </button>
-
+{#await imports[slug]('','raw') then selected}
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
-     -->{@html Prism.highlight(updateCode(), Prism.languages['javascript'])}<!--
+     -->{@html Prism.highlight(updateCode(selected), Prism.languages['javascript'])}<!--
  --></code
 	><!--
 --></pre>
@@ -145,7 +173,9 @@
  --></code
 	><!--
 --></pre>
+{/await}
 </div>
+
 
 <style>
   .section-title{

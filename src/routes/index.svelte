@@ -3,6 +3,7 @@
 </script> -->
 <script lang="ts">
 	import Card from '$lib/components/Card.svelte'
+	import { getContext } from 'svelte';
 	// import Github from '/images/github-dark.png';
 
 	// const github = 'images/github-dark.png';
@@ -21,22 +22,25 @@
 
   console.log(JSON.stringify(string));
 
-	const chartList = [
-		{ title: 'Area Chart', icon: 'area' },
-		{ title: 'Bar Chart', icon: 'bar' },
-		{ title: 'Bubble Chart', icon: 'bubble' },
-		{ title: 'Chord Diagram', icon: 'chord' },
-		{ title: 'Choropleth', icon: 'choropleth' },
-		{ title: 'Circle Packing', icon: 'circlePack' },
-		{ title: 'Donut Chart', icon: 'donut' },
-		{ title: 'Hexbin', icon: 'hexbin' },
-		{ title: 'Line Chart', icon: 'line' },
-		{ title: 'Radial Stacked Bar Chart', icon: 'radialStacked' },
-		{ title: 'Ridgeline Plot', icon: 'ridgeline' },
-		{ title: 'Sankey Diagram', icon: 'sankey' },
-		{ title: 'Scatterplot', icon: 'scatter' },
-		{ title: 'Pie Chart', icon: 'pie' }
-	];
+	// const chartList = [
+	// 	{ title: 'Area Chart', icon: 'area' },
+	// 	{ title: 'Bar Chart', icon: 'bar' },
+	// 	{ title: 'Bubble Chart', icon: 'bubble' },
+	// 	{ title: 'Chord Diagram', icon: 'chord' },
+	// 	{ title: 'Choropleth', icon: 'choropleth' },
+	// 	{ title: 'Circle Packing', icon: 'circlePack' },
+	// 	{ title: 'Donut Chart', icon: 'donut' },
+	// 	{ title: 'Hexbin', icon: 'hexbin' },
+	// 	{ title: 'Line Chart', icon: 'line' },
+	// 	{ title: 'Radial Stacked Bar Chart', icon: 'radialStacked' },
+	// 	{ title: 'Ridgeline Plot', icon: 'ridgeline' },
+	// 	{ title: 'Sankey Diagram', icon: 'sankey' },
+	// 	{ title: 'Scatterplot', icon: 'scatter' },
+	// 	{ title: 'Pie Chart', icon: 'pie' }
+	// ];
+	// export let chartList;
+	const ChartList = getContext('ChartList');
+	console.log('chartList', ChartList);
 </script>
 
 <svelte:head>
@@ -53,7 +57,7 @@
 <div id="home-page-layout" class="tablet:flex grid justify-center m-auto">
 	<div id="card-container" class="w-fit tablet:w-[66vw] grid tablet:flex flex-wrap gap-x-10 tablet:justify-center h-full tablet:h-[82vh] my-8 overflow-auto mx-auto tablet:ml-4 tablet:mr-8">
 		<!-- <img src="/bar.svg" alt="site logo"> -->
-		{#each chartList as chartCard}
+		{#each ChartList as chartCard}
 		<div class="mb-8 ">
 			<Card chartCard={chartCard} />
 		</div>

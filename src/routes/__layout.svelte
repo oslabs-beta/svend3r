@@ -3,11 +3,29 @@
 	import Icons from '$lib/components/Icons.svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import { setContext } from 'svelte';
 
 	export let dark = 'dark';
 	// export let charts;
 	
-	const chartList = [
+	// const chartList = [
+	// 	{title: 'Area Chart', slug: 'area'}, 
+	// 	{title: 'Bar Chart', slug: 'bar'},
+	// 	{title: 'Bubble Chart', slug: 'bubble'},
+	// 	{title: 'Chord Diagram', slug: 'chord'},
+	// 	{title: 'Choropleth', slug: 'choropleth'},
+	// 	{title: 'Circle Packing', slug: 'circlePack'},
+	// 	{title: 'Donut Chart', slug: 'donut'},
+	// 	{title: 'Hexbin', slug: 'hexbin'},
+	// 	{title: 'Line Chart', slug: 'line'},
+	// 	{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
+	// 	{title: 'Ridgeline Plot', slug: 'ridgeline'},
+	// 	{title: 'Sankey Diagram', slug: 'sankey'},
+	// 	{title: 'Scatterplot', slug: 'scatter'},
+	// 	{title: 'Pie Chart', slug: 'pie'}
+	// ];
+
+	setContext('ChartList', [
 		{title: 'Area Chart', slug: 'area'}, 
 		{title: 'Bar Chart', slug: 'bar'},
 		{title: 'Bubble Chart', slug: 'bubble'},
@@ -22,7 +40,7 @@
 		{title: 'Sankey Diagram', slug: 'sankey'},
 		{title: 'Scatterplot', slug: 'scatter'},
 		{title: 'Pie Chart', slug: 'pie'}
-	];
+	]);
 	
 	// $: chartList = charts.map((chart) => ({
 	// 	path: `/${chart.slug}`,
@@ -39,7 +57,7 @@
 			<slot />
 		</div>
 	</div>
-	<Sidebar {chartList} />
+	<Sidebar />
 </div>
 
 <style>
