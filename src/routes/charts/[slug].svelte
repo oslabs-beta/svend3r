@@ -37,10 +37,12 @@
     // console.log('slug module', module.component);
     // const component = await module.component;
     // console.log('slug component', component.default);
-    const component = await imports[chart.slug]().component;
-    const chartCode = await imports[chart.slug]().chartCode;
-    const chartData = await imports[chart.slug]().chartData;
-    console.log('slug imports', component.default, 'CODE', chartCode.default, 'DATA', chartData.default);
+    const component = await imports[params.slug]().component;
+    const code = await imports[params.slug]().code;
+    const data = await imports[params.slug]().data;
+    const json = await imports[params.slug]().json;
+    const { slug, title, schema, properties } = json
+    console.log('slug imports', component.default, 'CODE', code.default, 'DATA', data.default, 'JSON', json.default);
     // const code = await imports[chart.slug]('', 'raw');
     // console.log('slug code', code.default);
     // const data = await imports[chart.slug]();
@@ -49,7 +51,14 @@
     // console.log('module loaded', chart);
 		return {
 			props: {
-				chart
+        component: component.default,
+        slug: slug,
+        title: title,
+        schema: schema,
+        properties: properties,
+        code: code.default,
+        data: data.default,
+        json: json.default
 			}
       // stuff: {
       //   currentChart
@@ -68,7 +77,7 @@
 	// import Store from '$lib/charts/Store.svelte';
   import StoreMaker from '$lib/charts/StoreMaker.svelte';
   import ChartDisplay from '$lib/charts/ChartDisplay.svelte';
-  import CodeMirror from '$lib/charts/CodeMirror-future.svelte';
+  import CodeMirror from '$lib/charts/CodeMirror-future2.svelte';
   // import CodeMirror from '$lib/charts/CodeMirror.svelte';
   import Properties from '$lib/charts/Properties.svelte';
   // import { ChartDocs } from '$lib/charts/ChartStore';
@@ -96,16 +105,33 @@
   // $: currentChart.set(chart);
   // $: setContext('currentChart', currentChart);
 
+  export let component,
+    slug,  
+    title,
+    schema,
+    properties,
+    code,
+    data,
+    json;
+
+  // beforeUpdate(() => {
+  //   CurrentChart.update(obj => chart);
+  //   ChartDocs.update(obj => []);
+  //   chart.properties.forEach((prop) => {
+  //     ChartDocs.update(obj => ([...obj, prop]));
+  //   })
+  // })
+
   beforeUpdate(() => {
     CurrentChart.update(obj => chart);
     ChartDocs.update(obj => []);
-    chart.properties.forEach((prop) => {
+    properties.forEach((prop) => {
       ChartDocs.update(obj => ([...obj, prop]));
     })
   })
 
 
-  $: ({ slug, title, code, chartData, schema, properties } = chart);
+  // $: ({ slug, title, schema, properties } = json);
     // ChartDocs.update(obj => []);
     // properties.forEach((prop) => {
     //   ChartDocs.update(obj => ([...obj, prop]));
@@ -131,13 +157,15 @@
   <div class="chart-page">
       <div class="left-container">
           <div class="chart-render">
-              <ChartDisplay {slug} {chartData} />
+              <!-- <ChartDisplay {slug} {data} /> -->
               <!-- <ChartDisplay {chart} /> -->
+              <svelte:component this={component} />
           </div>
       </div>
       <div class="right-container">
         <div class="code-mirror">
-          <CodeMirror {slug} {chartData} />
+          <!-- <CodeMirror {slug} {data} /> -->
+          <CodeMirror {code} {data} />
           <!-- <CodeMirror {slug} {chartData} {schema} /> -->
           <!-- <CodeMirror {chart} /> -->
         </div>
