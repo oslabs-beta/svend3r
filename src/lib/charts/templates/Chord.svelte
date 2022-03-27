@@ -43,7 +43,6 @@
   $: formatValue = (val) => {
     return (val * 100).toFixed(2) + scaleFormat;
   }
-  console.log('chord', $ChartDocs);
 </script>
 
 <svg {width} {height} viewBox="{-width / 2} {-height / 2} {width} {height}" >

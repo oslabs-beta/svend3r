@@ -128,7 +128,7 @@
   //     ChartDocs.update(obj => ([...obj, prop]));
   //   })
   // })
-  let directNav = true, ready = false;
+  let directNav = true;
   beforeUpdate(() => {
     CurrentChart.update(obj => chart);
     ChartDocs.update(obj => []);
@@ -136,18 +136,16 @@
       ChartDocs.update(obj => ([...obj, prop]));
     });
     directNav = false;
-    ready = true;
   })
 
   if (directNav) {
     onMount(() => {
-      CurrentChart.update(obj => chart);
-      ChartDocs.update(obj => []);
-      properties.forEach((prop) => {
-        ChartDocs.update(obj => ([...obj, prop]));
-      });
-      ready = true;
-    })
+    CurrentChart.update(obj => chart);
+    ChartDocs.update(obj => []);
+    properties.forEach((prop) => {
+      ChartDocs.update(obj => ([...obj, prop]));
+    });
+  })
   }
   
 
@@ -173,7 +171,6 @@
 
 <!-- <StoreMaker {properties} /> -->
 <!-- <StoreMaker /> -->
-{#if ready}
 <div class="container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
@@ -197,7 +194,6 @@
       </div>
   </div>
 </div>
-{/if}
 
 <style>
   .container {
