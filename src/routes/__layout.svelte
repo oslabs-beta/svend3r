@@ -64,8 +64,13 @@
 	#main-body{
 		background-color: #1E1E1E;
 		width: 100vw;
-		height: 100vh;
+		height: 100%;
 		position: fixed;
-		overflow: auto;
+	}
+
+	@media (max-width: 900px) {
+		#main-body{
+			overflow: auto;
+		}
 	}
 </style>
