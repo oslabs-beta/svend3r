@@ -74,7 +74,7 @@
 
 .section-title{
   font-family: 'Roboto', sans-serif;
-  font-size: 1.5vw;
+  font-size: 30px;
   margin-bottom: 0.5vw;
 }
 
@@ -93,29 +93,29 @@ input{
 }
 
 .prop-value{
-  font-size: 1.5vw;
+  font-size: 28px;
 }
 
 .prop-value-docs{
-  font-size: 0.7vw;
+  font-size: 14px;
   margin-left: 2em;
 }
 
 .adjustable-container{
   display: flex;
-  margin-top: 0.5vw;
+  margin-top: 10px;
   align-items: center;
   margin-bottom: 1em;
 }
 
 .input{
   display:inline-block;
-  margin-left: 1vw;
+  margin-left: 1.5em;
   margin-bottom: 0;
 }
 
 .input-value{
-  margin-left: 1vw;
+  margin-left: 1.5em;
   color: lightgreen
 }
 
@@ -130,7 +130,7 @@ input{
 }
 
 .input-arr{
-  margin: 1vw;
+  margin: 0.5em 0 0.5em 1.5em;
 }
 
 .switch {
@@ -185,6 +185,12 @@ input:checked + .slider:before {
     -webkit-transform: translateX(15px);
     -ms-transform: translateX(15px);
     transform: translateX(15px);
+}
+
+@media (max-width: 900px) {
+  .chart-props {
+    height: fit-content;
+  }
 }
   
 </style>

@@ -47,7 +47,7 @@
 </svelte:head>
 
 <StoreMaker {properties} />
-<div class="container">
+<div class="chart_page_container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
       <div class="left-container">
@@ -68,44 +68,32 @@
 </div>
 
 <style>
-  .container {
+  .chart_page_container {
     background-color: #1E1E1E;
-    width: fit-content;
-    height: fit-content;
-    margin: auto;
+    width: 100%;
+    height: 80%;
   }
 
   .page-title{
     color: rgba(255, 255, 255, 0.87);
     height: 5vh;
     font-family: 'Roboto', sans-serif;
-    font-size: 2vw;
+    font-size: 38px;
     text-align: center;
     text-decoration: underline;
-    margin-bottom: 1vw;
-    
+    margin-bottom: 20px;
   }
   
   .chart-page{
     color: rgba(255, 255, 255, 0.87);
     display: flex;
+    justify-content: space-evenly;
     height: fit-content;
-    width: fit-content;
-  }
-  
-  .left-container {
-    align-items: center;
-    width:45vw; 
-    height: 90vh;
-  }
-
-  .right-container {
-    align-items: center;
-    height: 90vh;
+    width: 100%;
   }
   
   .chart-render {
-    border-radius: 0.5vw;
+    border-radius: 10px;
     background-color: rgba(255, 255, 255, 0.87);
     display: flex;
     justify-content: center;
@@ -122,6 +110,28 @@
     width: 36vw;
   }
   
-  @media all and (min-width:0px) and (max-width: 700px) {
-  }
+  @media (max-width: 900px) {
+    .chart_page_container {
+      height: fit-content;
+    }
+    .chart-page{
+      color: rgba(255, 255, 255, 0.87);
+      display: inline;
+      justify-content: center;
+    }
+
+    .chart-render {
+      width:100%;
+      height: 87vw;
+    }
+
+    .chart-properties{
+      width:100%;
+    }
+
+    .code-mirror{
+      width: 100%;
+    }
+
+	}
 </style>
