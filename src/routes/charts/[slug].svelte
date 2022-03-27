@@ -1,5 +1,5 @@
 <script context="module">
-  // export const prerender = false;
+  // export const prerender = true;
   // import { CurrentChart } from '$lib/charts/CurrentChart';
   // import { ChartDocs } from '$lib/charts/ChartStore';
   // const imports = {
@@ -22,7 +22,7 @@
 	// TODO should use a shadow endpoint instead, need to fix a bug first
 	/** @type {import('@sveltejs/kit').Load} */
 	export async function load({ fetch, params }) {
-		// console.log('[slug].svelte load', params)
+		console.log('[slug].svelte load', params)
     const res = await fetch(`/charts/${params.slug}.json`);
 		const chart = await res.json();
     
@@ -49,6 +49,13 @@
     // console.log('slug module', module.default);
     // const currentChart = writable(chart);
     // console.log('module loaded', chart);
+
+    // CurrentChart.update(obj => chart);
+    // ChartDocs.update(obj => []);
+    // properties.forEach((prop) => {
+    //   ChartDocs.update(obj => ([...obj, prop]));
+    // })
+
 		return {
 			props: {
         component: component.default,
@@ -121,14 +128,26 @@
   //     ChartDocs.update(obj => ([...obj, prop]));
   //   })
   // })
-
+  let directNav = true;
   beforeUpdate(() => {
     CurrentChart.update(obj => chart);
     ChartDocs.update(obj => []);
     properties.forEach((prop) => {
       ChartDocs.update(obj => ([...obj, prop]));
-    })
+    });
+    directNav = false;
   })
+
+  if (directNav) {
+    onMount(() => {
+    CurrentChart.update(obj => chart);
+    ChartDocs.update(obj => []);
+    properties.forEach((prop) => {
+      ChartDocs.update(obj => ([...obj, prop]));
+    });
+  })
+  }
+  
 
 
   // $: ({ slug, title, schema, properties } = json);
