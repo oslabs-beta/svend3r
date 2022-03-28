@@ -9,7 +9,7 @@
   // import lineData from './data/line-data-vtsax';
   // import AreaChart from './Area/Area_Chart.svelte';
   // import areaData from './data/line-data-multi';
-  // import PieChart from './Pie/Pie_Chart.svelte';
+  import PieChart from './Pie/Pie_Chart.svelte';
   // import pieData from './data/pie-data-census';
   // import Choropleth from './Choropleth/Choropleth_Chart.svelte';
   // import choroplethData from './data/bivariate-choropleth-data-d3';
@@ -18,14 +18,14 @@
   // import Chord_Container from './Chord/Chord_Container.svelte';
   // import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
   // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
-  import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
+  // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
   // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
 
 </script>
 
 <body>
   <div>
-    <Zoomable_Circle_Packing />
+    <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
     <!-- <Scatter {scatterData} /> -->
@@ -34,7 +34,7 @@
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
     <!-- <Area_Container /> -->
-    <!-- <PieChart {pieData} /> -->
+    <PieChart />
     <!-- <Choropleth {choroplethData} /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
