@@ -13,10 +13,22 @@
   })
 
   $: updateCode = () => {
-    let userCode = code.replace("import { ChartDocs } from '../ChartStore';", '');
-    for (let i = 1; i < $ChartDocs.length; i++) {
-      userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, '$1' + $ChartDocs[i].value);
+    let userCode = code.replace("import { ChartDocs } from '../ChartStore';\n", '');
+    userCode = userCode.replace('./data', '');
+    
+    for (let i = 0; i < $ChartDocs.length; i++) {
+      const doc = $ChartDocs[i].value;
+      let replacementValue = doc;
+      if (Array.isArray(doc)) {
+        replacementValue = `[${doc.map((el) => `'${el}'`)}]`;
+      }
+      else if (typeof doc === 'string') {
+        replacementValue = `'${doc}'`;
+      }
+      userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, 'const' + '$1' + replacementValue);
     }
+    userCode = userCode.replace(/\$: (?!reactive|\{)/g, 'const ');
+    
     return userCode;
   };
 

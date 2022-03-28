@@ -1,4 +1,4 @@
-const sampleData = [
+export default [
   { letter: 'A', frequency: 0.08167 },
   { letter: 'B', frequency: 0.01492 },
   { letter: 'C', frequency: 0.02782 },
@@ -26,5 +26,3 @@ const sampleData = [
   { letter: 'Y', frequency: 0.01974 },
   { letter: 'Z', frequency: 0.00074 },
 ];
-
-export { sampleData };

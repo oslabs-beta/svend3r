@@ -8,16 +8,13 @@
     const code = await imports[params.slug]().code;
     const data = await imports[params.slug]().data;
     const json = await imports[params.slug]().json;
-    const { slug, title, schema, properties } = json
     
 		return {
 			props: {
         component: component.default,
-        title: title,
-        schema: schema,
-        properties: properties,
         code: code.default,
-        data: data.default
+        data: data.default,
+        json: json
 			}
 		};
 	}
@@ -30,11 +27,11 @@
   import { beforeUpdate } from 'svelte';
 
   export let component, 
-    title,
-    schema,
-    properties,
     code,
-    data;
+    data,
+    json;
+
+  $: ({ title, createdBy, sourceText, sourceLink, schema, properties } = json);
 
   let ready = false;
   beforeUpdate(() => {
@@ -56,21 +53,23 @@
 <div class="chart_page_container">
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
-      <div class="left-container">
-          <div class="chart-render">
-              {#if ready}
-                <svelte:component this={component} />
-              {/if}
-          </div>
+    <div class="left-container">
+      <!-- <h2>Created by: {createdBy}</h2> -->
+      <h2>Source: <a href={sourceLink} target='_blank' rel='noopener noreferrer'>{sourceText}</a></h2>
+      <div class="chart-render">
+          {#if ready}
+            <svelte:component this={component} />
+          {/if}
       </div>
-      <div class="right-container">
-        <div class="code-mirror">
-          <CodeMirror {code} {data} {schema} />
-        </div>
-        <div class="chart-properties">
-          <Properties />
-        </div>
+    </div>
+    <div class="right-container">
+      <div class="code-mirror">
+        <CodeMirror {code} {data} {schema} />
       </div>
+      <div class="chart-properties">
+        <Properties />
+      </div>
+    </div>
   </div>
 </div>
 
