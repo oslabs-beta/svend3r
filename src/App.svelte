@@ -1,5 +1,5 @@
 <script>
-  // import Scatter from './Scatter/Scatter_Chart.svelte';
+  import Scatter from './Scatter/Scatter_Chart.svelte';
   // import scatterData from './data/nivo-scatter-data';
   // import Chord from './Chord/Chord_Chart.svelte';
   // import chordData from './data/observable-chord-data';
@@ -18,23 +18,23 @@
   // import Chord_Container from './Chord/Chord_Container.svelte';
   // import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
   // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
-  import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
+  // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
   // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
 
 </script>
 
 <body>
   <div>
-    <Zoomable_Circle_Packing />
+    <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
-    <!-- <Scatter {scatterData} /> -->
+    <Scatter />
     <!-- <Chord {chordData} /> -->
     <!-- <Line_Container /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
     <!-- <Area_Container /> -->
-    <!-- <PieChart {pieData} /> -->
+    <!-- <PieChart /> -->
     <!-- <Choropleth {choroplethData} /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
@@ -45,7 +45,7 @@
 
 body {
    height:100%; 
-   background-color: #1E1E1E;
+   /* background-color: #1E1E1E; */
 }
 
 </style>
