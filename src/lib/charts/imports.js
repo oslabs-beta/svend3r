@@ -46,5 +46,17 @@ export default {
       data: data,
       json: json
     }
+  },
+  pie: () => {
+    const component = import('$lib/charts/templates/Pie.svelte');
+    const code = import('$lib/charts/templates/Pie.svelte?raw');
+    const data = import('$lib/charts/data/pie-data?raw');
+    const json = import('$lib/charts/db/pie.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
   }
 };
