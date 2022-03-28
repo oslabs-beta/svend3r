@@ -80,6 +80,10 @@
     height: 80%;
   }
 
+  .left-container{
+    margin-bottom: 50px;
+  }
+
   .page-title{
     color: rgba(255, 255, 255, 0.87);
     height: 5vh;
