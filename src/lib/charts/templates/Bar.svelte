@@ -50,10 +50,13 @@
   $: yScale = yType(yDomain, yRange);
 
   // Create Y-Axis ticks based on yScalefactor spacing
-  let yTicks = [];
-  $: unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
-  $: for (let i = 1; i < yScalefactor + 1; i++) {
-    yTicks = [...yTicks, Math.floor(i * unit * 100)];
+  let yTicks;
+  $: {
+    yTicks = [];
+    let unit = (Math.max(...Y) - Math.min(...Y)) / yScalefactor;
+    for (let i = 1; i < yScalefactor + 1; i++) {
+      yTicks = [...yTicks, Math.floor(i * unit * 100)];
+    }
   }
 </script>
 
