@@ -49,9 +49,9 @@ console.log(data)
 </script>
 
 <svg {width} {height}>
-    {#each renderedDots as { x, y , radius, color, name}, i}
-    //to set both color and radius attr's they must be included in the 
+    {#each renderedDots as { x, y , radius, color, name, letter}, i}
     <circle fill="{color}" style="{move(x, y)}" r="{radius}"></circle>
+    <text style="{move(x, y)}">{letter}</text>
     {/each}
 </svg>
 

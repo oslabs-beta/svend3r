@@ -51,6 +51,8 @@ const layout = cloud()
 	.fontSize(d => d.count *5)
 	layout.start();
 
+	console.log(layout)
+
 </script>
 
 <svg id="chartSVG" viewBox="{height/2},{width/2},{height},{width}">

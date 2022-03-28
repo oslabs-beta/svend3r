@@ -1,7 +1,7 @@
 <script>
   import { forceX, forceY, forceCollide, forceRadial } from "d3-force"
 
-  import Force from "./Force.svelte"
+  import Bubble from './Bubble.svelte'
 
   let element
   let centerPosition = [200, 200]
@@ -35,39 +35,6 @@
   }
 </script>
 
-<div class="controls">
-  <label>
-    <input type="checkbox" bind:checked="{useForceCollide}" />
-    Collide?
-  </label>
-  <label>
-    <input type="checkbox" bind:checked="{useForceRadial}" />
-    Radial?
-  </label>
-</div>
-<div class="note">Click around to update</div>
-
 <div on:click="{onClick}" bind:this="{element}">
-  <Force {forces} {dots} />
+  <Bubble {forces} {dots} />
 </div>
-
-<style>
-  .controls {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    top: 0;
-    right: 0;
-    font-style: italic;
-    color: var(--text-light);
-  }
-  label + label {
-    margin-left: 1em;
-  }
-  .note {
-    position: absolute;
-    top: 0;
-    font-style: italic;
-    color: var(--text-light);
-  }
-</style>
