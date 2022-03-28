@@ -1,15 +1,8 @@
-<!-- <script context="module" lang="ts">
-	export const prerender = true;
-</script> -->
 <script lang="ts">
-<<<<<<< HEAD
 	import GettingStarted from '$lib/gettingStarted/GettingStarted.svelte';
 	import ChartsDisplay from '$lib/chartsDisplay/ChartsDisplay.svelte';
 	import Icon from '$lib/components/Icon.svelte';
 	import ColumnChart from './columnChart.svelte';
-=======
-	import ChartCardRow from '$lib/components/ChartCardRow.svelte';
->>>>>>> main
 	// import Github from '/images/github-dark.png';
 
 	// const github = 'images/github-dark.png';
