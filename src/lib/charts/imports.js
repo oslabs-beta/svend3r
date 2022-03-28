@@ -14,7 +14,7 @@ export default {
   bar: () => {
     const component = import('$lib/charts/templates/Bar.svelte');
     const code = import('$lib/charts/templates/Bar.svelte?raw');
-    const data = import('$lib/charts/data/bar-data-alphabet?raw');
+    const data = import('$lib/charts/data/bar-data?raw');
     const json = import('$lib/charts/db/bar.json');
     return { 
       component: component,
@@ -26,7 +26,7 @@ export default {
   chord: () => {
     const component = import('$lib/charts/templates/Chord.svelte');
     const code = import('$lib/charts/templates/Chord.svelte?raw');
-    const data = import('$lib/charts/data/observable-chord-data?raw');
+    const data = import('$lib/charts/data/chord-data?raw');
     const json = import('$lib/charts/db/chord.json');
     return { 
       component: component,

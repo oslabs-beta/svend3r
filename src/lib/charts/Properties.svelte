@@ -1,5 +1,4 @@
 <script>
-  import Prism from 'prismjs';
   import { ChartDocs } from './ChartStore';
   
   // console.log('Properties schema and properties', schema, properties);
