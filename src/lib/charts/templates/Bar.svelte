@@ -1,22 +1,22 @@
 <script>
   import { scaleLinear, scaleBand } from 'd3';
   import { flip } from 'svelte/animate';
-  import data from '../data/bar-data'; //import your custom dataset
+  import data from '../data/bar-data'; // or pass data to component as prop
   import { ChartDocs } from '../ChartStore';
 
-  $: marginTop = $ChartDocs[0].value; // the top margin, in pixels
-  $: marginRight = $ChartDocs[1].value; // the right margin, in pixels
-  $: marginBottom = $ChartDocs[2].value; // the bottom margin, in pixels
-  $: marginLeft = $ChartDocs[3].value; // the left margin, in pixels
-  $: width = $ChartDocs[4].value; // the outer width of the chart, in pixels
-  $: height = $ChartDocs[5].value; // the outer height of the chart, in pixels
-  $: xPadding = $ChartDocs[6].value; // amount of x-range to reserve to separate bars
-  $: yFormat = $ChartDocs[7].value; // a format specifier string for the y-axis
-  $: yLabel = $ChartDocs[8].value; // a label for the y-axis
+  $: marginTop = $ChartDocs[0].value; // top margin, in pixels
+  $: marginRight = $ChartDocs[1].value; // right margin, in pixels
+  $: marginBottom = $ChartDocs[2].value; // bottom margin, in pixels
+  $: marginLeft = $ChartDocs[3].value; // left margin, in pixels
+  $: width = $ChartDocs[4].value; // width of the chart, in pixels
+  $: height = $ChartDocs[5].value; // height of the chart, in pixels
+  $: xPadding = $ChartDocs[6].value; // padding between bars
+  $: yFormat = $ChartDocs[7].value; // unit to display on y-axis ticks
+  $: yLabel = $ChartDocs[8].value; // label for the y-axis
   $: color = $ChartDocs[9].value; // bar fill color
-  $: yScalefactor = $ChartDocs[10].value; //y-axis number of values
+  $: yScalefactor = $ChartDocs[10].value; // number of ticks on y-yaxis
 
-  // Modify data based on default, ascending, descending sorts.  Input is based on selectedIndex
+  // Sort data by default, ascending, or descending
   let sortedData = data;
   $: reactiveShowSort = (input) => {
     if (input === 1) {
@@ -35,12 +35,12 @@
   // Compute values X and Y value of Arrays
   const x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
   const y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
-  $: reactiveX = sortedData.map((el) => el[x]);
-  $: reactiveY = sortedData.map((el) => el[y]);
+  $: reactiveXVals = sortedData.map((el) => el[x]);
+  $: reactiveYVals = sortedData.map((el) => el[y]);
 
   // Compute default domains, and unique the x-domain.
-  $: reactiveXDomain = reactiveX; // an array of (ordinal) x-values // sort by descending frequency
-  $: reactiveYDomain = [0, Math.max(...reactiveY)]; // [ymin, ymax]
+  $: reactiveXDomain = reactiveXVals; // an array of (ordinal) x-values // sort by descending frequency
+  $: reactiveYDomain = [0, Math.max(...reactiveYVals)]; // [ymin, ymax]
 
   // Construct scales, axes, and formats.
   $: xRange = [marginLeft, width - marginRight]; // [left, right] //*****Remove reactivepermalink for production use
@@ -53,7 +53,7 @@
   let yTicks;
   $: {
     yTicks = [];
-    let unit = (Math.max(...reactiveY) - Math.min(...reactiveY)) / yScalefactor;
+    let unit = (Math.max(...reactiveYVals) - Math.min(...reactiveYVals)) / yScalefactor;
     for (let i = 1; i < yScalefactor + 1; i++) {
       yTicks = [...yTicks, Math.floor(i * unit * 100)];
     }
@@ -61,23 +61,32 @@
 </script>
 
 <div class="chart-container" dir="auto">
-  <select
-    on:change={reactiveShowSort(this.selectedIndex)}
-    onfocus={(this.selectedIndex = -1)}
-  >
+  <select on:change={reactiveShowSort(this.selectedIndex)}>
     <option disabled selected value> ---Sorting Method--- </option>
     <option value="1">Default</option>
     <option value="2">{y}, Ascending</option>
     <option value="3">{y}, Descending</option>
   </select>
+
   <svg {width} {height} viewBox="0 0 {width} {height}">
+    <g class="x-axis" transform="translate(0,{height - marginBottom})">
+      <path class="domain" stroke="black" d="M{marginLeft}, 0.5 H{width}" />
+      {#each reactiveXVals as xVal, i}
+        <g class="tick" opacity="1" transform="translate({reactiveXScale(xVal)},0)">
+          <line
+            x1={reactiveXScale.bandwidth() / 2}
+            x2={reactiveXScale.bandwidth() / 2}
+            stroke="black"
+            y2="6"
+          />
+          <text y={marginBottom} dx={reactiveXScale.bandwidth() / 4}>{xVal}</text>
+        </g>
+      {/each}
+    </g>
+    
     <g class="y-axis" transform="translate({marginLeft}, 0)">
       {#each yTicks as tick, i}
-        <g
-          class="tick"
-          opacity="1"
-          transform="translate(0, {reactiveYScale(tick / 100)})"
-        >
+        <g class="tick" opacity="1" transform="translate(0, {reactiveYScale(tick / 100)})">
           <line class="tick-start" stroke="black" stroke-opacity="1" x2="-6" />
           <line class="tick-grid" x2={width - marginLeft - marginRight} />
           <text x={-marginLeft} y="10">{tick + yFormat}</text>
@@ -87,30 +96,15 @@
     </g>
 
     <g class="bars">
-      {#each reactiveY as point, i (point)}
+      {#each reactiveYVals as bar, i (bar)}
         <rect
-          x={reactiveXScale(reactiveX[i])}
-          y={reactiveYScale(reactiveY[i])}
+          x={reactiveXScale(reactiveXVals[i])}
+          y={reactiveYScale(reactiveYVals[i])}
           width={reactiveXScale.bandwidth()}
-          height={reactiveYScale(0) - reactiveYScale(reactiveY[i])}
+          height={reactiveYScale(0) - reactiveYScale(bar)}
           fill={color}
           animate:flip="{{duration: 1000}}"
         />
-      {/each}
-    </g>
-
-    <g class="x-axis" transform="translate(0,{height - marginBottom})">
-      <path class="domain" stroke="black" d="M{marginLeft}, 0.5 H{width}" />
-      {#each reactiveX as point, i}
-        <g class="tick" opacity="1" transform="translate({reactiveXScale(point)},0)">
-          <line
-            x1={reactiveXScale.bandwidth() / 2}
-            x2={reactiveXScale.bandwidth() / 2}
-            stroke="black"
-            y2="6"
-          />
-          <text y={marginBottom} dx={reactiveXScale.bandwidth() / 4}>{reactiveX[i]}</text>
-        </g>
       {/each}
     </g>
   </svg>

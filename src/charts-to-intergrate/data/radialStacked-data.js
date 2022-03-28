@@ -1,4 +1,4 @@
-const sampleData = [
+export default [
   {
     State: 'AL',
     'Under 5 Years': 310504,
@@ -561,5 +561,3 @@ const sampleData = [
     total: 532668,
   },
 ];
-
-export { sampleData };

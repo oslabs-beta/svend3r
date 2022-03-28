@@ -1,9 +1,7 @@
 <script>
   import { scaleQuantile, range, geoPath } from 'd3';
   import { feature, mesh } from 'topojson';
-  import us from '../data/counties-albers-10m.json';
-
-  export let choroplethData;
+  import us from './data/counties-albers-10m.json';
 
   const data = choroplethData,
     width = 900, // the outer width of the chart, in pixels

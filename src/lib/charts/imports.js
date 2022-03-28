@@ -38,7 +38,7 @@ export default {
   radialStacked: () => {
     const component = import('$lib/charts/templates/RadialStacked.svelte');
     const code = import('$lib/charts/templates/RadialStacked.svelte?raw');
-    const data = import('$lib/charts/data/radial-stacked-data?raw');
+    const data = import('$lib/charts/data/radialStacked-data?raw');
     const json = import('$lib/charts/db/radialStacked.json');
     return { 
       component: component,

@@ -54,7 +54,7 @@
   <h1 class="page-title">{title}</h1>
   <div class="chart-page">
     <div class="left-container">
-      <h2>Created by: {createdBy}</h2>
+      <!-- <h2>Created by: {createdBy}</h2> -->
       <h2>Source: <a href={sourceLink} target='_blank' rel='noopener noreferrer'>{sourceText}</a></h2>
       <div class="chart-render">
           {#if ready}
