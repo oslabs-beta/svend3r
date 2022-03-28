@@ -3,7 +3,7 @@
   // import scatterData from './data/nivo-scatter-data';
   // import Chord from './Chord/Chord_Chart.svelte';
   // import chordData from './data/observable-chord-data';
-  import Line_Container from './Line/Line_Container.svelte';
+  // import Line_Container from './Line/Line_Container.svelte';
   // import LineChart from './Line/Line_Chart.svelte';
   // import lineData from './data/line-data-multi';
   // import lineData from './data/line-data-vtsax';
@@ -16,21 +16,21 @@
   // import BarVert_Container from './BarVert/BarVert_Container.svelte';
   // import Area_Container from './Area/Area_Container.svelte';
   // import Chord_Container from './Chord/Chord_Container.svelte';
-  import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
+  // import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
   // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
-  // import Zoomable_Circle_Packing from './Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte';
+  import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
   // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
 
 </script>
 
 <body>
   <div>
-    <!-- <Zoomable_Circle_Packing /> -->
+    <Zoomable_Circle_Packing />
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
     <!-- <Scatter {scatterData} /> -->
     <!-- <Chord {chordData} /> -->
-    <Line_Container />
+    <!-- <Line_Container /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
     <!-- <Area_Container /> -->
@@ -45,7 +45,7 @@
 
 body {
    height:100%; 
-   /* background-color: #1E1E1E; */
+   background-color: #1E1E1E;
 }
 
 </style>
