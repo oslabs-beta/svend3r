@@ -27,6 +27,7 @@
       }
       userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, 'const' + '$1' + replacementValue);
     }
+    userCode = userCode.replace(/\$: (for|if)/g, '$1');
     userCode = userCode.replace(/\$: (?!reactive|\{)/g, 'const ');
     
     return userCode;
