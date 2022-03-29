@@ -1,8 +1,21 @@
 <script>
-  import Prism from 'prismjs';
   import { ChartDocs } from './ChartStore';
   
   // console.log('Properties schema and properties', schema, properties);
+  // $: colors = ["#c4c4c4","#69b40f","#ec1d25","#c8125c","#008fc8","#10218b","#134b24","#737373"];
+  // let colorsArray;
+  // $: if (!Array.isArray(colors)) {
+  //   console.log(colors, typeof colors, colors.split(','))
+  //   // colorsArray = JSON.parse(`[${colors}]`);
+  //   colorsArray = colors.split(',');
+  // } 
+  // $: console.log(Array.isArray(colorsArray));
+
+  // $ChartDocs.forEach((doc) => {
+  //   if (Array.isArray(doc)) {
+
+  //   }
+  // })
 </script>
 
 <div class="data-schema-container">
@@ -28,7 +41,16 @@
                   <input class="input" type="range" step={doc.max === 1 ? 0.1 : 1} bind:value={doc.value} min={doc.min} max={doc.max}>
                   <li class="input-value">{doc.value}</li>
               {/if}
-              {#if !doc.max && i > 0 && doc.dataType !== "Boolean"}
+              {#if Array.isArray(doc.value)}
+                <section class="array_container">
+                  {#each doc.value as el, i}
+                  <section class="array_container_sub">
+                    <li class="prop-value-docs"><b>Adjusted Value - Index {i}: </b></li>
+                    <input class="input-arr" on:input={(e) => el = e.target.value} value={el}>
+                  </section>
+                  {/each}
+                </section>
+              {:else if !doc.max && i > 0 && doc.dataType !== "Boolean"}
                   <li class="prop-value-docs"><b>Adjusted Value: </b></li>
                   <input class="input" bind:value={doc.value}>
               {/if}
@@ -51,7 +73,7 @@
 
 .section-title{
   font-family: 'Roboto', sans-serif;
-  font-size: 1.5vw;
+  font-size: 30px;
   margin-bottom: 0.5vw;
 }
 
@@ -62,34 +84,52 @@ margin-left: 2vw;
 }
 
 input{
+    display:list-item;
     color: black;
     padding: 5px;
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
 .prop-value{
-  font-size: 1.5vw;
+  font-size: 28px;
 }
 
 .prop-value-docs{
-  font-size: 0.7vw;
+  font-size: 14px;
   margin-left: 2em;
 }
 
 .adjustable-container{
   display: flex;
-  margin-top: 0.5vw;
+  margin-top: 10px;
   align-items: center;
   margin-bottom: 1em;
 }
 
 .input{
   display:inline-block;
-  margin-left: 1vw;
+  margin-left: 1.5em;
   margin-bottom: 0;
 }
+
 .input-value{
-  margin-left: 1vw;
+  margin-left: 1.5em;
   color: lightgreen
+}
+
+.array_container{
+  width: 450px;
+  outline: none;
+}
+
+.array_container_sub{
+  display: flex;
+  align-items: center;
+}
+
+.input-arr{
+  margin: 0.5em 0 0.5em 1.5em;
 }
 
 .switch {
@@ -144,6 +184,12 @@ input:checked + .slider:before {
     -webkit-transform: translateX(15px);
     -ms-transform: translateX(15px);
     transform: translateX(15px);
+}
+
+@media (max-width: 900px) {
+  .chart-props {
+    height: fit-content;
+  }
 }
   
 </style>
