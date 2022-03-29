@@ -23,7 +23,6 @@
   let groupInfo, ribbonInfo;
   $: reactiveSelectedChord = null;
   $: reactiveTickStep = tickStep(0, data.flat().reduce((a, b) => a + b, 0), tickCount);
-  $: console.log('step', reactiveTickStep)
   $: d3chord = chord()
     .padAngle(10 / innerRadius)
     .sortSubgroups(descending)
