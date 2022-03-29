@@ -47,6 +47,9 @@
 	}
 </script>
 
+<div class="data-schema-container">
+  <h1 class="section-title">Chart Data Schema</h1>
+</div>
 <div class="code-mirror">
 <button class="page_selected" id="page1" on:click={() => showCode('page1')}>
   <section class="button-text_icon">
@@ -70,7 +73,6 @@
  --></code
 	><!--
 --></pre>
-
 <pre id="page2_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
@@ -89,25 +91,26 @@
 
 
 <style>
+
   .section-title{
     font-family: 'Roboto', sans-serif;
-    font-size: 1.5vw;
-    margin-bottom: 0.5vw;
+    font-size: 30px;
+    margin-bottom: 10px;
   }
 
 	.codeMirror {
 		white-space: pre-wrap;
-		padding: 1vw 0 0 1vw;
+		padding: 20px 0 0 20px;
     min-height: 31vh;
     outline: none;
 	}
 
   .code-mirror {
     background-color: #2D2D2D;
-    border-radius: 0.5vw;
+    border-radius: 10px;
     width: 36vw;
     height: 35vh;
-    margin-bottom: 1vw;
+    margin-bottom: 20px;
     overflow: auto;
     box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
   }
@@ -161,4 +164,12 @@
   .codeMirror::-webkit-scrollbar {
       display: none;
   }
+
+  @media (max-width: 900px) {
+    .code-mirror {
+      height: 60vh;
+      width: 100%;
+    }
+}
+
 </style>
