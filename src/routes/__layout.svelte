@@ -38,8 +38,8 @@
 		{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
 		// {title: 'Ridgeline Plot', slug: 'ridgeline'},
 		// {title: 'Sankey Diagram', slug: 'sankey'},
-		// {title: 'Scatterplot', slug: 'scatter'},
-		// {title: 'Pie Chart', slug: 'pie'}
+		{title: 'Scatterplot', slug: 'scatter'},
+		{title: 'Pie Chart', slug: 'pie'}
 	]);
 	
 	// $: chartList = charts.map((chart) => ({
