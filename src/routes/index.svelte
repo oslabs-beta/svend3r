@@ -9,18 +9,140 @@
 	// const github = 'images/github-dark.png';
 	// const barIcon = '/icons/bar.svg';
 
-	const string = [
-    [0.096899, 0.008859, 0.000554, 0.00443, 0.025471, 0.024363, 0.005537, 0.025471],
-    [0.001107, 0.018272, 0, 0.004983, 0.011074, 0.01052, 0.002215, 0.004983],
-    [0.000554, 0.002769, 0.002215, 0.002215, 0.003876, 0.008306, 0.000554, 0.003322],
-    [0.000554, 0.001107, 0.000554, 0.012182, 0.011628, 0.006645, 0.004983, 0.01052],
-    [0.002215, 0.00443, 0, 0.002769, 0.104097, 0.012182, 0.004983, 0.028239],
-    [0.011628, 0.026024, 0, 0.013843, 0.087486, 0.168328, 0.017165, 0.055925],
-    [0.000554, 0.004983, 0, 0.003322, 0.00443, 0.008859, 0.017719, 0.00443],
-    [0.002215, 0.007198, 0, 0.003322, 0.016611, 0.01495, 0.001107, 0.054264]
-  ];
+	const string = {
+		marginOffset: {
+			variable: 'marginOffset',
+			value: 100,
+			dataType: 'Number',
+			description: 'The margin top, bottom, left, right margin offset relative to the radius.',
+			defaultValue: 100,
+			min: 0,
+			max: 180
+		},
+		width: {
+			variable: 'width',
+			value: 700,
+			dataType: 'Number',
+			description: 'The outer width of the chart, in pixels.',
+			defaultValue: 800,
+			min: 370,
+			max: 1500
+		},
+		bandThickness: {
+			variable: 'bandThickness',
+			value: 10,
+			dataType: 'Number',
+			description: 'The thickness of the color band representing each dataset.',
+			defaultValue: 10,
+			min: 0,
+			max: 100
+		},
+		fontSize: {
+			variable: 'fontSize',
+			value: 1,
+			dataType: 'Number',
+			description: 'The label font size relative to 1% of the width of the viewport.',
+			defaultValue: 1,
+			min: 0.1,
+			max: 1
+		},
+		tickStep: {
+			variable: 'tickStep',
+			value: 1,
+			dataType: 'Number',
+			description: 'The chart label tick spread factor.',
+			defaultValue: 1,
+			min: 1,
+			max: 5
+		},
+		scaleFormat: {
+			variable: 'scaleFormat',
+			value: '%',
+			dataType: 'String',
+			description: 'The format specifier string for the scale ticks.',
+			defaultValue: '%'
+		},
+		names: {
+			variable: 'names',
+			value: [
+				'Apple',  'HTC',
+				'Huawei', 'LG',
+				'Nokia',  'Samsung',
+				'Sony',   'Other'
+			],
+			dataType: 'Array',
+			description: 'The section labels for each dataset.',
+			defaultValue: [
+				'Apple',  'HTC',
+				'Huawei', 'LG',
+				'Nokia',  'Samsung',
+				'Sony',   'Other'
+			]
+		},
+		colors: {
+			variable: 'colors',
+			value: [
+				'#c4c4c4', '#69b40f',
+				'#ec1d25', '#c8125c',
+				'#008fc8', '#10218b',
+				'#134b24', '#737373'
+			],
+			dataType: 'Array',
+			description: 'The fill colors for each section.  The length of colors MUST match names variable array.',
+			defaultValue: [
+				'#c4c4c4', '#69b40f',
+				'#ec1d25', '#c8125c',
+				'#008fc8', '#10218b',
+				'#134b24', '#737373'
+			]
+		},
+		chordOpacity: {
+			variable: 'chordOpacity',
+			value: 0.7,
+			dataType: 'Number',
+			description: 'The opacity for the charts overall chords.',
+			defaultValue: 0.7,
+			min: 0.1,
+			max: 1
+		},
+		unselectOpacity: {
+			variable: 'unselectOpacity',
+			value: 0.1,
+			dataType: 'Number',
+			description: 'The opacity of non-select chart elements.',
+			defaultValue: 0.1,
+			min: 0.1,
+			max: 1
+		},
+		selectOpacity: {
+			variable: 'selectOpacity',
+			value: 0.7,
+			dataType: 'Number',
+			description: 'The opacity of select chart elements.',
+			defaultValue: 0.7,
+			min: 0.1,
+			max: 1
+		},
+		tooltipBackground: {
+			variable: 'tooltipBackground',
+			value: 'lightgrey',
+			dataType: 'String | RGB | Hex',
+			description: 'The background color of the tooltip.',
+			defaultValue: 'lightgrey'
+		},
+		tooltipTextColor: {
+			variable: 'tooltipTextColor',
+			value: 'black',
+			dataType: 'String | RGB | Hex',
+			description: 'The text color of the tooltip.',
+			defaultValue: 'black'
+		}
+	};
+
+	const json = '[{"variable":"marginOffset","value":100,"dataType":"Number","description":"The margin top, bottom, left, right margin offset relative to the radius.","defaultValue":100,"min":0,"max":180},{"variable":"width","value":700,"dataType":"Number","description":"The outer width of the chart, in pixels.","defaultValue":800,"min":370,"max":1500},{"variable":"bandThickness","value":10,"dataType":"Number","description":"The thickness of the color band representing each dataset.","defaultValue":10,"min":0,"max":100},{"variable":"fontSize","value":1,"dataType":"Number","description":"The label font size relative to 1% of the width of the viewport.","defaultValue":1,"min":0.1,"max":1},{"variable":"tickStep","value":1,"dataType":"Number","description":"The chart label tick spread factor.","defaultValue":1,"min":1,"max":5},{"variable":"scaleFormat","value":"%","dataType":"String","description":"The format specifier string for the scale ticks.","defaultValue":"%"},{"variable":"names","value":["Apple","HTC","Huawei","LG","Nokia","Samsung","Sony","Other"],"dataType":"Array","description":"The section labels for each dataset.","defaultValue":["Apple","HTC","Huawei","LG","Nokia","Samsung","Sony","Other"]},{"variable":"colors","value":["#c4c4c4","#69b40f","#ec1d25","#c8125c","#008fc8","#10218b","#134b24","#737373"],"dataType":"Array","description":"The fill colors for each section.  The length of colors MUST match names variable array.","defaultValue":["#c4c4c4","#69b40f","#ec1d25","#c8125c","#008fc8","#10218b","#134b24","#737373"]},{"variable":"chordOpacity","value":0.7,"dataType":"Number","description":"The opacity for the charts overall chords.","defaultValue":0.7,"min":0.1,"max":1},{"variable":"unselectOpacity","value":0.1,"dataType":"Number","description":"The opacity of non-select chart elements.","defaultValue":0.1,"min":0.1,"max":1},{"variable":"selectOpacity","value":0.7,"dataType":"Number","description":"The opacity of select chart elements.","defaultValue":0.7,"min":0.1,"max":1},{"variable":"tooltipBackground","value":"lightgrey","dataType":"String | RGB | Hex","description":"The background color of the tooltip.","defaultValue":"lightgrey"},{"variable":"tooltipTextColor","value":"black","dataType":"String | RGB | Hex","description":"The text color of the tooltip.","defaultValue":"black"}]';
 
   console.log(JSON.stringify(string));
+	console.log(JSON.parse(json));
 
 	// const chartList = [
 	// 	{ title: 'Area Chart', icon: 'area' },

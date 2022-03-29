@@ -136,6 +136,14 @@
       ChartDocs.update(obj => ([...obj, prop]));
     });
     ready = true;
+
+    // For properties as object:
+    // beforeUpdate(() => {
+    // ChartDocs.update(obj => {});
+    // ChartDocs.update(obj => properties);
+    // console.log('docs', $ChartDocs);
+    // ready = true;
+    // })
   })
 
   // if (directNav) {
