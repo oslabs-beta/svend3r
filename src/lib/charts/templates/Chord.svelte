@@ -1,54 +1,52 @@
 <script>
-  import * as d3 from 'd3';
-  import { fade} from 'svelte/transition';
-  import { sampleData } from '../data/observable-chord-data'
+  import { arc, chord, descending, range, ribbon } from 'd3';
+  import data from '../data/chord-data' // or pass data to component as prop
   import { ChartDocs } from '../ChartStore';
-  const data = sampleData;  
-  $: marginOffset = $ChartDocs[1].value //the margin top, bottom, left, right margin offset relative to the radius
-  $: width = $ChartDocs[2].value; // the outer width of the chart, in pixels
+
+  $: marginOffset = $ChartDocs[0].value // the margin top, bottom, left, right margin offset relative to the radius
+  $: width = $ChartDocs[1].value; // the outer width of the chart, in pixels
+  $: bandThickness = $ChartDocs[2].value; // the thickness of the color band representing each dataset
+  $: fontSize = $ChartDocs[3].value //the label font size relative to 1% of the width of the viewport
+  $: tickStep = $ChartDocs[4].value; //the chart label tick spread factor
+  $: scaleFormat = $ChartDocs[5].value; // a format specifier string for the scale ticks
+  $: names = $ChartDocs[6].value; // section names
+  $: colors = $ChartDocs[7].value; // section fill colors && number of colors in fill array MUST match number of subsets in data
+  $: chordOpacity = $ChartDocs[8].value; //the opacity for the charts overall chords
+  $: unselectOpacity = $ChartDocs[9].value; //the opacity of non-select chart elements
+  $: selectOpacity = $ChartDocs[10].value; //the opacity of select chart elements
+  $: tooltipBackground = $ChartDocs[11].value; // background color of tooltip
+  $: tooltipTextColor = $ChartDocs[12].value; // text color of tooltip
   $: height = width; // the outer height of the chart, in pixels
-  $: bandThickness = $ChartDocs[3].value; // the thickness of the color band representing each dataset
-  $: fontSize = $ChartDocs[4].value //the label font size relative to 1% of the width of the viewport
-  $: tickStep = $ChartDocs[5].value; //the chart label tick spread factor
-  $: scaleFormat = $ChartDocs[6].value; // a format specifier string for the scale ticks
-  $: names = $ChartDocs[7].value; // section names
-  $: colors = $ChartDocs[8].value; // section fill colors && number of colors in fill array MUST match number of subsets in data
-  $: chordOpacity = $ChartDocs[9].value; //the opacity for the charts overall chords
-  $: unselectOpacity = $ChartDocs[10].value; //the opacity of non-select chart elements
-  $: selectOpacity = $ChartDocs[11].value; //the opacity of select chart elements
-  $: tooltipBackground = $ChartDocs[12].value; // background color of tooltip
-  $: tooltipTextColor = $ChartDocs[13].value; // text color of tooltip
   $: outerRadius = Math.min(width, height) * 0.5 - marginOffset; // should connect to margin
   $: innerRadius = outerRadius - bandThickness; // should make adjustable
   
   let groupInfo, ribbonInfo;
-  $: selectedChord = null;
-  $: chord = d3.chord()
+  $: reactiveSelectedChord = null;
+  $: d3chord = chord()
     .padAngle(10 / innerRadius)
-    .sortSubgroups(d3.descending)
-    .sortChords(d3.descending);
-  $: chords = chord(data);
-  $: arc = d3.arc()
+    .sortSubgroups(descending)
+    .sortChords(descending);
+  $: chords = d3chord(data);
+  $: d3arc = arc()
     .innerRadius(innerRadius)
     .outerRadius(outerRadius);
-  $: ribbon = d3.ribbon()
+  $: d3ribbon = ribbon()
     .radius(innerRadius - 1)
     .padAngle(1 / innerRadius);
-  $:ticks = ({startAngle, endAngle, value}) => {
+  $: ticks = ({startAngle, endAngle, value}) => {
     const k = (endAngle - startAngle) / value;
-    return d3.range(0, value, (tickStep/100)).map(value => {
+    return range(0, value, (tickStep/100)).map(value => {
       return {value, angle: value * k + startAngle};
     });
   }
-  $: formatValue = (val) => {
+  const formatValue = (val) => {
     return (val * 100).toFixed(2) + scaleFormat;
   }
-  console.log('chord', $ChartDocs);
 </script>
 
 <svg {width} {height} viewBox="{-width / 2} {-height / 2} {width} {height}" >
   {#each chords.groups as group, i}
-    <path fill={colors[i]} d={arc(group)}
+    <path fill={colors[i]} d={d3arc(group)}
       on:mouseover="{(e) => groupInfo = [i, e, group.value]}"
       on:focus="{(e) => groupInfo = [i, e]}"
       on:mouseout="{() => groupInfo = null}"
@@ -67,19 +65,19 @@
   {/each}
   
   {#each chords as chord}
-    {#if selectedChord}
-      <path fill-opacity={selectedChord === chord ? selectOpacity : unselectOpacity} fill={colors[chord.source.index]} d={ribbon(chord)}
-        on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
-        on:focus="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
-        on:mouseout="{() => { ribbonInfo = null; selectedChord = null; }}"
-        on:blur="{() => { ribbonInfo = null; selectedChord = null; }}"
+    {#if reactiveSelectedChord}
+      <path fill-opacity={reactiveSelectedChord === chord ? selectOpacity : unselectOpacity} fill={colors[chord.source.index]} d={d3ribbon(chord)}
+        on:mouseover="{(e) => {ribbonInfo = [e, chord]; reactiveSelectedChord = chord; }}"
+        on:focus="{(e) => {ribbonInfo = [e, chord]; reactiveSelectedChord = chord; }}"
+        on:mouseout="{() => { ribbonInfo = null; reactiveSelectedChord = null; }}"
+        on:blur="{() => { ribbonInfo = null; reactiveSelectedChord = null; }}"
       />
     {:else}
-    <path fill-opacity={chordOpacity} fill={colors[chord.source.index]} d={ribbon(chord)}
-      on:mouseover="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
-      on:focus="{(e) => {ribbonInfo = [e, chord]; selectedChord = chord; }}"
-      on:mouseout="{() => { ribbonInfo = null; selectedChord = null; }}"
-      on:blur="{() => { ribbonInfo = null; selectedChord = null; }}"
+    <path fill-opacity={chordOpacity} fill={colors[chord.source.index]} d={d3ribbon(chord)}
+      on:mouseover="{(e) => {ribbonInfo = [e, chord]; reactiveSelectedChord = chord; }}"
+      on:focus="{(e) => {ribbonInfo = [e, chord]; reactiveSelectedChord = chord; }}"
+      on:mouseout="{() => { ribbonInfo = null; reactiveSelectedChord = null; }}"
+      on:blur="{() => { ribbonInfo = null; reactiveSelectedChord = null; }}"
     />
     {/if}
   {/each}
@@ -97,8 +95,7 @@
   <div style="position:absolute; left:{ribbonInfo[0].clientX + 12}px; top:{ribbonInfo[0].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
     {formatValue(ribbonInfo[1].source.value)} {names[ribbonInfo[1].target.index]} → {names[ribbonInfo[1].source.index]}
     {ribbonInfo[1].source.index === ribbonInfo[1].target.index 
-    ? '' 
-    // eslint-disable-next-line max-len
+    ? ''
     : `\n${formatValue(ribbonInfo[1].target.value)} ${names[ribbonInfo[1].source.index]} → ${names[ribbonInfo[1].target.index]}`}
   </div>
 {/if}

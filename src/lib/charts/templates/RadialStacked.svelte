@@ -1,29 +1,28 @@
 <script>
   import * as d3 from "d3";
-  import { sampleData } from "../data/radial-stacked-data.js"; //import your custom dataset
-  import { ChartDocs } from '../ChartStore'; //*****Remove for Production for production use
+  import data from "../data/radialStacked-data.js"; // or pass data to component as prop
+  import { ChartDocs } from '../ChartStore';
 
-  let data = sampleData;
-  $: width = $ChartDocs[1].value; //the width of the inner radius inversed, in pixels
-  $: height = width; //the outer height of the chart, in pixels
-  $: innerRadius = $ChartDocs[2].value; //the radius of the inner circle, in pixels
-  $: colorRange = $ChartDocs[3].value; //the fill colors for each bar stack.  The colorRange array length  MUST match number of datasets
-  $: chartScale = $ChartDocs[4].value; //the scale factor from the center
-  $: sorted = $ChartDocs[5].value; //the boolean value for if the dataset is sorted
-  $: varFontSize = $ChartDocs[6].value; //the font size of all text on the chart, in pixels
-  $: tickColor = $ChartDocs[7].value; //the color of the inner radius ticks
-  $: ringColor = $ChartDocs[8].value; //the color of the scale rings
-  $: scaleColor = $ChartDocs[9].value; //the color of the scale text
-  $: scaleStroke = $ChartDocs[10].value; //the color of the scale text background/stroke
-  $: rectLength = $ChartDocs[11].value; //the width of the color legend key, in pixels
-
+  $: width = $ChartDocs[0].value; //the width of the inner radius inversed, in pixels
+  $: innerRadius = $ChartDocs[1].value; //the radius of the inner circle, in pixels
+  $: colorRange = $ChartDocs[2].value; //the fill colors for each bar stack.  The colorRange array length  MUST match number of datasets
+  $: chartScale = $ChartDocs[3].value; //the scale factor from the center
+  $: sorted = $ChartDocs[4].value; //the boolean value for if the dataset is sorted
+  $: varFontSize = $ChartDocs[5].value; //the font size of all text on the chart, in pixels
+  $: tickColor = $ChartDocs[6].value; //the color of the inner radius ticks
+  $: ringColor = $ChartDocs[7].value; //the color of the scale rings
+  $: scaleColor = $ChartDocs[8].value; //the color of the scale text
+  $: scaleStroke = $ChartDocs[9].value; //the color of the scale text background/stroke
+  $: rectLength = $ChartDocs[10].value; //the width of the color legend key, in pixels
+  $: height = width; // height of the chart, in pixels
   $: outerRadius = Math.min(width, height) * chartScale;
 
+  let sortedData = data;
   $: if (sorted === true) {
-    data = data.sort((a, b) => b.total - a.total);
+    sortedData = sortedData.sort((a, b) => b.total - a.total);
   }
 
-  data.columns = Object.keys(sampleData[0]).slice(0, -1);
+  sortedData.columns = Object.keys(data[0]).slice(0, -1);
 
   $: arc = d3
     .arc()
