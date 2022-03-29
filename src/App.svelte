@@ -1,4 +1,6 @@
 <script>
+import NewBubble from './Bubble/newBubble.svelte';
+
   // import Scatter from './Scatter/Scatter_Chart.svelte';
   // import scatterData from './data/nivo-scatter-data';
   // import Chord from './Chord/Chord_Chart.svelte';
@@ -18,12 +20,12 @@
   // import Chord_Container from './Chord/Chord_Container.svelte';
   // import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
   // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
-  // import Zoomable_Circle_Packing from './Zoomable-Circle-Packing/Zoomable_Circle_Packing.svelte';
+  import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
   // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
   // import BubbleWrapper from './Bubble/BubbleWrapper.svelte';
   // import ForceWrapper from './Force Example/ForceWrapper.svelte'
-  import WordCloud from './Word Cloud/WordCloud.svelte';
-  import WordExample from './Word Cloud/WordExample.svelte';
+  // import WordCloud from './Word Cloud/WordCloud.svelte';
+  // import WordExample from './Word Cloud/WordExample.svelte';
 
 </script>
 
@@ -37,7 +39,8 @@
     <!-- <Chord {chordData} /> -->
     <!-- <Line_Container /> -->
     <!-- <ForceWrapper/> -->
-    <WordCloud/>
+    <NewBubble/>
+    <!-- <WordCloud/> -->
     <!-- <WordExample/> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
