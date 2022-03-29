@@ -2,23 +2,26 @@
   import { scaleQuantile, range, geoPath } from 'd3';
   import { feature, mesh } from 'topojson';
   import us from '../data/counties-albers-10m.json';
+  import { sampleData } from './sampleData';
 
-  export let choroplethData;
-
-  const data = choroplethData,
-    width = 900, // the outer width of the chart, in pixels
-    height = 600, // the outer height of the chart, in pixels
-    names = ['Diabetes', 'Obesity'],
-    colors = [
+  const data = sampleData;
+  const width = 900; // the outer width of the chart, in pixels
+  const height = 600; // the outer height of the chart, in pixels
+  const names = ['Diabetes', 'Obesity']; //the group names of the first and second elements
+  const labels = ['low', 'med', 'high']; //color maxtrx labels
+  const colors = [
       '#e8e8e8', '#ace4e4', '#5ac8c8',
       '#dfb0d6', '#a5add3', '#5698b9', 
       '#be64ac', '#8c62aa', '#3b4994'
-    ], // fill colors
-    tooltipBackground = 'white', // background color of tooltip
-    tooltipTextColor = 'black'; // text color of tooltip
+    ]; // low to high color maxtrix
+  const tooltipBackground = 'white'; // background color of tooltip
+  const tooltipTextColor = 'black'; // text color of tooltip
+  const outlineStrokeColor = "white" // the color of the state outlines
+  const k = 20; //size of the legend
 
-  let locInfo, legendInfo;
-  const k = 24, n = Math.floor(Math.sqrt(colors.length)), labels = ['low', 'med', 'high'];
+  let locInfo;
+  let legendInfo;
+  const n = Math.floor(Math.sqrt(colors.length));
 
   const states = new Map(us.objects.states.geometries.map(d => [d.id, d.properties]));
   const stateLines = mesh(us, us.objects.states, (a, b) => a !== b);
@@ -40,7 +43,7 @@
     const [a, b] = value;
     console.log('format', value, a, b);
     return `${a}% ${names[0]}${labels[xFunc(a)] && ` (${labels[xFunc(a)]})`}
-${b}% ${names[1]}${labels[yFunc(b)] && ` (${labels[yFunc(b)]})`}`;
+    ${b}% ${names[1]}${labels[yFunc(b)] && ` (${labels[yFunc(b)]})`}`;
   };
 
   const cartesian = (...a) => a.reduce((a, b) => a.flatMap(d => b.map(e => [d, e].flat())));
@@ -57,7 +60,7 @@ ${b}% ${names[1]}${labels[yFunc(b)] && ` (${labels[yFunc(b)]})`}`;
       on:focus="{(e) => locInfo = ({e: e, d: datum})}"
     />
   {/each}
-  <path fill='none' stroke='white' stroke-linejoin='round' d={pathFunc(stateLines)} pointer-events='none'/>
+  <path fill='none' stroke={outlineStrokeColor} stroke-linejoin='round' d={pathFunc(stateLines)} pointer-events='none'/>
 
   <g transform="translate(870,450)">
     <g transform="translate({-k * n / 2},{-k * n / 2}) rotate(-45 {k * n / 2},{k * n / 2})">
