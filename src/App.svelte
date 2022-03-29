@@ -1,5 +1,5 @@
 <script>
-  import Scatter from './Scatter/Scatter_Chart.svelte';
+  // import Scatter from './Scatter/Scatter_Chart.svelte';
   // import scatterData from './data/nivo-scatter-data';
   // import Chord from './Chord/Chord_Chart.svelte';
   // import chordData from './data/observable-chord-data';
@@ -11,7 +11,7 @@
   // import areaData from './data/line-data-multi';
   // import PieChart from './Pie/Pie_Chart.svelte';
   // import pieData from './data/pie-data-census';
-  // import Choropleth from './Choropleth/Choropleth_Chart.svelte';
+  import Choropleth from './Choropleth/Choropleth_Chart.svelte';
   // import choroplethData from './data/bivariate-choropleth-data-d3';
   // import BarVert_Container from './BarVert/BarVert_Container.svelte';
   // import Area_Container from './Area/Area_Container.svelte';
@@ -28,14 +28,14 @@
     <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
-    <Scatter />
+    <!-- <Scatter /> -->
     <!-- <Chord {chordData} /> -->
     <!-- <Line_Container /> -->
     <!-- <LineChart {lineData} /> -->
     <!-- <Chord_Container /> -->
     <!-- <Area_Container /> -->
     <!-- <PieChart /> -->
-    <!-- <Choropleth {choroplethData} /> -->
+    <Choropleth />
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
   </div>
