@@ -1,5 +1,5 @@
 <script>
-  import { arc, chord, descending, range, ribbon } from 'd3';
+  import { arc, chord, descending, range, ribbon, tickStep } from 'd3';
   import data from '../data/chord-data' // or pass data to component as prop
   import { ChartDocs } from '../ChartStore';
 
@@ -7,7 +7,7 @@
   $: width = $ChartDocs[1].value; // the outer width of the chart, in pixels
   $: bandThickness = $ChartDocs[2].value; // the thickness of the color band representing each dataset
   $: fontSize = $ChartDocs[3].value //the label font size relative to 1% of the width of the viewport
-  $: tickStep = $ChartDocs[4].value; //the chart label tick spread factor
+  $: tickCount = $ChartDocs[4].value; //the chart label tick spread factor
   $: scaleFormat = $ChartDocs[5].value; // a format specifier string for the scale ticks
   $: names = $ChartDocs[6].value; // section names
   $: colors = $ChartDocs[7].value; // section fill colors && number of colors in fill array MUST match number of subsets in data
@@ -22,6 +22,8 @@
   
   let groupInfo, ribbonInfo;
   $: reactiveSelectedChord = null;
+  $: reactiveTickStep = tickStep(0, data.flat().reduce((a, b) => a + b, 0), tickCount);
+  $: console.log('step', reactiveTickStep)
   $: d3chord = chord()
     .padAngle(10 / innerRadius)
     .sortSubgroups(descending)
@@ -35,12 +37,13 @@
     .padAngle(1 / innerRadius);
   $: ticks = ({startAngle, endAngle, value}) => {
     const k = (endAngle - startAngle) / value;
-    return range(0, value, (tickStep/100)).map(value => {
+    return range(0, value, reactiveTickStep).map(value => {
       return {value, angle: value * k + startAngle};
     });
   }
   const formatValue = (val) => {
-    return (val * 100).toFixed(2) + scaleFormat;
+    if (scaleFormat === '%') return (val * 100).toFixed(2) + scaleFormat;
+    else if (scaleFormat === 'k') return (val / 1000).toLocaleString('en-US') + scaleFormat;
   }
 </script>
 
@@ -58,7 +61,7 @@
           transform="{groupTick.angle > Math.PI ? "rotate(180) translate(-16)" : null}"
           text-anchor="{groupTick.angle > Math.PI ? "end" : null}"
           font-weight="{groupTick.value !== 0 ? "normal" : "bold"}">
-          {groupTick.value !== 0 ? Math.round(groupTick.value * 100) + scaleFormat : names[i]}
+          {groupTick.value !== 0 ? formatValue(groupTick.value) : names[i]}
         </text>
       </g>
     {/each}

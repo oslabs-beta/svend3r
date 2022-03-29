@@ -43,21 +43,29 @@
   $: reactiveYDomain = [0, Math.max(...reactiveYVals)]; // [ymin, ymax]
 
   // Construct scales, axes, and formats.
-  $: xRange = [marginLeft, width - marginRight]; // [left, right] //*****Remove reactivepermalink for production use
-  $: yRange = [height - marginBottom, marginTop * 2]; // [bottom, top] //*****Remove reactivepermalink for production use
-  $: yType = scaleLinear; // y-scale type
+  $: xRange = [marginLeft, width - marginRight]; // [left, right]
+  $: yRange = [height - marginBottom, marginTop * 2]; // [bottom, top]
   $: reactiveXScale = scaleBand(reactiveXDomain, xRange).padding(xPadding);
-  $: reactiveYScale = yType(reactiveYDomain, yRange);
+  $: reactiveYScale = scaleLinear(reactiveYDomain, yRange).nice();
 
   // Create Y-Axis ticks based on yScalefactor spacing
-  let yTicks;
-  $: {
-    yTicks = [];
-    let unit = (Math.max(...reactiveYVals) - Math.min(...reactiveYVals)) / yScalefactor;
-    for (let i = 1; i < yScalefactor + 1; i++) {
-      yTicks = [...yTicks, Math.floor(i * unit * 100)];
-    }
-  }
+  // let yTicks;
+  // $: {
+  //   yTicks = [];
+  //   let unit = (Math.max(...reactiveYVals) - Math.min(...reactiveYVals)) / yScalefactor;
+  //   for (let i = 1; i < yScalefactor + 1; i++) {
+  //     yTicks = [...yTicks, Math.floor(i * unit * 100)];
+  //   }
+  // }
+
+  $: reactiveYTicks = reactiveYScale.ticks(yScalefactor);
+  $: reactiveYTicksFormatted = reactiveYTicks.map((el) => el.toLocaleString("en-US"));
+
+  $: console.log('reactiveXVals', reactiveXVals, 'reactiveYVals', reactiveYVals);
+  $: console.log('domains', reactiveXDomain, 'y', reactiveYDomain);
+  $: console.log('ranges', xRange, 'y', yRange);
+  $: console.log('scales', reactiveXScale, 'y', reactiveYScale);
+  $: console.log('ticks', reactiveYTicks);
 </script>
 
 <div class="chart-container" dir="auto">
@@ -85,11 +93,11 @@
     </g>
     
     <g class="y-axis" transform="translate({marginLeft}, 0)">
-      {#each yTicks as tick, i}
-        <g class="tick" opacity="1" transform="translate(0, {reactiveYScale(tick / 100)})">
+      {#each reactiveYTicks as tick, i}
+        <g class="tick" opacity="1" transform="translate(0, {reactiveYScale(tick)})">
           <line class="tick-start" stroke="black" stroke-opacity="1" x2="-6" />
           <line class="tick-grid" x2={width - marginLeft - marginRight} />
-          <text x={-marginLeft} y="10">{tick + yFormat}</text>
+          <text x={-marginLeft} y="10">{reactiveYTicksFormatted[i] + yFormat}</text>
         </g>
       {/each}
       <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>
