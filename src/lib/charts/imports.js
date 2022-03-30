@@ -95,4 +95,16 @@ export default {
       json: json
     }
   },
+  circlePack: () => {
+    const component = import('$lib/charts/templates/CirclePack.svelte');
+    const code = import('$lib/charts/templates/CirclePack.svelte?raw');
+    const data = import('$lib/charts/data/circle-pack-data?raw');
+    const json = import('$lib/charts/db/circle-pack.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
 };
