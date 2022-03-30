@@ -8,6 +8,7 @@
     const margin = 20;
     let backgroundColor;
 
+
     const color = d3.scaleLinear()
       .domain([0, 5])
       .range(['hsl(152,80%,80%)', 'hsl(228,30%,40%)'])
@@ -15,6 +16,7 @@
 
     backgroundColor = color(0);
 
+    // let d3 = require("d3@6")
     const pack = pData => d3.pack()
       .size([width - margin, height - margin])
       .padding(3)
@@ -23,7 +25,9 @@
         .sort((a, b) => b.value - a.value));
 
     const root = pack(data);
+    console.log('data', data, 'root', root);
     let focus = root;
+    $: console.log('data', data, 'focus', focus);
     let view;
     let zoomK = width / root.r * 2;
     let zoomA = root.x;
@@ -38,8 +42,10 @@
 
     zoomTo([root.x, root.y, root.r * 2 + margin]);
 
+    //zoom is not working properly.  Focus only is defined every other click.  Seems like it will zoom out but not zoom in.
     const zoom = (d, e) => {
       e.stopPropagation();
+      console.log('zoom', d);
       const focus0 = focus;
 
       focus = d;
@@ -49,10 +55,18 @@
         .tween('zoom', () => {
           var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2 + margin]);
           return function(t) { 
+            console.log('this is t', t);
             zoomTo(i(t)); 
           };
         });
+
+    //   transition.selectAll('text')
+    //     .filter(d.parent === focus || this.style.display === 'inline')
+    //     .style('fill-opacity', d.parent === focus ? 1 : 0)
+    //     .on('start', d.parent === focus ? this.style.display = 'inline' : null)
+    //     .on('end', d.parent !== focus ? this.style.display = 'none' : null);
     };
+    
 </script>
 
 <svg width={width} height={height} style="background: {backgroundColor};" on:click={(e) => zoom(root, e)}   >
@@ -61,7 +75,7 @@
             <!-- svelte-ignore a11y-mouse-events-have-key-events -->
             <circle class={rootData.parent ? rootData.children ? 'node' : 'node node--leaf' : 'node node--root'}
                 fill={rootData.children ? color(rootData.depth) : 'null'} 
-                on:click={(e) => {if (focus !== rootData) zoom(rootData, e);}}
+                on:click={(e) => {if (focus !== rootData) {zoom(rootData, e); console.log('why not?'); d3.event.stopPropagation();}}}
                 transform="translate({(rootData.x - zoomA) * zoomK},{(rootData.y - zoomB) * zoomK})"
                 r={rootData.r * zoomK}
             ></circle>

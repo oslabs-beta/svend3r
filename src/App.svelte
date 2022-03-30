@@ -35,7 +35,7 @@
     <!-- <Chord_Container /> -->
     <!-- <Area_Container /> -->
     <!-- <PieChart /> -->
-    <Choropleth />
+    <!-- <Choropleth /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
   </div>
