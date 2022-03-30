@@ -1,6 +1,6 @@
 <script>
     import { scaleQuantile, range, geoPath } from 'd3';
-    import { feature, mesh } from 'topojson';
+    import { feature, mesh } from 'topojson-client';
     import us from '../data/counties-albers-10m.json'; //for latest counties-albers-10m.json: please visit https://github.com/topojson/us-atlas
     import data from '../data/choropleth-data' // or pass data to component as prop
     import { ChartDocs } from '../ChartStore';
