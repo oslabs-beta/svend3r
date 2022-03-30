@@ -195,10 +195,6 @@
     margin-left: 8
     0px;
   }
-<<<<<<< HEAD
-
-=======
->>>>>>> dev
   svg {
     max-width: 100%;
     height: auto;
