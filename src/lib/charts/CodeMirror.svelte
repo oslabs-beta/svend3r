@@ -27,8 +27,10 @@
       }
       userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, 'const' + '$1' + replacementValue);
     }
-    userCode = userCode.replace(/\$: (for|if)/g, '$1');
+    userCode = userCode.replace(/\$: (for|if|inactive)/g, '$1');
+    userCode = userCode.replace(/\$: (active)/g, 'let $1');
     userCode = userCode.replace(/\$: (?!reactive|\{)/g, 'const ');
+    //need to update for circle pack chart let variable and zoomTo invocation
     
     return userCode;
   };
