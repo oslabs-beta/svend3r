@@ -4,7 +4,7 @@
     import us from '../data/counties-albers-10m.json'; //for latest counties-albers-10m.json: please visit https://github.com/topojson/us-atlas
     import data from '../data/choropleth-data' // or pass data to component as prop
     import { ChartDocs } from '../ChartStore';
-  
+
     $: width = $ChartDocs[0].value; // the outer width of the chart, in pixels
     $: height = $ChartDocs[1].value; // the outer height of the chart, in pixels
     $: names = $ChartDocs[2].value; //the group names of the first and second elements
