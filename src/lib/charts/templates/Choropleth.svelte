@@ -81,7 +81,7 @@
   
   <!-- Map Tooltip -->
   {#if locInfo}
-    <div style='position:absolute; left:{locInfo.e.x + 12}px; top:{locInfo.e.y + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
+    <div class="tooltip" style='position:absolute; left:{locInfo.e.x + 12}px; top:{locInfo.e.y + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
       {locInfo.d.properties.name}, {states.get(locInfo.d.id.slice(0, 2)).name}
       {`\n${format(data[locInfo.d.id])}`}
     </div>
@@ -89,7 +89,7 @@
   
   <!-- Legend Tooltip -->
   {#if legendInfo}
-    <div style='position:absolute; left:{legendInfo.e.x + 12}px; top:{legendInfo.e.y + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
+    <div class="tooltip" style='position:absolute; left:{legendInfo.e.x + 12}px; top:{legendInfo.e.y + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
       {names[0]}{labels[legendInfo.j] && ` (${labels[legendInfo.j]})`}
       {`\n${names[1]}${labels[legendInfo.i] && ` (${labels[legendInfo.i]})`}`}
     </div>
@@ -104,6 +104,12 @@
   
     div {
       white-space: pre
+    }
+
+    .tooltip{
+      border-radius: 5px;
+      padding: 5px;
+      box-shadow: rgba(0, 0, 0, 0.25) 0px 0.0625em 0.0625em, rgba(0, 0, 0, 0.25) 0px 0.125em 0.5em, rgba(255, 255, 255, 0.1) 0px 0px 0px 1px inset;
     }
   </style>
   

@@ -13,7 +13,7 @@
 		{title: 'Circle Packing', slug: 'circlePack'},
 		{title: 'Donut Chart', slug: 'donut'},
 		// {title: 'Hexbin', slug: 'hexbin'},
-		// {title: 'Line Chart', slug: 'line'},
+		{title: 'Line Chart', slug: 'line'},
 		{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
 		// {title: 'Ridgeline Plot', slug: 'ridgeline'},
 		// {title: 'Sankey Diagram', slug: 'sankey'},
