@@ -11,7 +11,7 @@
 		{title: 'Chord Diagram', slug: 'chord'},
 		{title: 'Choropleth', slug: 'choropleth'},
 		// {title: 'Circle Packing', slug: 'circlePack'},
-		// {title: 'Donut Chart', slug: 'donut'},
+		{title: 'Donut Chart', slug: 'donut'},
 		// {title: 'Hexbin', slug: 'hexbin'},
 		// {title: 'Line Chart', slug: 'line'},
 		{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
