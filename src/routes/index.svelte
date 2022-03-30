@@ -28,7 +28,7 @@
 	<div id="card-container" class="grid content-between w-[80vw] tablet:w-[400px] min-w-[300px] bg-code-gray my-8 mx-3 tablet:h-[82vh] overflow-auto rounded-lg shadow-3xl ">
 		<section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-2xl text-white87">How to get Started</h1>
-			<p class="text-sm text-grey119 text-justify">
+			<p class="text-sm text-white87 text-justify">
 				<b>Svend3r (or svend3r.js)</b> is your go-to Svelte data visuaization charting library with easy
 				to use pre-built modular components. Svend3r components provides beautiful graphics from the
 				D3 powerhouse, but without the imperative style code. Instead Svend3r provide your project with
@@ -36,12 +36,12 @@
 				data to life.
 			</p>
 		</section>
-		<section id="info-sect" class="mx-4 mt-4">
+		<!-- <section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-2xl text-white87">Installation</h1>
-			<p class="text-sm text-grey119 text-justify ">
+			<p class="text-sm text-white87 text-justify ">
 				If you have previously installed Svend3r, please run the following command below before preceeding:
 				<br>
-				<code class="text-white87 bg-grey119">npm rm -global svend3r</code>
+				<code class="text-white87 bg-white87">npm rm -global svend3r</code>
 				<br>
 				<br>
 				First be sure you have <a class="text-white87" href="https://svelte.dev/">Svelte</a>
@@ -50,15 +50,14 @@
 				<br>
 				If you use npm,
 				<br>
-				<code class="text-white87 bg-grey119">npm install svend3r</code> and
-				<code class="text-white87 bg-grey119">npm install d3</code>.
+				<code class="text-white87 bg-white87">npm install svend3r</code> and
+				<code class="text-white87 bg-white87">npm install d3</code>.
 			</p>
-		</section>
+		</section> -->
 		<section id="info-sect" class="mx-4 my-4">
 			<h1 class="text-2xl text-white87">Exporting a Chart Component</h1>
-			<p class="text-sm text-grey119 text-justify whitespace-pre-line">
+			<p class="text-sm text-white87 text-justify whitespace-pre-line">
 				When we say Svend3r is 'plug and play' we truly mean it.
-
 				<li>Navigate to any desired chart page</li>
 				<li>Review the data schema to ensure conformity to your data set</li>
 				<li>Update the adjustable properties to your desired taste (or do that later)</li>

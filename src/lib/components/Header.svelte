@@ -10,10 +10,10 @@
 
 </script>
 
-<ul class="tablet:relative w-full tablet:w-full text-center tablet:text-left">
+<div class="tablet:relative w-full tablet:w-full text-center tablet:text-left">
 	<a href="/" alt="Svend3r Home"><img alt="svend3 chart library" src="/images/logo-beta.png" class="mx-auto tablet:mx-0"/></a>
 	<div class=" text-md text-gray-400">Svelte x D3 "plug and play" charting library</div>
-	<li class="tablet:absolute tablet:top-0 tablet:right-0 text-center pt-5  tablet:flex">
+	<div class="tablet:absolute tablet:top-0 tablet:right-0 text-center pt-5  tablet:flex">
 		<a 
 			on:click={() => goto('/')} 
 			class="tablet:text-gray-400 text-gray-100 hover:text-gray-100 pr-5" 
@@ -68,13 +68,13 @@
 				</button>
 			</section>
 		</div>
-	</li>
+	</div>
 	<hr
 		class="mt-5 bg-gray-200 dark:bg-gray-200 
 	border border-gray-200 dark:border-gray-200 rounded-full
 	 w-full shadow-3xl"
 	/>
-</ul>
+</div>
 
 <style>
 
