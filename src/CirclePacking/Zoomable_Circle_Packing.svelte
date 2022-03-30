@@ -3,17 +3,16 @@
     import { sampleData } from './sampleData.js'; 
 
     const data = sampleData;
-    const width = 960;
-    const height = width;
-    const margin = 20;
-    let backgroundColor;
+    const width = 600; //the outer width of the chart, in pixels
+    const height = width; // the outer height of the chart, in pixels
+    const margin = 20; //the overall margin between the circle packs to the viewport edge
+    const backgroundColor = "transparent"; // the background color of the chart
+    const fontSize = 15; //the font size of the text labels
 
     const color = d3.scaleLinear()
       .domain([0, 5])
       .range(['hsl(152,80%,80%)', 'hsl(228,30%,40%)'])
       .interpolate(d3.interpolateHcl);
-
-    backgroundColor = color(0);
 
     const pack = pData => d3.pack()
       .size([width - margin, height - margin])
@@ -44,7 +43,7 @@
 
       focus = d;
 
-      const transition = d3.transition()
+      d3.transition()
         .duration(d3.event.altKey ? 7500 : 750)
         .tween('zoom', () => {
           var i = d3.interpolateZoom(view, [focus.x, focus.y, focus.r * 2 + margin]);
@@ -67,7 +66,7 @@
             ></circle>
         {/each}
         {#each root.descendants() as rootDes}
-            <text class="label" 
+            <text font-size='{fontSize}px' class="label" 
                 style="fill-opacity: {rootDes.parent === focus ? 1 : 0}; display: {rootDes.parent === focus ? "inline" : "none"};"
                 transform="translate({(rootDes.x - zoomA) * zoomK},{(rootDes.y - zoomB) * zoomK})"
             >{rootDes.data.name}</text>
@@ -90,7 +89,7 @@
 }
 
 .label {
-  font: 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   text-anchor: middle;
   text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
 }
