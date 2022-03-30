@@ -140,28 +140,28 @@
     
     <!-- Y-axis and horizontal grid lines -->
     <g class="y-axis" transform="translate({marginLeft}, 0)" pointer-events='none'>
-      <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
+      <path class="domain" stroke="black" d="M{insetLeft}, {marginTop} V{height - marginBottom + 6}"/>
       {#each yTicks as tick, i}
         <g class="tick" transform="translate(0, {yScale(tick)})">
           <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
           {#if horizontalGrid}
             <line class="tick-grid" x1={insetLeft} x2={width - marginLeft - marginRight}/>
           {/if}
-          <text x={-marginLeft} y="10">{tick + yFormat}</text>
+          <text  x="-{marginLeft}" y="5">{tick + yFormat}</text>
         </g>
       {/each}
-      <text x="-{marginLeft}" y={marginTop/2}>{yLabel}</text>
+      <text x="-{marginLeft}" y={marginTop - 10}>{yLabel}</text>
     </g>
     <!-- X-axis and vertical grid lines -->
     <g class="x-axis" transform="translate(0,{height - marginBottom - insetBottom})" pointer-events='none'>
-      <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width}"/>
+      <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width - marginRight}"/>
       {#each xTicks as tick, i}
         <g class="tick" transform="translate({xScale(tick)}, 0)">
           <line class="tick-start" stroke='black' y2='6' />
           {#if verticalGrid}
             <line class="tick-grid" y2={-height} />
           {/if}
-          <text font-size='8px' x={-marginLeft} y="20">{xTicksFormatted[i] + xFormat}</text>
+          <text font-size='8px' x={-marginLeft/4} y="20">{xTicksFormatted[i] + xFormat}</text>
         </g>
       {/each}
       <text x={width - marginLeft - marginRight - 40} y={marginBottom}>{xLabel}</text>

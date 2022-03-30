@@ -100,7 +100,7 @@
       on:blur="{() => {dotInfo = null; selectedDot = null}}"
     >
       <g class="y-axis" transform="translate({marginLeft}, 0)">
-        <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
+        <path class="domain" stroke="black" d="M{insetLeft}, {marginTop} V{height}"/>
         {#each reactiveYTicks as tick, i}
           <g class="tick" transform="translate(0, {yScale(tick)})">
             <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
@@ -108,7 +108,7 @@
             <text x={-marginLeft} y="10">{tick + yFormat}</text>
           </g>
         {/each}
-        <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>
+        <text x="-{marginLeft}" y={marginTop-5}>{yLabel}</text>
       </g>
   
       <g class="x-axis" transform="translate(0,{height - marginBottom})">
@@ -116,7 +116,7 @@
         {#each reactiveXTicks as tick, i}
           <g class="tick" transform="translate({xScale(tick)}, 0)">
             <line class="tick-start" stroke='black' y2='6' />
-            <line class="tick-grid" y2={-height} />
+            <line class="tick-grid" y2="-{height - marginTop}" />
             <text x={-marginLeft} y="20">{tick + xFormat}</text>
           </g>
         {/each}
