@@ -82,5 +82,17 @@ export default {
       data: data,
       json: json
     }
-  }
+  },
+  donut: () => {
+    const component = import('$lib/charts/templates/Donut.svelte');
+    const code = import('$lib/charts/templates/Donut.svelte?raw');
+    const data = import('$lib/charts/data/donut-data?raw');
+    const json = import('$lib/charts/db/donut.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
 };
