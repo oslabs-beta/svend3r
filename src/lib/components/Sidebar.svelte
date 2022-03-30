@@ -1,13 +1,8 @@
 <script lang="ts">
 	import Divider from './SiderbarDivider.svelte';
-	// import githubIcon from './githubIcon.png';
-	// import barChartIcon from '/bar.svg';
-	// import { goto } from '$app/navigation';
-	// import logo from './svelte-logo.svg';
 	import SidebarIcon from './SidebarIcon.svelte';
 	import { getContext } from 'svelte';
 
-	// export let chartList;
 	const ChartList = getContext('ChartList');
 </script>
 
@@ -24,7 +19,6 @@
 	transition-all duration-300 ease-linear
 	cursor-pointer group" 
 	>
-		<!-- <a on:click={() => goto(page)} href="#"><img src={icon} alt={tooltip} /></a> -->
 		<a href='/' alt='Svend3r Home'><img alt="svend3r home page" src='/icon/home-2.png' /></a>
 	
 		<span

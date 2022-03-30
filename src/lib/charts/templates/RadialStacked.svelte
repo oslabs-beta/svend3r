@@ -1,43 +1,4 @@
 <script>
-<<<<<<< HEAD
-  import * as d3 from "d3";
-  import data from "../data/radialStacked-data.js"; // or pass data to component as prop
-  import { ChartDocs } from '../ChartStore';
-
-  $: width = $ChartDocs[0].value; //the width of the inner radius inversed, in pixels
-  $: innerRadius = $ChartDocs[1].value; //the radius of the inner circle, in pixels
-  $: colorRange = $ChartDocs[2].value; //the fill colors for each bar stack.  The colorRange array length  MUST match number of datasets
-  $: chartScale = $ChartDocs[3].value; //the scale factor from the center
-  $: sorted = $ChartDocs[4].value; //the boolean value for if the dataset is sorted
-  $: varFontSize = $ChartDocs[5].value; //the font size of all text on the chart, in pixels
-  $: tickColor = $ChartDocs[6].value; //the color of the inner radius ticks
-  $: ringColor = $ChartDocs[7].value; //the color of the scale rings
-  $: scaleColor = $ChartDocs[8].value; //the color of the scale text
-  $: scaleStroke = $ChartDocs[9].value; //the color of the scale text background/stroke
-  $: rectLength = $ChartDocs[10].value; //the width of the color legend key, in pixels
-  $: height = width; // height of the chart, in pixels
-  $: outerRadius = Math.min(width, height) * chartScale;
-
-  let sortedData = data;
-  $: if (sorted === true) {
-    sortedData = sortedData.sort((a, b) => b.total - a.total);
-  }
-
-  sortedData.columns = Object.keys(data[0]).slice(0, -1);
-
-  $: arc = d3
-    .arc()
-    .innerRadius((d) => y(d[0]))
-    .outerRadius((d) => y(d[1]))
-    .startAngle((d) => x(d.data.State))
-    .endAngle((d) => x(d.data.State) + x.bandwidth())
-    .padAngle(0.01)
-    .padRadius(innerRadius);
-
-  $: x = d3
-    .scaleBand()
-    .domain(data.map((d) => d.State))
-=======
   import { arc, max, scaleBand, scaleOrdinal, scaleRadial, stack } from "d3";
   import data from "../data/radialStacked-data.js"; // or pass data to component as prop
   import { ChartDocs } from '../ChartStore';
@@ -56,14 +17,14 @@
   $: height = width;
   $: outerRadius = width * chartScale;
   $: keys = Object.keys(data[0]).slice(0, -1);
-
+  $: groupId = keys[0];
+  $: console.log('key0', groupId);
   $: reactiveData = sorted === true
     ? [...data].sort((a, b) => b.total - a.total)
     : [...data];
 
   $: reactiveXScale = scaleBand()
-    .domain(reactiveData.map((d) => d.State))
->>>>>>> dev
+    .domain(reactiveData.map((d) => d[groupId]))
     .range([0, 2 * Math.PI])
     .align(0);
 
@@ -76,8 +37,8 @@
   $: d3arc = arc()
     .innerRadius((d) => yScale(d[0]))
     .outerRadius((d) => yScale(d[1]))
-    .startAngle((d) => reactiveXScale(d.data.State))
-    .endAngle((d) => reactiveXScale(d.data.State) + reactiveXScale.bandwidth())
+    .startAngle((d) => reactiveXScale(d.data[groupId]))
+    .endAngle((d) => reactiveXScale(d.data[groupId]) + reactiveXScale.bandwidth())
     .padAngle(0.01)
     .padRadius(innerRadius);
 </script>
@@ -100,17 +61,17 @@
     {#each reactiveData as d}
       <g
         transform="
-        rotate({((reactiveXScale(d.State) + reactiveXScale.bandwidth() / 2) * 180) / Math.PI - 90})
+        rotate({((reactiveXScale(d[groupId]) + reactiveXScale.bandwidth() / 2) * 180) / Math.PI - 90})
         translate({innerRadius},0)
       "
       >
         <line x2="-5" stroke={tickColor} />
         <text
-          transform={(reactiveXScale(d.State) + reactiveXScale.bandwidth() / 2 + Math.PI / 2) %
+          transform={(reactiveXScale(d[groupId]) + reactiveXScale.bandwidth() / 2 + Math.PI / 2) %
             (2 * Math.PI) <
           Math.PI
             ? "rotate(90) translate(0,16)"
-            : "rotate(-90) translate(0,-9)"}>{d.State}</text
+            : "rotate(-90) translate(0,-9)"}>{d[groupId]}</text
         >
       </g>
     {/each}

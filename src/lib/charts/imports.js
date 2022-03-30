@@ -2,11 +2,7 @@ export default {
   area: () => {
     const component = import('$lib/charts/templates/Area.svelte');
     const code = import('$lib/charts/templates/Area.svelte?raw');
-<<<<<<< HEAD
-    const data = import('$lib/charts/data/line-data-multi?raw');
-=======
     const data = import('$lib/charts/data/area-data?raw');
->>>>>>> dev
     const json = import('$lib/charts/db/area.json');
     return { 
       component: component,
@@ -50,8 +46,6 @@ export default {
       data: data,
       json: json
     }
-<<<<<<< HEAD
-=======
   },
   pie: () => {
     const component = import('$lib/charts/templates/Pie.svelte');
@@ -88,6 +82,5 @@ export default {
       data: data,
       json: json
     }
->>>>>>> dev
   }
 };

@@ -60,6 +60,12 @@
 
   $: reactiveYTicks = reactiveYScale.ticks(yScalefactor);
   $: reactiveYTicksFormatted = reactiveYTicks.map((el) => el.toLocaleString("en-US"));
+
+  $: console.log('reactiveXVals', reactiveXVals, 'reactiveYVals', reactiveYVals);
+  $: console.log('domains', reactiveXDomain, 'y', reactiveYDomain);
+  $: console.log('ranges', xRange, 'y', yRange);
+  $: console.log('scales', reactiveXScale, 'y', reactiveYScale);
+  $: console.log('ticks', reactiveYTicks);
 </script>
 
 <div class="chart-container" dir="auto">
