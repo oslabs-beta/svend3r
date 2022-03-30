@@ -70,5 +70,17 @@ export default {
       data: data,
       json: json
     }
+  },
+  choropleth: () => {
+    const component = import('$lib/charts/templates/Choropleth.svelte');
+    const code = import('$lib/charts/templates/Choropleth.svelte?raw');
+    const data = import('$lib/charts/data/choropleth-data?raw');
+    const json = import('$lib/charts/db/choropleth.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
   }
 };

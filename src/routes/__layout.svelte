@@ -30,7 +30,7 @@
 		{title: 'Bar Chart', slug: 'bar'},
 		// {title: 'Bubble Chart', slug: 'bubble'},
 		{title: 'Chord Diagram', slug: 'chord'},
-		// {title: 'Choropleth', slug: 'choropleth'},
+		{title: 'Choropleth', slug: 'choropleth'},
 		// {title: 'Circle Packing', slug: 'circlePack'},
 		// {title: 'Donut Chart', slug: 'donut'},
 		// {title: 'Hexbin', slug: 'hexbin'},
