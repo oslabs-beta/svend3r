@@ -3,66 +3,6 @@
   import data from '../data/area-data';
   import { ChartDocs } from '../ChartStore';
 
-<<<<<<< HEAD
-  // export let chartData;
-
-  // console.log('data', chartData);
-  // console.log('area', $AreaChartDocs);
-  // let data = [];
-
-  // const { csvVtsax, csvVgenx, csvVbtlx } = chartData;
-
-  //CSV to JSON Converter Function
-  function csvConvert(csv) {
-    return csv.split('\n').slice(1).map(str => {
-      const [date, close] = str.split(',')
-      .map((el) => (el.includes('/') ? new Date(el) : parseFloat(el)));
-      return { date, close };
-    });
-  }
-const firstDataSet = csvConvert(csvVtsax)
-const SecondDataSet = csvConvert(csvVgenx)
-const ThirdDataSet = csvConvert(csvVbtlx)
-//Create Array of objects for converted CSV datasets
-const sampleData = [
-  {
-    id: 'VTSAX',
-    data: firstDataSet
-  },
-  {
-    id: 'VGENX',
-    data: SecondDataSet
-  },
-  {
-    id: 'VBTLX',
-    data: ThirdDataSet
-  }
-];
-  const data = sampleData;
-  $: r = $ChartDocs[1].value; // (fixed) radius of dots, in pixels
-  $: marginTop = $ChartDocs[2].value; // the top margin, in pixels
-  $: marginRight = $ChartDocs[3].value; // the right margin, in pixels
-  $: marginBottom = $ChartDocs[4].value; // the bottom margin, in pixels
-  $: marginLeft = $ChartDocs[5].value; // the left margin, in pixels
-  $: inset = $ChartDocs[6].value; // inset the default range, in pixels
-  $: insetTop = inset; // inset the default y-range
-  $: insetRight = inset; // inset the default x-range
-  $: insetBottom = inset; // inset the default y-range
-  $: insetLeft = inset; // inset the default x-range
-  $: width = $ChartDocs[7].value; // the outer width of the chart, in pixels
-  $: height = $ChartDocs[8].value; // the outer height of the chart, in pixels
-  $: xLabel = $ChartDocs[9].value; // a label for the y-axis
-  $: yLabel = $ChartDocs[10].value; // a label for the y-axis
-  $: xFormat = $ChartDocs[11].value; // a format specifier string for the y-axis
-  $: yFormat = $ChartDocs[12].value; // a format specifier string for the y-axis
-  $: horizontalGrid = $ChartDocs[13].value; // show horizontal grid lines
-  $: verticalGrid = $ChartDocs[14].value; // show vertical grid lines
-  $: xScalefactor = width / 80; //y-axis number of values
-  $: yScalefactor = height / 40; //y-axis number of values
-  $: colors = $ChartDocs[15].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
-  $: showDots = false; // whether dots should be displayed
-  $: dotsFilled = false; // whether dots should be filled or outlined
-=======
   $: marginTop = $ChartDocs[0].value; // the top margin, in pixels
   $: marginRight = $ChartDocs[1].value; // the right margin, in pixels
   $: marginBottom = $ChartDocs[2].value; // the bottom margin, in pixels
@@ -84,7 +24,6 @@ const sampleData = [
   $: fillOpacity = $ChartDocs[18].value; // fill opacity of area
   $: tooltipBackground = $ChartDocs[19].value; // background color of tooltip
   $: tooltipTextColor = $ChartDocs[20].value; // text color of tooltip
->>>>>>> dev
   $: strokeLinecap = 'round'; // stroke line cap of the line
   $: strokeLinejoin = 'round'; // stroke line join of the line
   $: xScalefactor = width / 80; //y-axis number of values
@@ -102,39 +41,6 @@ const sampleData = [
   let x, y, dotInfo, areas, filteredI, xVals = [], yVals = [], points = [], subsets = [], colorVals = [];
   
   // For a single set of data
-<<<<<<< HEAD
-  // $: if (colors.length === 1) {
-  //   x = Object.keys(data[0])[0];
-  //   y = Object.keys(data[0])[1];
-  //   xVals = data.map((el) => el[x]);
-  //   yVals = data.map((el) => el[y]);
-  //   points = data.map((el) => [el[x], el[y], 0]);
-  // }
-  // // For data with subsets (NOTE: expects 'id' and 'data' keys)
-  // else {
-  //   console.log('colors');
-  //   x = Object.keys(data[0]?.data[0])[0];
-  //   y = Object.keys(data[0]?.data[0])[1];
-  //   data.forEach((subset, i) => {
-  //     subset.data.forEach((coordinate) => {
-  //       xVals.push(coordinate[x]);
-  //       yVals.push(coordinate[y]);
-  //       colorVals.push(i);
-  //       points.push(
-  //         { 
-  //           x: coordinate[x],
-  //           y: coordinate[y],
-  //           color: i
-  //         });
-  //     });
-  //     subsets.push(subset.id);
-  //   });
-  // }
-
-  x = Object.keys(data[0]?.data[0])[0];
-  y = Object.keys(data[0]?.data[0])[1];
-  data.forEach((subset, i) => {
-=======
   if (!('data' in data[0])) {
     x = Object.keys(data[0])[0];
     y = Object.keys(data[0])[1];
@@ -153,7 +59,6 @@ const sampleData = [
     x = Object.keys(data[0]?.data[0])[0];
     y = Object.keys(data[0]?.data[0])[1];
     data.forEach((subset, i) => {
->>>>>>> dev
     subset.data.forEach((coordinate) => {
       xVals.push(coordinate[x]);
       yVals.push(coordinate[y]);
@@ -167,14 +72,9 @@ const sampleData = [
     });
     subsets.push(subset.id);
   });
-<<<<<<< HEAD
-
-  $: I = range(xVals.length);
-=======
   }
 
   const I = range(xVals.length);
->>>>>>> dev
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   $: cleanData = points.map(gaps);
   $: xDomain = [xVals[0], xVals[xVals.length - 1]];
@@ -205,13 +105,8 @@ const sampleData = [
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
-<<<<<<< HEAD
-    console.log('mouse', clientX, clientY);
-    const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
-=======
     // console.log('mouse', clientX, clientY); // TODO fix positioning
     const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
->>>>>>> dev
     dotInfo = 
       { 
         x: xVals[closest],
@@ -299,10 +194,6 @@ const sampleData = [
     0px;
   }
 
-  select{
-    color: black;
-    padding: 5px;
-  }
   svg {
     max-width: 100%;
     height: auto;
