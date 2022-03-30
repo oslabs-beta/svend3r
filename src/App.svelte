@@ -18,14 +18,14 @@
   // import Chord_Container from './Chord/Chord_Container.svelte';
   // import Radial_Stacked_Container from './RadialStacked/RadialStacked_Container.svelte';
   // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
-  // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
+  import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
   // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
 
 </script>
 
 <body>
   <div>
-    <!-- <Zoomable_Circle_Packing /> -->
+    <Zoomable_Circle_Packing />
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
     <!-- <Scatter /> -->
