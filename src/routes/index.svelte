@@ -1,10 +1,6 @@
-<!-- <script context="module" lang="ts">
-	export const prerender = true;
-</script> -->
 <script lang="ts">
 	import Card from '$lib/components/Card.svelte'
 	import { getContext } from 'svelte';
-
 	const ChartList = getContext('ChartList');
 	console.log('chartList', ChartList);
 </script>
