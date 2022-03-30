@@ -52,22 +52,24 @@
 <div class="data-schema-container">
   <h1 class="section-title">Chart Data Schema</h1>
 </div>
+<div class="buttons-container">
+  <button class="page_selected" id="page1" on:click={() => showCode('page1')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
+    Code</section>
+  </button><!--
+  --><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
+      <section class="button-text_icon">
+      <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
+      Data</section>
+  </button><!--
+  --><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
+      <section class="button-text_icon">
+      <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
+      Data Schema</section>
+  </button>
+</div>
 <div class="code-mirror">
-<button class="page_selected" id="page1" on:click={() => showCode('page1')}>
-  <section class="button-text_icon">
-  <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
-  Code</section>
-</button><!--
---><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
-    <section class="button-text_icon">
-    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
-    Data</section>
-</button><!--
---><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
-    <section class="button-text_icon">
-    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
-    Data Schema</section>
-</button>
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
@@ -107,9 +109,17 @@
     outline: none;
 	}
 
+  .buttons-container{
+    background-color: #2D2D2D;
+    border-radius: 10px 10px 0 0;
+    width: 36vw;
+    height: 30px;
+    overflow: auto;
+  }
+
   .code-mirror {
     background-color: #2D2D2D;
-    border-radius: 10px;
+    border-radius: 0 0 10px 10px;
     width: 36vw;
     height: 35vh;
     margin-bottom: 20px;
@@ -123,7 +133,7 @@
 
 	.page_selected {
 		width: 33.33%;
-		height: 9%;
+		height: 100%;
 		border-style: none;
 		border-radius: 0;
 		background-color: #494949;

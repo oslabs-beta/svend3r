@@ -100,7 +100,7 @@
       on:blur="{() => {dotInfo = null; selectedDot = null}}"
     >
       <g class="y-axis" transform="translate({marginLeft}, 0)">
-        <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
+        <path class="domain" stroke="black" d="M{insetLeft}, {marginTop} V{height}"/>
         {#each reactiveYTicks as tick, i}
           <g class="tick" transform="translate(0, {yScale(tick)})">
             <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
@@ -108,7 +108,7 @@
             <text x={-marginLeft} y="10">{tick + yFormat}</text>
           </g>
         {/each}
-        <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>
+        <text x="-{marginLeft}" y={marginTop-5}>{yLabel}</text>
       </g>
   
       <g class="x-axis" transform="translate(0,{height - marginBottom})">
@@ -116,7 +116,7 @@
         {#each reactiveXTicks as tick, i}
           <g class="tick" transform="translate({xScale(tick)}, 0)">
             <line class="tick-start" stroke='black' y2='6' />
-            <line class="tick-grid" y2={-height} />
+            <line class="tick-grid" y2="-{height - marginTop}" />
             <text x={-marginLeft} y="20">{tick + xFormat}</text>
           </g>
         {/each}
@@ -226,6 +226,10 @@
     .dot_info{
       position:absolute; 
       display:inline;
+      margin: 0;
+      border-radius: 5px;
+      padding: 5px;
+      box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
     }
   
     path {

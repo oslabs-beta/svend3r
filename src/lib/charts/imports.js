@@ -107,4 +107,16 @@ export default {
       json: json
     }
   },
+  line: () => {
+    const component = import('$lib/charts/templates/Line.svelte');
+    const code = import('$lib/charts/templates/Line.svelte?raw');
+    const data = import('$lib/charts/data/line-data?raw');
+    const json = import('$lib/charts/db/line.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
 };

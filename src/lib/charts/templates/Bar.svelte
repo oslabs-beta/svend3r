@@ -63,7 +63,7 @@
 </script>
 
 <div class="chart-container" dir="auto">
-  <select on:change={reactiveShowSort(this.selectedIndex)}>
+  <select class="dropdown" on:change={reactiveShowSort(this.selectedIndex)}>
     <option disabled selected value> ---Sorting Method--- </option>
     <option value="1">Default</option>
     <option value="2">{y}, Ascending</option>
@@ -124,6 +124,7 @@
   select{
     color: black;
     padding: 5px;
+    width: 190px;
   }
 
   svg {

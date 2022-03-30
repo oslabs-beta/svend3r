@@ -64,7 +64,7 @@
 
 .chart-props {
   overflow: auto;
-  height: 32vh;
+  height: 29vh;
 }
 
 .chart-props::-webkit-scrollbar {
