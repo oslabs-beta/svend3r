@@ -4,7 +4,7 @@
 	export function load() {
 		return {
 			status: 307,
-			redirect: '/charts/bar'
+			redirect: '/charts/area'
 		};
 	}
 </script>
