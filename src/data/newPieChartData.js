@@ -1,11 +1,21 @@
-//Homelessness rate per 100,000
-//Source https://ourworldindata.org/homelessness
+//percent of registered voters by race
+//Source pew research center https://www.pewresearch.org/fact-tank/2020/10/26/what-the-2020-electorate-looks-like-by-party-race-and-ethnicity-age-education-and-religion/
 
-const homelessnessData = [
-  {country: 'Chile', per100K: 155.7153}
-  {country: 'France', per100K: 216.7686}
-  {country: 'Ireland', per100K: 78.31151}
-  {country: 'Portugal', per100K: 20.1931}
-  {country: 'Spain', per100K: 49.38259}
-  {country: 'United States', per100K: 177.1038}
-]
+const demPartyData = [
+  {
+    race: 'Black',
+    percent: 11,
+  },
+  {
+    race: 'White',
+    percent: 69,
+  },
+  {
+    race: 'Hispanic',
+    percent: 11,
+  },
+  {
+    race: 'Other',
+    percent: 8,
+  },
+];
