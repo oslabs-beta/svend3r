@@ -149,7 +149,7 @@
                   class="voronoi-cell"
                   d={reactiveVoronoi.renderCell(i)}
                   on:mouseover="{(e) => { selectedDot = i; dotInfo = [dot, i, e]; }}"
-                  on:focus="{(e) => { selectedDot = i; dotInfo = [dot, i, e]; e.target.classList.add('selectedDot'); }}"    
+                  on:focus="{(e) => { selectedDot = i; dotInfo = [dot, i, e]; e.target.classList.add('selectedDot'); }}"
               ></path>
             {/if}
           </g>
@@ -160,7 +160,7 @@
     {#if dotInfo}  
       <div class="dot_info" style="left:{dotInfo[2].clientX + 12}px; top:{dotInfo[2].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
         <span class="scatter_legend_span" style="background-color: {colors[points[dotInfo[1]][2]]}; height:{width/100}px; width:{width/100}px; " />
-        {subsets ? subsets[points[dotInfo[1]][2]] : ''}
+        {subsets ? subsets[points[dotInfo[1]][2]] : ''} 
         {x}: {points[dotInfo[1]][0]}, {y}: {points[dotInfo[1]][1]}
       </div>
     {/if}

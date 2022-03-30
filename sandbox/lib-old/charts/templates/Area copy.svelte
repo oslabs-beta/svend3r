@@ -55,6 +55,7 @@
   }
   // For data with subsets (NOTE: expects 'id' and 'data' keys)
   else {
+    console.log('colors');
     x = Object.keys(data[0]?.data[0])[0];
     y = Object.keys(data[0]?.data[0])[1];
     data.forEach((subset, i) => {
@@ -98,12 +99,29 @@
   }
 
   $: pointsScaled = points.map((el) => [xScale(el.x), yScale(el.y), el.color]);
+  $: console.log('xVals', xVals, 'I', I, 'pointsScaled', pointsScaled, 'points', points);
   $: delaunayGrid = Delaunay.from(pointsScaled);
   $: voronoiGrid = delaunayGrid.voronoi([0, 0, width, height]);
   
   $:  xTicks = xScale.ticks(xScalefactor);
   $:  xTicksFormatted = xTicks.map((el) => el.getFullYear());
   $:  yTicks = niceY.ticks(yScalefactor);
+  
+  const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
+  function mousemoved(e) {
+    const { clientX, clientY } = e;
+    console.log('mouse', clientX, clientY); // TODO fix positioning
+    const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
+    console.log()
+    dotInfo = 
+      { 
+        x: xVals[closest],
+        y: yVals[closest],
+        clientX: clientX,
+        clientY: clientY,
+        index: colorVals[closest]
+      };
+  }
 </script>
 <div class="chart-container">
   <svg {width} {height} viewBox="0 0 {width} {height}"
@@ -169,7 +187,7 @@
 
     {#each pointsScaled as point, i}
       <path
-        stroke="none"
+        stroke="purple"
         fill-opacity="0"
         class="voronoi-cell"
         d={voronoiGrid.renderCell(i)}
@@ -194,6 +212,11 @@
     margin-top: 50px;
     margin-left: 8
     0px;
+  }
+
+  select{
+    color: black;
+    padding: 5px;
   }
   svg {
     max-width: 100%;
