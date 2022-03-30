@@ -27,59 +27,47 @@
     $: tooltipBackground = $ChartDocs[16].value; // background color of tooltip
     $: tooltipTextColor = $ChartDocs[17].value; // text color of tooltip
   
-    const xType = scaleLinear; // type of x-scale
+    const xType = scaleLinear;
+    const yType = scaleLinear;
     $: xRange = [marginLeft + insetLeft, width - marginRight - insetRight]; // [left, right]
-    const yType = scaleLinear; // type of y-scale
     $: yRange = [height - marginBottom - insetBottom, marginTop + insetTop]; // [bottom, top]
   
-    let x;
-    let y;
-    $: xVals = [];
-    $: yVals = [];
-    $: points = [];
-    $: filters = [...colors];
-    let selectedDot;
-    let dotInfo;
-    let subsets;
-    console.log('test', Array.isArray(Object.values(data[0])[1]));
+    let x, y, selectedDot, dotInfo, subsets, xVals = [], yVals = [], points = [];
+    let reactiveUnit, reactiveXTicks, reactiveYTicks;
+    $: reactiveFilters = [...colors];
+
     // For a single set of data
-    $: {
-        if (!Array.isArray(Object.values(data[0])[1])) {
-            x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
-            y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
-            xVals = data.map((el) => el[x]);
-            yVals = data.map((el) => el[y]);
-            points = data.map((el) => [el[x], el[y], 0]);
-        }
+    if (!Array.isArray(Object.values(data[0])[1])) {
+        x = Object.keys(data[0])[0];
+        y = Object.keys(data[0])[1];
+        xVals = data.map((el) => el[x]);
+        yVals = data.map((el) => el[y]);
+        points = data.map((el) => [el[x], el[y], 0]);
+    }
     // For data with subsets (NOTE: expects 'id' and 'data' keys)
-        else {
-            x = Object.keys(data[0]?.data[0])[0];
-            y = Object.keys(data[0]?.data[0])[1];
-            subsets = [];
-            data.forEach((subset, i) => {
-                subset.data.forEach((coordinate) => {
-                xVals.push(coordinate[x]);
-                yVals.push(coordinate[y]);
-                points.push([coordinate[x], coordinate[y], i]);
-                });
-                subsets.push(subset.id);
+    else {
+        x = Object.keys(data[0]?.data[0])[0];
+        y = Object.keys(data[0]?.data[0])[1];
+        subsets = [];
+        data.forEach((subset, i) => {
+            subset.data.forEach((coordinate) => {
+            xVals.push(coordinate[x]);
+            yVals.push(coordinate[y]);
+            points.push([coordinate[x], coordinate[y], i]);
             });
-        }
+            subsets.push(subset.id);
+        });
     }
   
-    $: xDomain = [0, Math.max(...xVals)];
-    $: yDomain = [0, Math.max(...yVals)];
+    const xDomain = [0, Math.max(...xVals)];
+    const yDomain = [0, Math.max(...yVals)];
     $: xScale = xType(xDomain, xRange);
     $: yScale = yType(yDomain, yRange);
   
     $: reactivePointsScaled = points.map((el) => [xScale(el[0]), yScale(el[1]), el[2]])
-      .filter((el) => filters.includes(colors[el[2]]));
+      .filter((el) => reactiveFilters.includes(colors[el[2]]));
     $: reactiveDelaunay = Delaunay.from(reactivePointsScaled);
     $: reactiveVoronoi = reactiveDelaunay.voronoi([0, 0, width, height]);
-  
-    let reactiveUnit;
-    let reactiveXTicks;
-    let reactiveYTicks;
 
     $: {
         reactiveXTicks = [];
@@ -100,14 +88,17 @@
     }
   
     // Updates filter array according to input
-    $: filter = (color) => {
-      if (filters.includes(color)) filters = filters.filter((col) => col !== color);
-      else filters = [...filters, color];
+    $: reactiveFilter = (color) => {
+      if (reactiveFilters.includes(color)) reactiveFilters = reactiveFilters.filter((col) => col !== color);
+      else reactiveFilters = [...reactiveFilters, color];
     };
   </script>
   
   <div class="scatter_plot_container">
-    <svg {width} {height} viewBox="0 0 {width} {height}">
+    <svg {width} {height} viewBox="0 0 {width} {height}"
+      on:mouseout="{() => {dotInfo = null; selectedDot = null}}"
+      on:blur="{() => {dotInfo = null; selectedDot = null}}"
+    >
       <g class="y-axis" transform="translate({marginLeft}, 0)">
         <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
         {#each reactiveYTicks as tick, i}
@@ -134,7 +125,7 @@
         
         {#each reactivePointsScaled as dot, i}
           <g class='dot' opacity='1'>
-            {#if filters.includes(colors[dot[2]])}
+            {#if reactiveFilters.includes(colors[dot[2]])}
               {#if i === selectedDot}
                 <circle
                   cx={dot[0]}
@@ -180,7 +171,7 @@
       <h1 class="legend_title"><b>Legend</b></h1>
       <h5 class="legend_note">Click to Filter</h5>
         {#each subsets as subset, i}  
-          <div class="scatter_legend_info" on:click={() => filter(colors[i])}>
+          <div class="scatter_legend_info" on:click={() => reactiveFilter(colors[i])}>
             <span class="scatter_legend_span" style="background-color: {colors[i]}; height:{width/50}px; width:{width/50}px; " />
             {subset}
           </div>
@@ -274,4 +265,3 @@
       text-anchor: start;
     }
   </style>
-  

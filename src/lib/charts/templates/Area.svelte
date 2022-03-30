@@ -89,6 +89,8 @@
     .y0(yScale(0))
     .y1(i => yScale(yVals[i]));
   
+  $: console.log('xVals', xVals, 'I', I);
+
   $: {
     areas = [];
     colors.forEach((color, j) => {
@@ -104,13 +106,15 @@
   
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
-    const { pageX, pageY } = e;
-    // console.log('mouse', clientX, clientY); // TODO fix positioning
-    const closest = [...I].sort((a, b) => hyp(a, pageX, pageY) - hyp(b, pageX, pageY))[0];
+    const { clientX, clientY } = e;
+    console.log('mouse', clientX, clientY); // TODO fix positioning
+    const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
     dotInfo = 
       { 
         x: xVals[closest],
         y: yVals[closest],
+        clientX: clientX,
+        clientY: clientY,
         index: colorVals[closest]
       };
   }
@@ -181,7 +185,8 @@
 </div>
 <!-- Tooltip -->
 {#if dotInfo}
-  <div style='position:absolute; left:{xScale(dotInfo.x) + 12}px; top:{yScale(dotInfo.y) + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
+  <div style='position:absolute; left:{dotInfo.clientX}px; top:{dotInfo.clientY}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
+    {dotInfo.clientX} X {dotInfo.clientY}
     {subsets.length ? subsets[dotInfo.index] : ''} {dotInfo.x.toLocaleDateString('en-US')} {dotInfo.y.toFixed(2)}
   </div>
 {/if}

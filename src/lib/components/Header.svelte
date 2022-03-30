@@ -1,5 +1,4 @@
 <script lang="ts">
-	export let dark;
 	import { goto } from '$app/navigation';
 
 	//fetch github stars
@@ -30,13 +29,6 @@
 			class="tablet:text-gray-400 text-gray-100 hover:text-gray-100 tablet:pr-5"
 			href="#">Contributors</a
 		>
-		<!-- <a
-			class="text-gray-400 hover:text-gray-100 pr-5"
-			href="/"
-			on:click|preventDefault={() => {
-				dark = !dark;
-			}}>{dark ? 'Light Mode' : 'Dark Mode'}</a
-		> -->
 		<div id="widget" class="tablet:flex justify-center">
 			<a href="https://github.com/oslabs-beta/svend3r" alt="Svend3r Github Home"><img class="tablet:mr-2 tablet:my-0 my-2 mx-auto" alt="svend3 chart library" src="/images/github2.png" /></a>
 			<section class="flex justify-center">
