@@ -100,7 +100,7 @@ ${b}% ${names[1]}${labels[yFunc(b)] && ` (${labels[yFunc(b)]})`}`;
     height: auto;
     height: "intrinsic";
   }
-
+    
   div {
     white-space: pre
   }
