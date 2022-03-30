@@ -28,16 +28,16 @@
 	setContext('ChartList', [
 		{title: 'Area Chart', slug: 'area'}, 
 		{title: 'Bar Chart', slug: 'bar'},
-		{title: 'Bubble Chart', slug: 'bubble'},
+		// {title: 'Bubble Chart', slug: 'bubble'},
 		{title: 'Chord Diagram', slug: 'chord'},
 		{title: 'Choropleth', slug: 'choropleth'},
-		{title: 'Circle Packing', slug: 'circlePack'},
-		{title: 'Donut Chart', slug: 'donut'},
-		{title: 'Hexbin', slug: 'hexbin'},
-		{title: 'Line Chart', slug: 'line'},
+		// {title: 'Circle Packing', slug: 'circlePack'},
+		// {title: 'Donut Chart', slug: 'donut'},
+		// {title: 'Hexbin', slug: 'hexbin'},
+		// {title: 'Line Chart', slug: 'line'},
 		{title: 'Radial Stacked Bar Chart', slug: 'radialStacked'},
-		{title: 'Ridgeline Plot', slug: 'ridgeline'},
-		{title: 'Sankey Diagram', slug: 'sankey'},
+		// {title: 'Ridgeline Plot', slug: 'ridgeline'},
+		// {title: 'Sankey Diagram', slug: 'sankey'},
 		{title: 'Scatterplot', slug: 'scatter'},
 		{title: 'Pie Chart', slug: 'pie'}
 	]);

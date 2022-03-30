@@ -1,9 +1,9 @@
 <script>
-  import { curveLinear, scaleUtc, scaleLinear, line, area, range, axisBottom, axisLeft, create, bisector, Delaunay } from 'd3';
-  import { csvVtsax, csvVgenx, csvVbtlx } from '../data/line-data-multi';
-  // import { AreaChartDocs } from '../Store.svelte';
+  import { curveLinear, scaleUtc, scaleLinear, area, range } from 'd3';
+  import data from '../data/area-data';
   import { ChartDocs } from '../ChartStore';
 
+<<<<<<< HEAD
   // export let chartData;
 
   // console.log('data', chartData);
@@ -62,26 +62,47 @@ const sampleData = [
   $: colors = $ChartDocs[15].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
   $: showDots = false; // whether dots should be displayed
   $: dotsFilled = false; // whether dots should be filled or outlined
+=======
+  $: marginTop = $ChartDocs[0].value; // the top margin, in pixels
+  $: marginRight = $ChartDocs[1].value; // the right margin, in pixels
+  $: marginBottom = $ChartDocs[2].value; // the bottom margin, in pixels
+  $: marginLeft = $ChartDocs[3].value; // the left margin, in pixels
+  $: inset = $ChartDocs[4].value; // inset the default range, in pixels
+  $: width = $ChartDocs[5].value; // the outer width of the chart, in pixels
+  $: height = $ChartDocs[6].value; // the outer height of the chart, in pixels
+  $: xLabel = $ChartDocs[7].value; // a label for the y-axis
+  $: yLabel = $ChartDocs[8].value; // a label for the y-axis
+  $: xFormat = $ChartDocs[9].value; // a format specifier string for the y-axis
+  $: yFormat = $ChartDocs[10].value; // a format specifier string for the y-axis
+  $: horizontalGrid = $ChartDocs[11].value; // show horizontal grid lines
+  $: verticalGrid = $ChartDocs[12].value; // show vertical grid lines
+  $: colors = $ChartDocs[13].value; // fill color for dots && number of colors in fill array MUST match number of subsets in data
+  $: showDots = $ChartDocs[14].value; // whether dots should be displayed
+  $: dotsFilled = $ChartDocs[15].value; // whether dots should be filled or outlined
+  $: r = $ChartDocs[16].value; // (fixed) radius of dots, in pixels
+  $: strokeWidth = $ChartDocs[17].value; // stroke width of line, in pixels
+  $: fillOpacity = $ChartDocs[18].value; // fill opacity of area
+  $: tooltipBackground = $ChartDocs[19].value; // background color of tooltip
+  $: tooltipTextColor = $ChartDocs[20].value; // text color of tooltip
+>>>>>>> dev
   $: strokeLinecap = 'round'; // stroke line cap of the line
   $: strokeLinejoin = 'round'; // stroke line join of the line
-  $: strokeWidth = $ChartDocs[16].value; // stroke width of line, in pixels
-  $: strokeOpacity = $ChartDocs[17].value; // stroke opacity of line
-  $: tooltipBackground = $ChartDocs[18].value; // background color of tooltip
-  $: tooltipTextColor = $ChartDocs[19].value; // text color of tooltip
+  $: xScalefactor = width / 80; //y-axis number of values
+  $: yScalefactor = height / 40; //y-axis number of values
   $: curve = curveLinear; // method of interpolation between points
   $: xType = scaleUtc; // type of x-scale
+  $: insetTop = inset; // inset from top
+  $: insetRight = inset; // inset from right
+  $: insetBottom = inset; // inset fro bottom
+  $: insetLeft = inset; // inset from left
   $: xRange = [marginLeft + insetLeft, width - marginRight - insetRight]; // [left, right]
   $: yType = scaleLinear; // type of y-scale
   $: yRange = [height - marginBottom - insetBottom, marginTop + insetTop]; // [bottom, top]
-  let x;
-  let y; 
-  let xVals = []; 
-  let yVals = []; 
-  let points = []; 
-  let dotInfo;
-  let subsets = []; // TODO make reactive in case of single data set
-  let colorVals = [];
+
+  let x, y, dotInfo, areas, filteredI, xVals = [], yVals = [], points = [], subsets = [], colorVals = [];
+  
   // For a single set of data
+<<<<<<< HEAD
   // $: if (colors.length === 1) {
   //   x = Object.keys(data[0])[0];
   //   y = Object.keys(data[0])[1];
@@ -113,6 +134,26 @@ const sampleData = [
   x = Object.keys(data[0]?.data[0])[0];
   y = Object.keys(data[0]?.data[0])[1];
   data.forEach((subset, i) => {
+=======
+  if (!('data' in data[0])) {
+    x = Object.keys(data[0])[0];
+    y = Object.keys(data[0])[1];
+    xVals = data.map((el) => el[x]);
+    yVals = data.map((el) => el[y]);
+    colorVals = data.map((el) => 0);
+    points = data.map((el) => ({
+      x: el[x],
+      y: el[y],
+      color: 0
+    }));
+  }
+  // For data with subsets (NOTE: expects 'id' and 'data' keys)
+  else {
+    console.log('colors');
+    x = Object.keys(data[0]?.data[0])[0];
+    y = Object.keys(data[0]?.data[0])[1];
+    data.forEach((subset, i) => {
+>>>>>>> dev
     subset.data.forEach((coordinate) => {
       xVals.push(coordinate[x]);
       yVals.push(coordinate[y]);
@@ -126,8 +167,14 @@ const sampleData = [
     });
     subsets.push(subset.id);
   });
+<<<<<<< HEAD
 
   $: I = range(xVals.length);
+=======
+  }
+
+  const I = range(xVals.length);
+>>>>>>> dev
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   $: cleanData = points.map(gaps);
   $: xDomain = [xVals[0], xVals[xVals.length - 1]];
@@ -140,31 +187,34 @@ const sampleData = [
     .curve(curve)
     .x(i => xScale(xVals[i]))
     .y0(yScale(0))
-    .y1(i => yScale(yVals[i])); // TODO: should this be niceY?
-  let areas = [];
+    .y1(i => yScale(yVals[i]));
+  
   $: {
     areas = [];
     colors.forEach((color, j) => {
-      const filteredI = I.filter((el, i) => colorVals[i] === j);
+      filteredI = [];
+      filteredI = I.filter((el, i) => colorVals[i] === j);
       areas.push(chartArea(filteredI));
     });
   }
   
   $:  xTicks = xScale.ticks(xScalefactor);
-  $:  xTicksFormatted = xTicks.map((el, i, t) => {
-    if (i === 0 || el.getFullYear() === t[i - 1].getFullYear())
-      return el.toLocaleString('en-US', { month: 'long' });
-    else return el.getFullYear();
-  });
+  $:  xTicksFormatted = xTicks.map((el) => el.getFullYear());
   $:  yTicks = niceY.ticks(yScalefactor);
+  
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
     const { clientX, clientY } = e;
+<<<<<<< HEAD
     console.log('mouse', clientX, clientY);
     const closest = I.sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
+=======
+    // console.log('mouse', clientX, clientY); // TODO fix positioning
+    const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
+>>>>>>> dev
     dotInfo = 
       { 
-        x: xVals[closest], 
+        x: xVals[closest],
         y: yVals[closest],
         index: colorVals[closest]
       };
@@ -186,7 +236,7 @@ const sampleData = [
             cy={yScale(yVals[i])}
             r={r}
             stroke={colors[colorVals[i]]}
-            filled={dotsFilled ? colors[colorVals[i]] : 'none'}
+            fill={dotsFilled ? colors[colorVals[i]] : 'none'}
           />
         </g>
       {/each}
@@ -195,11 +245,11 @@ const sampleData = [
     {#each areas as subsetArea, i}
       <g class='chartlines' pointer-events='none'>
         {#if dotInfo}
-          <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '1' : '0.4'} stroke={colors[i]} d={subsetArea} />
+          <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '0.5' : '0.1'} stroke={colors[i]} d={subsetArea} />
           <circle cx={xScale(dotInfo.x)} cy={yScale(dotInfo.y)} r=3 stroke={colors[dotInfo.index]} fill='none' />
         {:else}
           <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
-            stroke-opacity={strokeOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
+            fill-opacity={fillOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
         {/if}
       </g>
     {/each}
@@ -237,7 +287,7 @@ const sampleData = [
 <!-- Tooltip -->
 {#if dotInfo}
   <div style='position:absolute; left:{xScale(dotInfo.x) + 12}px; top:{yScale(dotInfo.y) + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
-    {subsets[dotInfo.index]} {dotInfo.x.toLocaleDateString('en-US')} {dotInfo.y.toFixed(2)}
+    {subsets.length ? subsets[dotInfo.index] : ''} {dotInfo.x.toLocaleDateString('en-US')} {dotInfo.y.toFixed(2)}
   </div>
 {/if}
 <style>

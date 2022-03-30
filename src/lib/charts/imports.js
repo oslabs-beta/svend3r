@@ -2,7 +2,11 @@ export default {
   area: () => {
     const component = import('$lib/charts/templates/Area.svelte');
     const code = import('$lib/charts/templates/Area.svelte?raw');
+<<<<<<< HEAD
     const data = import('$lib/charts/data/line-data-multi?raw');
+=======
+    const data = import('$lib/charts/data/area-data?raw');
+>>>>>>> dev
     const json = import('$lib/charts/db/area.json');
     return { 
       component: component,
@@ -46,5 +50,44 @@ export default {
       data: data,
       json: json
     }
+<<<<<<< HEAD
+=======
+  },
+  pie: () => {
+    const component = import('$lib/charts/templates/Pie.svelte');
+    const code = import('$lib/charts/templates/Pie.svelte?raw');
+    const data = import('$lib/charts/data/pie-data?raw');
+    const json = import('$lib/charts/db/pie.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
+  scatter: () => {
+    const component = import('$lib/charts/templates/Scatter.svelte');
+    const code = import('$lib/charts/templates/Scatter.svelte?raw');
+    const data = import('$lib/charts/data/scatter-data?raw');
+    const json = import('$lib/charts/db/scatter.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
+  choropleth: () => {
+    const component = import('$lib/charts/templates/Choropleth.svelte');
+    const code = import('$lib/charts/templates/Choropleth.svelte?raw');
+    const data = import('$lib/charts/data/choropleth-data?raw');
+    const json = import('$lib/charts/db/choropleth.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+>>>>>>> dev
   }
 };
