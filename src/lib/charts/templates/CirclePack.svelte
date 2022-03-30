@@ -1,5 +1,5 @@
 <script>
-    import * as d3 from 'd3';
+    import { hierarchy, interpolateHcl, interpolateZoom, pack, scaleLinear, transition } from 'd3';
     import data from '../data/circle-pack-data' // or pass data to component as prop
     import { ChartDocs } from '../ChartStore';
 
@@ -9,33 +9,33 @@
     $: backgroundColor = $ChartDocs[2].value; // the background color of the chart
     $: fontSize = $ChartDocs[3].value; //the font size of the text labels
 
-    $: color = d3.scaleLinear()
+    $: color = scaleLinear()
       .domain([0, 5])
       .range(['hsl(152,80%,80%)', 'hsl(228,30%,40%)'])
-      .interpolate(d3.interpolateHcl);
+      .interpolate(interpolateHcl);
 
-    $: pack = pData => d3.pack()
+    $: packFunc = pData => pack()
       .size([width - margin, height - margin])
       .padding(3)
-      (d3.hierarchy(pData)
+      (hierarchy(pData)
         .sum(d => d.value)
         .sort((a, b) => b.value - a.value));
 
-    $: root = pack(data);
+    $: root = packFunc(data);
     $: activeFocus = root;
     let view;
     $: activeZoomK = width / root.r * 2;
     $: activeZoomA = root.x;
     $: activeZoomB = root.y;
 
-    const zoomTo = (v) => {
+    const inactiveZoomTo = (v) => {
       activeZoomK = width / v[2];
       view = v;
       activeZoomA = v[0];
       activeZoomB = v[1];
     };
 
-    $: zoomTo([root.x, root.y, root.r * 2 + margin]);
+    $: inactiveZoomTo([root.x, root.y, root.r * 2 + margin]);
 
     const zoom = (d, e) => {
       e.stopPropagation();
@@ -43,12 +43,12 @@
 
       activeFocus = d;
 
-      d3.transition()
+      transition()
         .duration(750)
         .tween('zoom', () => {
-          var i = d3.interpolateZoom(view, [activeFocus.x, activeFocus.y, activeFocus.r * 2 + margin]);
+          var i = interpolateZoom(view, [activeFocus.x, activeFocus.y, activeFocus.r * 2 + margin]);
           return function(t) { 
-            zoomTo(i(t)); 
+            inactiveZoomTo(i(t)); 
           };
         });
     };
