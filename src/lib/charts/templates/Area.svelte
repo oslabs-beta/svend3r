@@ -104,9 +104,9 @@
   
   const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
   function mousemoved(e) {
-    const { clientX, clientY } = e;
+    const { pageX, pageY } = e;
     // console.log('mouse', clientX, clientY); // TODO fix positioning
-    const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
+    const closest = [...I].sort((a, b) => hyp(a, pageX, pageY) - hyp(b, pageX, pageY))[0];
     dotInfo = 
       { 
         x: xVals[closest],

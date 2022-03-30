@@ -41,10 +41,10 @@
     let selectedDot;
     let dotInfo;
     let subsets;
-  
+    console.log('test', Array.isArray(Object.values(data[0])[1]));
     // For a single set of data
     $: {
-        if (colors.length === 1) {
+        if (!Array.isArray(Object.values(data[0])[1])) {
             x = Object.keys(data[0])[0]; // given d in data, returns the (ordinal) x-value
             y = Object.keys(data[0])[1]; // given d in data, returns the (quantitative) y-value
             xVals = data.map((el) => el[x]);
@@ -157,8 +157,8 @@
                   fill-opacity="0"
                   class="voronoi-cell"
                   d={reactiveVoronoi.renderCell(i)}
-                  on:mouseover="{() => { selectedDot = i; dotInfo = [dot, i]; }}"
-                  on:focus="{(e) => { selectedDot = i; dotInfo = [dot, i]; e.target.classList.add('selectedDot'); }}"    
+                  on:mouseover="{(e) => { selectedDot = i; dotInfo = [dot, i, e]; }}"
+                  on:focus="{(e) => { selectedDot = i; dotInfo = [dot, i, e]; e.target.classList.add('selectedDot'); }}"    
               ></path>
             {/if}
           </g>
@@ -167,16 +167,18 @@
   
   <!-- Tooltip -->
     {#if dotInfo}  
-      <div class="dot_info" style="left:{dotInfo[0][0] + 12}px; top:{dotInfo[0][1] - 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+      <div class="dot_info" style="left:{dotInfo[2].clientX + 12}px; top:{dotInfo[2].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+        <span class="scatter_legend_span" style="background-color: {colors[points[dotInfo[1]][2]]}; height:{width/100}px; width:{width/100}px; " />
+        {subsets ? subsets[points[dotInfo[1]][2]] : ''}
         {x}: {points[dotInfo[1]][0]}, {y}: {points[dotInfo[1]][1]}
       </div>
     {/if}
   
   <!-- Legend/Filters -->
     <section class="scatter_legend" style="width:{width/10}px; font-size: {width/75}px">
-      {#if subsets.length}
+      {#if subsets}
       <h1 class="legend_title"><b>Legend</b></h1>
-      <h5 class="legend_note">click to filter</h5>
+      <h5 class="legend_note">Click to Filter</h5>
         {#each subsets as subset, i}  
           <div class="scatter_legend_info" on:click={() => filter(colors[i])}>
             <span class="scatter_legend_span" style="background-color: {colors[i]}; height:{width/50}px; width:{width/50}px; " />
