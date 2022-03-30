@@ -77,7 +77,7 @@
   .chart_page_container {
     background-color: #1E1E1E;
     width: 100%;
-    height: 100%;
+    height: 80%;
   }
 
   .left-container{
@@ -110,7 +110,8 @@
     align-items: center;
     text-align: center;
     width:40vw;
-    height: 77vh;
+    height: 80vh;
+    overflow: auto;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
   }
   
