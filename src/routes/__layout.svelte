@@ -7,7 +7,7 @@
 	setContext('ChartList', [
 		{title: 'Area Chart', slug: 'area'}, 
 		{title: 'Bar Chart', slug: 'bar'},
-		// {title: 'Bubble Chart', slug: 'bubble'},
+		{title: 'Bubble Chart', slug: 'bubble'},
 		{title: 'Chord Diagram', slug: 'chord'},
 		{title: 'Choropleth', slug: 'choropleth'},
 		{title: 'Circle Packing', slug: 'circlePack'},

@@ -61,7 +61,7 @@
 		<section id="info-sect" class="mx-4 my-4">
 			<h1 class="text-2xl text-white87">Want to Contribute?</h1>
 			<p class="text-sm text-white87 ">
-				Want to be a open source contributor? Have a Svelte component chart you would 
+				Want to become a Svend3r open source contributor? Have a Svelte component chart you would 
 				like to share with the Svelte community? or recommended improvements? 
 				Create and submit a pull request to the <code class="text-white87 bg-white12">playground branch</code> 
 				on the Svend3r github repository. 
