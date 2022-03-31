@@ -35,8 +35,6 @@
 				advantage of Svelte's optimized DOM interaction.
 				<br>
 				<br>
-				<br>
-				<br>
 				New to Svelte and D3? If you use npm,
 				<br>
 				<code class="text-white87 bg-white12">npm install svelte</code> and
