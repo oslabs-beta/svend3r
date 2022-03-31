@@ -17,10 +17,10 @@
                      graphic for your project or test them all out and adjust your data to suit.
                 </p>
             </article>
-            <img src="/getStarted/chart_list.png" class="demopngLG"/>
+            <img alt="svend3r charts list example" src="/getStarted/chart_list.png" class="demopngLG"/>
         </section>
         <section class="section-even" id="second">
-            <img src="/getStarted/chart_example.png" class="demopngLG"/>
+            <img alt="svend3r charts example" src="/getStarted/chart_example.png" class="demopngLG"/>
             <article>
                 <h2>Picked out a chart.  Play and interactive with it.</h2>
                 <br>
@@ -38,12 +38,10 @@
                      styling has never been easier.  Adjust a property and watch the chart AND the code editor update immediately reflecting your changes.
                 </p>
             </article>
-            <img src="/getStarted/chart_properties.png" class="demopngLG"/>
+            <img alt="svend3r properties example" src="/getStarted/chart_properties.png" class="demopngLG"/>
         </section>
         <section class="section-even" id="forth">
-            <img src="/getStarted/chart_code.png" class="demopngSM"/>
-            <img src="/getStarted/chart_data.png" class="demopngSM"/>
-            <img src="/getStarted/chart_schema.png" class="demopngSM"/>
+                <img alt="svend3r code example" src="/getStarted/chart_code.png" class="demopngMD"/>
             <article>
                 <h2>View. Adjust. Copy. Paste.</h2>
                 <br>
@@ -63,7 +61,7 @@
                     data.js file on <a href="https://svelte.dev/repl/hello-world?version=3"><b>Svelte REPL</b></a>.  Copy, paste, and enjoy.
                 </p>
             </article>
-            <img src="/getStarted/chart_REPL.png" class="demopngLG"/>
+            <img alt="svend3r REPL example" src="/getStarted/chart_REPL.png" class="demopngLG"/>
         </section>
         <h3 class="team_title">If you like Svend3r give us a Star on <a href="https://github.com/oslabs-beta/svend3r"><b>Github</b></a></h3>
     </div>
@@ -79,13 +77,13 @@
         box-shadow: rgba(255, 62, 0, 0.4) 5px 5px, rgba(255, 62, 0, 0.3) 10px 10px, rgba(255, 62, 0, 0.2) 15px 15px, rgba(255, 62, 0, 0.1) 20px 20px, rgba(255, 62, 0, 0.05) 25px 25px;
     }
 
-    .getting_started{
-        overflow: auto;
-    }
-
     .guide-sections{
         width: fit-content;
         height: 76vh;
+    }
+
+    .getting_started{
+        overflow: auto;
     }
 
     .getting_started h1{
@@ -145,12 +143,12 @@
        padding: 5%;
    }
    .demopngLG{
-       height: 90%;
+       height: 80%;
        margin: auto 30px auto 30px;
    }
 
-   .demopngSM{
-       width: 20%;
+   .demopngMD{
+        height: 60%;
        margin: auto 10px auto 30px;
    }
 
@@ -158,7 +156,47 @@
 		display: none;
 	}
 
-	@media (max-width: 1420px) {
+    @media (max-width: 1100px) {
 
+        .getting_started h1{
+            font-size: 2em;
+        }
+
+        .guide-sections{
+            height: 100vh;
+            width: fit-content;
+        }
+        article{
+            width: 100%;
+        }
+        .section-odd{
+            display: grid;
+            grid-template-columns: 100%;
+            height: fit-content;
+            padding: 30px 0;
+        }
+
+        .section-even{
+            display: grid;
+            grid-template-columns: 100%;
+            height: fit-content;
+            padding: 30px 0;
+        }
+        .demopngLG{
+            height: auto;
+            width: 90%;
+            margin: auto;
+        }
+
+        .demopngMD{
+            height: auto;
+            width: 90%;
+            margin: auto;
+        }
+
+        img{
+            border-radius: 10px;
+            box-shadow: rgba(255, 62, 0, 0.4) 5px 5px, rgba(255, 62, 0, 0.3) 10px 10px, rgba(255, 62, 0, 0.2) 15px 15px, rgba(255, 62, 0, 0.1) 20px 20px, rgba(255, 62, 0, 0.05) 25px 25px;
+        }
 	}
 </style>
