@@ -1,15 +1,16 @@
 <script>
   import { area, curveBasis, extent, max, quantize, interpolateCool, scaleLinear, scalePoint, scaleTime} from 'd3';
-  import data from '../data/ridgeline-data-new';
+  import data from './ridgeline-data';
 
-  const overlap = 2;
-  const width = 928;
-  const height = data.series.length * 17;
+  const width = 800; // the outer width of the chart, in pixels 
+  const overlap = 1; // the overlap between each ridgeline
+  const verticalScale = 17; // the vertical spacing between each y axis ticks
+  const height = data.series.length * verticalScale;
   const marginTop = 40; // the top margin, in pixels
   const marginRight = 0; // the right margin, in pixels
   const marginBottom = 30; // the bottom margin, in pixels
   const marginLeft = 60; // the left margin, in pixels
-  const yAxisOffset = -10; // vertical offset of y-axis labels, in pixels
+  const yAxisOffset = 0; // vertical offset of y-axis labels, in pixels
 
   const xScale = scaleTime()
     .domain(extent(data.dates))

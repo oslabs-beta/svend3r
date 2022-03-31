@@ -20,16 +20,16 @@
 // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
 // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
 // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
-// import Ridgeline from './Ridgeline/Ridgeline.svelte';
+import Ridgeline from './Ridgeline/Ridgeline.svelte';
 // import Histogram from './Histogram/Histogram.svelte';
-import Bubble from './Bubble/Bubble.svelte';
+// import Bubble from './Bubble/Bubble.svelte';
 
 </script>
 
 <body>
   <div>
     <!-- <Histogram /> -->
-    <!-- <Ridgeline /> -->
+    <Ridgeline />
     <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
@@ -48,7 +48,7 @@ import Bubble from './Bubble/Bubble.svelte';
     <!-- <Choropleth /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
-    <Bubble />
+    <!-- <Bubble /> -->
   </div>
 </body>
 
