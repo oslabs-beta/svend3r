@@ -33,16 +33,6 @@
             linkedIn: "https://www.linkedin.com/in/isaac-l-saunders/",
             github: "https://github.com/IsaacLSaunders",
         },
-        // {
-        //     first_name: "Michael",
-        //     last_name: "Lakeram",
-        //     title: "Software Engineer",
-        //     alt_text: "michael lakeram software engineer svend3r svender",
-        //     aboutMe: "Hello my name is Michael.",
-        //     headshot: "/images/taochen_headshot.jpg",
-        //     linkedIn: "https://www.linkedin.com/in/michaellakeram/",
-        //     github: "https://github.com/calamitymike",
-        // }
     ]
 </script>
 
