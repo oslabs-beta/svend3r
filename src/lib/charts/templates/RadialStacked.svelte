@@ -17,13 +17,13 @@
   $: height = width;
   $: outerRadius = width * chartScale;
   $: keys = Object.keys(data[0]).slice(0, -1);
-
+  $: groupId = keys[0];
   $: reactiveData = sorted === true
     ? [...data].sort((a, b) => b.total - a.total)
     : [...data];
 
   $: reactiveXScale = scaleBand()
-    .domain(reactiveData.map((d) => d.State))
+    .domain(reactiveData.map((d) => d[groupId]))
     .range([0, 2 * Math.PI])
     .align(0);
 
@@ -36,8 +36,8 @@
   $: d3arc = arc()
     .innerRadius((d) => yScale(d[0]))
     .outerRadius((d) => yScale(d[1]))
-    .startAngle((d) => reactiveXScale(d.data.State))
-    .endAngle((d) => reactiveXScale(d.data.State) + reactiveXScale.bandwidth())
+    .startAngle((d) => reactiveXScale(d.data[groupId]))
+    .endAngle((d) => reactiveXScale(d.data[groupId]) + reactiveXScale.bandwidth())
     .padAngle(0.01)
     .padRadius(innerRadius);
 </script>
@@ -60,17 +60,17 @@
     {#each reactiveData as d}
       <g
         transform="
-        rotate({((reactiveXScale(d.State) + reactiveXScale.bandwidth() / 2) * 180) / Math.PI - 90})
+        rotate({((reactiveXScale(d[groupId]) + reactiveXScale.bandwidth() / 2) * 180) / Math.PI - 90})
         translate({innerRadius},0)
       "
       >
         <line x2="-5" stroke={tickColor} />
         <text
-          transform={(reactiveXScale(d.State) + reactiveXScale.bandwidth() / 2 + Math.PI / 2) %
+          transform={(reactiveXScale(d[groupId]) + reactiveXScale.bandwidth() / 2 + Math.PI / 2) %
             (2 * Math.PI) <
           Math.PI
             ? "rotate(90) translate(0,16)"
-            : "rotate(-90) translate(0,-9)"}>{d.State}</text
+            : "rotate(-90) translate(0,-9)"}>{d[groupId]}</text
         >
       </g>
     {/each}

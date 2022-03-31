@@ -15,6 +15,7 @@
   $: updateCode = () => {
     let userCode = code.replace("import { ChartDocs } from '../ChartStore';\n", '');
     userCode = userCode.replace('./data', '');
+    userCode = userCode.replace('./data', '');
     
     for (let i = 0; i < $ChartDocs.length; i++) {
       const doc = $ChartDocs[i].value;
@@ -27,8 +28,10 @@
       }
       userCode = userCode.replace(/\$:(.+)\$ChartDocs\[\d+].value/, 'const' + '$1' + replacementValue);
     }
-    userCode = userCode.replace(/\$: (for|if)/g, '$1');
+    userCode = userCode.replace(/\$: (for|if|inactive)/g, '$1');
+    userCode = userCode.replace(/\$: (active)/g, 'let $1');
     userCode = userCode.replace(/\$: (?!reactive|\{)/g, 'const ');
+    //need to update for circle pack chart let variable and zoomTo invocation
     
     return userCode;
   };
@@ -50,22 +53,24 @@
 <div class="data-schema-container">
   <h1 class="section-title">Chart Data Schema</h1>
 </div>
+<div class="buttons-container">
+  <button class="page_selected" id="page1" on:click={() => showCode('page1')}>
+    <section class="button-text_icon">
+    <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
+    Code</section>
+  </button><!--
+  --><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
+      <section class="button-text_icon">
+      <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
+      Data</section>
+  </button><!--
+  --><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
+      <section class="button-text_icon">
+      <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
+      Data Schema</section>
+  </button>
+</div>
 <div class="code-mirror">
-<button class="page_selected" id="page1" on:click={() => showCode('page1')}>
-  <section class="button-text_icon">
-  <img class="codeMirror-icon" id="page1" alt="svend3r d3 chart code" src='/codeMirror/code.png'>
-  Code</section>
-</button><!--
---><button class="page_selected" id="page2" on:click={() => showCode('page2')}>
-    <section class="button-text_icon">
-    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/data.png'>
-    Data</section>
-</button><!--
---><button class="page_selected" id="page3" on:click={() => showCode('page3')}>
-    <section class="button-text_icon">
-    <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
-    Data Schema</section>
-</button>
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
@@ -105,9 +110,17 @@
     outline: none;
 	}
 
+  .buttons-container{
+    background-color: #2D2D2D;
+    border-radius: 10px 10px 0 0;
+    width: 36vw;
+    height: 30px;
+    overflow: auto;
+  }
+
   .code-mirror {
     background-color: #2D2D2D;
-    border-radius: 10px;
+    border-radius: 0 0 10px 10px;
     width: 36vw;
     height: 35vh;
     margin-bottom: 20px;
@@ -121,7 +134,7 @@
 
 	.page_selected {
 		width: 33.33%;
-		height: 9%;
+		height: 100%;
 		border-style: none;
 		border-radius: 0;
 		background-color: #494949;
@@ -170,6 +183,11 @@
       height: 60vh;
       width: 100%;
     }
+
+    .buttons-container{
+      width: 100%;
+      height: 30px;
+  }
 }
 
 </style>

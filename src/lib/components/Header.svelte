@@ -1,20 +1,19 @@
 <script lang="ts">
-	export let dark;
 	import { goto } from '$app/navigation';
 
 	//fetch github stars
-	// const fetchStars = (async () => {
-	// 	console.log("fetching")
-	// 	const response = await fetch('https://api.github.com/repositories/466166070')
-    // return await response.json()
-	// })()
+	const fetchStars = (async () => {
+		console.log("fetching")
+		const response = await fetch('https://api.github.com/repositories/466166070')
+    return await response.json()
+	})()
 
 </script>
 
-<ul class="tablet:relative w-full tablet:w-full text-center tablet:text-left">
+<div class="tablet:relative w-full tablet:w-full text-center tablet:text-left">
 	<a href="/" alt="Svend3r Home"><img alt="svend3 chart library" src="/images/logo-beta.png" class="mx-auto tablet:mx-0"/></a>
 	<div class=" text-md text-gray-400">Svelte x D3 "plug and play" charting library</div>
-	<li class="tablet:absolute tablet:top-0 tablet:right-0 text-center pt-5  tablet:flex">
+	<div class="tablet:absolute tablet:top-0 tablet:right-0 text-center pt-5  tablet:flex">
 		<a 
 			on:click={() => goto('/')} 
 			class="tablet:text-gray-400 text-gray-100 hover:text-gray-100 pr-5" 
@@ -30,15 +29,8 @@
 			class="tablet:text-gray-400 text-gray-100 hover:text-gray-100 tablet:pr-5"
 			href="#">Contributors</a
 		>
-		<!-- <a
-			class="text-gray-400 hover:text-gray-100 pr-5"
-			href="/"
-			on:click|preventDefault={() => {
-				dark = !dark;
-			}}>{dark ? 'Light Mode' : 'Dark Mode'}</a
-		> -->
 		<div id="widget" class="tablet:flex justify-center">
-			<a href="https://github.com/oslabs-beta/svend3r" alt="Svend3r Github Home"><img class="tablet:mr-2 tablet:my-0 my-2 mx-auto" alt="svend3 chart library" src="/images/github2.png" /></a>
+			<a href="https://github.com/oslabs-beta/svend3r" alt="Svend3r Github Home"><img class="tablet:mr-2 tablet:my-0 my-2 mx-auto" alt="svend3 chart library" src="/images/github-header.png" /></a>
 			<section class="flex justify-center">
 				<button 
 					id="star-button" 
@@ -65,24 +57,24 @@
 					class="bg-white flex w-[60px] flex justify-center rounded-r-md border-l-2 border-bgGrey"
 					on:click={() => location.href = "https://github.com/oslabs-beta/svend3r/stargazers"}
 					target="_blank"
-				>1000
-					<!-- {#await fetchStars}
+				>
+					{#await fetchStars}
 						loading
 					{:then data}
 						{data.stargazers_count}
 					{:catch error}	
 						error
-					{/await} -->
+					{/await}
 				</button>
 			</section>
 		</div>
-	</li>
+	</div>
 	<hr
 		class="mt-5 bg-gray-200 dark:bg-gray-200 
 	border border-gray-200 dark:border-gray-200 rounded-full
 	 w-full shadow-3xl"
 	/>
-</ul>
+</div>
 
 <style>
 

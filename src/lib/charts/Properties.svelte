@@ -1,21 +1,6 @@
 <script>
   import { ChartDocs } from './ChartStore';
   
-  // console.log('Properties schema and properties', schema, properties);
-  // $: colors = ["#c4c4c4","#69b40f","#ec1d25","#c8125c","#008fc8","#10218b","#134b24","#737373"];
-  // let colorsArray;
-  // $: if (!Array.isArray(colors)) {
-  //   console.log(colors, typeof colors, colors.split(','))
-  //   // colorsArray = JSON.parse(`[${colors}]`);
-  //   colorsArray = colors.split(',');
-  // } 
-  // $: console.log(Array.isArray(colorsArray));
-
-  // $ChartDocs.forEach((doc) => {
-  //   if (Array.isArray(doc)) {
-
-  //   }
-  // })
 </script>
 
 <div class="data-schema-container">
@@ -64,7 +49,7 @@
 
 .chart-props {
   overflow: auto;
-  height: 32vh;
+  height: 28vh;
 }
 
 .chart-props::-webkit-scrollbar {

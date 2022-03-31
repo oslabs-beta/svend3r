@@ -1,5 +1,5 @@
 <script>
-  import { curveLinear, scaleUtc, scaleLinear, area, range } from 'd3';
+  import { area, curveLinear, Delaunay, range, scaleLinear, scaleUtc } from 'd3';
   import data from '../data/area-data';
   import { ChartDocs } from '../ChartStore';
 
@@ -55,7 +55,6 @@
   }
   // For data with subsets (NOTE: expects 'id' and 'data' keys)
   else {
-    console.log('colors');
     x = Object.keys(data[0]?.data[0])[0];
     y = Object.keys(data[0]?.data[0])[1];
     data.forEach((subset, i) => {
@@ -76,9 +75,9 @@
 
   const I = range(xVals.length);
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
-  $: cleanData = points.map(gaps);
-  $: xDomain = [xVals[0], xVals[xVals.length - 1]];
-  $: yDomain = [0, Math.max(...yVals)];
+  const cleanData = points.map(gaps);
+  const xDomain = [xVals[0], xVals[xVals.length - 1]];
+  const yDomain = [0, Math.max(...yVals)];
   $: xScale = xType(xDomain, xRange);
   $: yScale = yType(yDomain, yRange);
   $: niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
@@ -88,7 +87,7 @@
     .x(i => xScale(xVals[i]))
     .y0(yScale(0))
     .y1(i => yScale(yVals[i]));
-  
+
   $: {
     areas = [];
     colors.forEach((color, j) => {
@@ -97,28 +96,18 @@
       areas.push(chartArea(filteredI));
     });
   }
+
+  $: pointsScaled = points.map((el) => [xScale(el.x), yScale(el.y), el.color]);
+  $: delaunayGrid = Delaunay.from(pointsScaled);
+  $: voronoiGrid = delaunayGrid.voronoi([0, 0, width, height]);
   
   $:  xTicks = xScale.ticks(xScalefactor);
   $:  xTicksFormatted = xTicks.map((el) => el.getFullYear());
   $:  yTicks = niceY.ticks(yScalefactor);
-  
-  const hyp = (index, mouseX, mouseY) => Math.hypot(xScale(xVals[index]) - mouseX + 17, yScale(yVals[index]) - mouseY + 17);
-  function mousemoved(e) {
-    const { clientX, clientY } = e;
-    // console.log('mouse', clientX, clientY); // TODO fix positioning
-    const closest = [...I].sort((a, b) => hyp(a, clientX, clientY) - hyp(b, clientX, clientY))[0];
-    dotInfo = 
-      { 
-        x: xVals[closest],
-        y: yVals[closest],
-        index: colorVals[closest]
-      };
-  }
 </script>
 <div class="chart-container">
   <svg {width} {height} viewBox="0 0 {width} {height}"
     cursor='crosshair'
-    on:mousemove="{(e) => mousemoved(e)}"  
     on:mouseout="{() => dotInfo = null}"
     on:blur="{() => dotInfo = null}"
   >
@@ -140,8 +129,8 @@
     {#each areas as subsetArea, i}
       <g class='chartlines' pointer-events='none'>
         {#if dotInfo}
-          <path class="line" fill={colors[i]} fill-opacity={dotInfo.index === i ? '0.5' : '0.1'} stroke={colors[i]} d={subsetArea} />
-          <circle cx={xScale(dotInfo.x)} cy={yScale(dotInfo.y)} r=3 stroke={colors[dotInfo.index]} fill='none' />
+          <path class="line" fill={colors[i]} fill-opacity={points[dotInfo[1]].color === i ? '0.5' : '0.1'} stroke={colors[i]} d={subsetArea} />
+          <circle cx={xScale(points[dotInfo[1]].x)} cy={yScale(points[dotInfo[1]].y)} r=3 stroke={colors[points[dotInfo[1]].color]} fill='none' />
         {:else}
           <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
             fill-opacity={fillOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
@@ -151,38 +140,51 @@
     
     <!-- Y-axis and horizontal grid lines -->
     <g class="y-axis" transform="translate({marginLeft}, 0)" pointer-events='none'>
-      <path class="domain" stroke="black" d="M{insetLeft}, 0.5 V{height}"/>
+      <path class="domain" stroke="black" d="M{insetLeft}, {marginTop} V{height - marginBottom + 6}"/>
       {#each yTicks as tick, i}
         <g class="tick" transform="translate(0, {yScale(tick)})">
           <line class="tick-start" x1={insetLeft - 6} x2={insetLeft}/>
           {#if horizontalGrid}
             <line class="tick-grid" x1={insetLeft} x2={width - marginLeft - marginRight}/>
           {/if}
-          <text x={-marginLeft} y="10">{tick + yFormat}</text>
+          <text text-align="right"x="-{marginLeft}" y="5">{tick + yFormat}</text>
         </g>
       {/each}
-      <text x="-{marginLeft}" y={marginTop/2}>{yLabel}</text>
+      <text x="-{marginLeft}" y={marginTop - 10}>{yLabel}</text>
     </g>
     <!-- X-axis and vertical grid lines -->
     <g class="x-axis" transform="translate(0,{height - marginBottom - insetBottom})" pointer-events='none'>
-      <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width}"/>
+      <path class="domain" stroke="black" d="M{marginLeft},0.5 H{width - marginRight}"/>
       {#each xTicks as tick, i}
         <g class="tick" transform="translate({xScale(tick)}, 0)">
           <line class="tick-start" stroke='black' y2='6' />
           {#if verticalGrid}
             <line class="tick-grid" y2={-height} />
           {/if}
-          <text font-size='8px' x={-marginLeft} y="20">{xTicksFormatted[i] + xFormat}</text>
+          <text font-size='8px' x={-marginLeft/4} y="20">{xTicksFormatted[i] + xFormat}</text>
         </g>
       {/each}
       <text x={width - marginLeft - marginRight - 40} y={marginBottom}>{xLabel}</text>
     </g>
+
+    {#each pointsScaled as point, i}
+      <path
+        stroke="none"
+        fill-opacity="0"
+        class="voronoi-cell"
+        d={voronoiGrid.renderCell(i)}
+        on:mouseover="{(e) => dotInfo = [point, i, e] }"
+        on:focus="{(e) => dotInfo = [point, i, e] }"
+      ></path>
+    {/each}
   </svg>
 </div>
 <!-- Tooltip -->
 {#if dotInfo}
-  <div style='position:absolute; left:{xScale(dotInfo.x) + 12}px; top:{yScale(dotInfo.y) + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
-    {subsets.length ? subsets[dotInfo.index] : ''} {dotInfo.x.toLocaleDateString('en-US')} {dotInfo.y.toFixed(2)}
+  <div class="tooltip" style='position:absolute; left:{dotInfo[2].clientX + 12}px; top:{dotInfo[2].clientY + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
+    {subsets ? subsets[points[dotInfo[1]].color] : ''}:  
+    {points[dotInfo[1]].x.getFullYear()}: {points[dotInfo[1]].y.toFixed(2)}{yFormat}
+    <!-- {points[dotInfo[1]].x.toLocaleDateString('en-US')} {points[dotInfo[1]].y.toFixed(2)}{yFormat} -->
   </div>
 {/if}
 <style>
@@ -192,11 +194,6 @@
     margin-top: 50px;
     margin-left: 8
     0px;
-  }
-
-  select{
-    color: black;
-    padding: 5px;
   }
   svg {
     max-width: 100%;
@@ -233,5 +230,11 @@
   .tick text {
     fill: black;
     text-anchor: start;
+  }
+
+  .tooltip{
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
   }
 </style>
