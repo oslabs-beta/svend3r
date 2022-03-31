@@ -1,118 +1,112 @@
 <script>
-import * as d3 from "d3";
-import { forceSimulation } from "d3-force";
+  import * as d3 from 'd3';
+  import data from './bubble-data';
 
+  const height = 1152;
+  const padding = 3;
+  const margin = 1;
+  const backgroundColor = 'black';
+  const fill = '#ccc'; // a static fill color, if no group channel is specified
+  const fillOpacity = 0.7; // the fill opacity of the bubbles
+  const strokeColor = 'none'; // a static stroke around the bubbles
+  const strokeWidth = 1; // the stroke width around the bubbles, if any
+  const strokeOpacity = 1; // the stroke opacity around the bubbles, if any
+  const link = (d) => `https://github.com/prefuse/Flare/blob/master/flare/src/${d.id.replace(/\./g, '/')}.as`;
+  const width = height;
+  const marginLeft = margin;
+  const marginRight = margin;
+  const marginTop = margin; 
+  const marginBottom = margin;
 
-// an array of circles
-export const circles = [];
-// an array of [name, force] pairs
-export const forces = [];
+  // Compute the values.
+  const dVals = data.map((el) => el);
+  const vVals = data.map((el) => el.value);
+  const gVals = data.map((el) => el.id.split('.')[1]);
+  const iVals = d3.range(vVals.length).filter(i => vVals[i] > 0);
 
-const forceNames = [];
-const renderedCircles = [];
+  let groups = iVals.map(i => gVals[i]);
+  groups = new d3.InternSet(groups);
 
-//you have to set height and width of the svg here or else the force simulation will not work correctly, must be bound to the container with bind:clientWidth="{width}"
-let width = 1200
-$: height = width
+  const colorScale = d3.scaleOrdinal(groups, d3.schemeTableau10);  
 
-$: simulation = forceSimulation()
-    .nodes(circles)
-    .on("tick", ticked);
+  // // Compute labels.
+  const lVals = data.map((el) => [...el.id.split('.').pop().split(/(?=[A-Z][a-z])/g), el.value.toLocaleString('en')].join('\n'));
+  const tVals = data.map((el) => `${el.id}\n${el.value.toLocaleString('en')}`);
 
-    // ======>
+  const uid = `O-${Math.random().toString(16).slice(2)}`;
 
-// //forces will be applied in the BubbleWrapper component    
-// const simulation = d3
-// //force simulation takes our data as a parameter and forces are applied to it to create movement in our nodes
-// .forceSimulation(data.nodes)
-// .force("charge", d3.forceManyBody().strength(300))
-// .force("center", d3.forceCenter(width / 2, height / 2))
-// .force("collide", d3.forceCollide((d)=>d.radius).strength(.9))
-// .on("tick", ticked);
+  const root = d3.pack()
+    .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
+    .padding(padding)
+    (d3.hierarchy({children: iVals})
+      .sum(i => vVals[i]));
 
-$: {
-    // re-initialize forces when they change
-    forces.forEach(([name, force]) => {
-    simulation.force(name, force)
-    })
-
-    // remove old forces
-    const newForceNames = forces.map(([name]) => name)
-    let oldForceNames = usedForceNames.filter(
-    force => !newForceNames.includes(force),
-    )
-    oldForceNames.forEach(name => {
-    simulation.force(name, null)
-    })
-    usedForceNames = newForceNames
-
-    // kick our simulation into high gear
-    simulation.alpha(1)
-    simulation.restart()
-}
-
-const drag = d3
-    .drag()
-    .on("start", dragStarted)
-    .on("drag", dragging)
-    .on("end", dragEnded)
-
-const textAndNodes = svg
-    .append("g")
-    .selectAll("g")
-    .data(data.nodes)
-    .enter()
-    .append("g")
-    .call(drag)
-
-// //circles will be renderd in the bubble wrapper component
-// const circles= textAndNodes
-//     .append("circle")
-//     .attr("r", (d)=> d.radius)
-//     .attr("fill", (d)=> d.color)
-
-const text = textAndNodes
-    .append("text")
-    .text((d)=>d.letter)
-
-const radius = textAndNodes
-    .append("text")
-    .text((d)=>d.radius)
-
-
-function ticked() {
-    textAndNodes
-    .attr("transform", (d)=> "translate(" + d.x + "," + d.y +")")
-}
-
-function dragStarted(d){
-    if(!d3.event.active) simulation.alphaTarget(0.3).restart();
-    //fx,fx fix the position of the node and stop any more force that may have been applied otherwise
-    //this function will work using x and y but the node will continue to move after the tick function is finished execution
-    d.fx=d.x;
-    d.fy=d.y;
-}
-
-function dragging(d){
-    //set the node to the current mouse position
-    //fx and fy are assigned when using the force simulation function
-    //at the end of every instance of the tick function, 
-    d.fx = d3.event.x
-    d.fy = d3.event.y
-}
-
-function dragEnded(d){
-    if(!d3.event.active) simulation.alphaTarget(0);
-    d.fx= null;
-    d.fy= null;
-}
+  console.log('root', root.leaves());
+  console.log('tVals', tVals);
 </script>
 
-<svg></svg>
+<svg {width} {height} viewBox="{-marginLeft} {-marginTop} {width} {height}" fill={backgroundColor}>
+    {#each root.leaves() as leaf, i}
+      <a href={link === null ? null : link(dVals[leaf.data], i, data)} target="_blank" rel="noopener noreferrer">
+        <g class='node' transform="translate({(leaf.x)},{(leaf.y)})">
+          <circle id="node-{i}"
+            stroke={strokeColor} stroke-width={strokeWidth} stroke-opacity={strokeOpacity}
+            fill={gVals ? colorScale(gVals[leaf.data]) : fill == null ? 'none' : fill}
+            r={leaf.r}
+          >
+            <title>{tVals[i]}</title>
+          </circle>
+          <clipPath id={`${uid}-clip-${leaf.data}`}>
+            <circle r={leaf.r}></circle>
+          </clipPath>
+          <text clip-path={`url(${new URL(`#${uid}-clip-${leaf.data}`, location)})`}>
+            {#each `${lVals[leaf.data]}`.split(/\n/g) as subtext, j}
+              <tspan 
+                x='0'  
+                y={`${j - `${lVals[leaf.data]}`.split(/\n/g).length / 2 + 0.85}em`}
+                fill-opacity={j === `${lVals[leaf.data]}`.split(/\n/g).length - 1 ? 0.7 : null}
+              >
+                {subtext}
+              </tspan>
+            {/each}
+          </text>
+        </g>
+      </a>
+    {/each}
+</svg>
 
 <style>
-svg {
-    width: "960";
-    height: "600"
-}
+  svg {
+    max-width: 100%;
+    /* max-height: 100%; */
+    height: auto;
+    height: intrinsic;
+    font-size: 10;
+    font-family: sans-serif;
+    text-anchor: middle;
+  }
+  .node {
+    cursor: pointer;
+  }
+
+  .node:hover {
+    stroke: #000;
+    stroke-width: 1.5px;
+  }
+/* 
+  .node--leaf {
+    fill: white;
+  } */
+
+  .label {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-anchor: middle;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+  }
+
+  .label,
+  .node--root,
+  .node--leaf {
+    pointer-events: none;
+  } 
 </style>

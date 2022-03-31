@@ -1,6 +1,4 @@
 <script>
-import NewBubble from './Bubble/newBubble.svelte';
-
 // import Scatter from './Scatter/Scatter_Chart.svelte';
 // import scatterData from './data/nivo-scatter-data';
 // import Chord from './Chord/Chord_Chart.svelte';
@@ -23,13 +21,14 @@ import NewBubble from './Bubble/newBubble.svelte';
 // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
 // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
 // import Ridgeline from './Ridgeline/Ridgeline.svelte';
-import Histogram from './Histogram/Histogram.svelte';
+// import Histogram from './Histogram/Histogram.svelte';
+import Bubble from './Bubble/Bubble.svelte';
 
 </script>
 
 <body>
   <div>
-    <Histogram />
+    <!-- <Histogram /> -->
     <!-- <Ridgeline /> -->
     <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
@@ -49,6 +48,7 @@ import Histogram from './Histogram/Histogram.svelte';
     <!-- <Choropleth /> -->
     <!-- <Card /> -->
     <!-- <Radial_Stacked_Container /> -->
+    <Bubble />
   </div>
 </body>
 
