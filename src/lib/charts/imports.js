@@ -119,4 +119,16 @@ export default {
       json: json
     }
   },
+  ridgeline: () => {
+    const component = import('$lib/charts/templates/Ridgeline.svelte');
+    const code = import('$lib/charts/templates/Ridgeline.svelte?raw');
+    const data = import('$lib/charts/data/ridgeline-data?raw');
+    const json = import('$lib/charts/db/ridgeline.json');
+    return { 
+      component: component,
+      code: code,
+      data: data,
+      json: json
+    }
+  },
 };
