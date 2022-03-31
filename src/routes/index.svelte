@@ -2,7 +2,6 @@
 	import Card from '$lib/components/Card.svelte'
 	import { getContext } from 'svelte';
 	const ChartList = getContext('ChartList');
-	console.log('chartList', ChartList);
 </script>
 
 <svelte:head>
@@ -27,13 +26,15 @@
 	</div>
 	<div id="card-container" class="grid content-between w-[80vw] tablet:w-[400px] min-w-[300px] bg-code-gray my-8 mx-3 tablet:h-[82vh] overflow-auto rounded-lg shadow-3xl ">
 		<section id="info-sect" class="mx-4 mt-4">
-			<h1 class="text-2xl text-white87">How to get Started</h1>
+			<h1 class="text-2xl text-white87">Quickstart Guide</h1>
 			<p class="text-sm text-white87 text-justify">
-				<b>Svend3r (or svend3r.js)</b> is your go-to Open Source Svelte data visuaization charting library with easy
-				to use pre-built modular components. Svend3r components provides beautiful graphics from the
-				D3 powerhouse, but without the imperative style code. Instead Svend3r provide your project with
-				clean, easily adjustable, and declarative code complimented with D3 methods to help bring your
-				data to life.
+				<b>Svend3r</b> is an open source charting library for Svelte with easy-to-use 
+				modular components. Svend3r provides beautiful visualizations that harness the power of D3 
+				to bring your data to life while abstracting away its imperative-style code. With Svend3r, you can easily 
+				adjust the charts to look exactly the way you want while taking 
+				advantage of Svelte's optimized DOM interaction.
+				<br>
+				<br>
 				<br>
 				<br>
 				New to Svelte and D3? If you use npm,
@@ -46,25 +47,24 @@
 		<section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-2xl text-white87">Exporting a Chart Component</h1>
 			<p class="text-sm text-white87 text-justify whitespace-pre-line">
-				When we say Svend3r is 'plug and play' we truly mean it.
-				<li>Navigate to any desired chart page</li>
-				<li>Review the data schema to ensure conformity to your data set</li>
-				<li>Update the adjustable properties to your desired taste (or do that later)</li>
+				When we say Svend3r is "plug and play," we mean it!
+				<li>Navigate to a chart page</li>
+				<li>Review the data schema to ensure conformity of your data set</li>
+				<li>Update the adjustable properties to suit your style</li>
 				<li>
-					Create a new svelte file and js file for your component and data respectively in your project directory
+					Create a new svelte component file (and js data file) in your project directory
 				</li>
-				<li>Paste in code from the Code tab into your newly created svelte component file</li>
-				<li>Paste in code from the Data tab into your newly created js file</li>
-				<li>Validate or update import statement in the component file to the data file location</li>
+				<li>Paste code from the Code tab directly into your svelte file</li>
+				<li>Update the data import to match your data file location (or pass it down as a prop)</li>
 			</p>
 		</section>
 		<section id="info-sect" class="mx-4 my-4">
 			<h1 class="text-2xl text-white87">Want to Contribute?</h1>
 			<p class="text-sm text-white87 ">
-				Want to be a open source contributor? Have a Svelte component chart you would 
-				like to share with the Svelte community? or recommended improvements? 
-				Create and submit a pull request to the <code class="text-white87 bg-white12">playground branch</code> 
-				on the Svend3r github repository. 
+				Want to be a open source contributor? Have a Svelte component chart you'd 
+				like to share with the Svelte community, or recommended improvements? 
+				Submit a pull request to the <code class="text-white87 bg-white12">contributor</code> branch 
+				on <a href="https://github.com/oslabs-beta/svend3r">GitHub</a>.
 			</p>
 		</section>
 	</div>
@@ -74,6 +74,10 @@
 	#card-container::-webkit-scrollbar {
 		display: none;
 	}
+
+	a {
+        text-decoration: underline;
+    }
 
 	li {
 		text-indent: -20px; /* key property */

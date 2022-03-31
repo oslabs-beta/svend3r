@@ -4,17 +4,17 @@
 </script>
 
 <div class="getting_started">
-	<h1 class="team_title">How To Get Started Using Svend3r</h1>
+	<h1 class="team_title">How to Get Started Using Svend3r</h1>
     <div class="guide-sections">
         <section class="section-odd" id="first">
             <article>
                 <h2>Pick a chart that suits your dataset.</h2>
                 <br>
-                <p>Svend3r provide Svelte developers a large selection of charts to choose from, but the 
-                    best chart for your project depends on your dataset.  Is your data one numeric variable? 
-                    two? three? maybe even several variables.  Visit this well defined data visualization tree
-                    at <a href="https://www.data-to-viz.com/"><b>Data to Vis</b></a> to determine the best data visualization
-                     graphic for your project or test them all out and adjust your data to suit.
+                <p>Svend3r offers Svelte developers a variety of charts to choose from because the 
+                    best chart for your project depends on your data. Is it numeric or categorical? 
+                    How many variables are you comparing? What do you want to highlight? Visit 
+                    <a href="https://www.data-to-viz.com/"><b>Data to Viz</b></a> for suggestions to help 
+                    determine the best format for your project and test a few charts out!
                 </p>
             </article>
             <img alt="svend3r charts list example" src="/getStarted/chart_list.png" class="demopngLG"/>
@@ -22,20 +22,20 @@
         <section class="section-even" id="second">
             <img alt="svend3r charts example" src="/getStarted/chart_example.png" class="demopngLG"/>
             <article>
-                <h2>Picked out a chart.  Play and interactive with it.</h2>
+                <h2>Pick a chart. Interact with it.</h2>
                 <br>
-                <p>Svend3r charts incorporate interactive features such as tooltips, sorts, filters, and elegant transitions to name a few features.
-                    Our charts (and site) are all optimized for accessibility and performance.
+                <p>Svend3r charts incorporate interactive features such as tooltips, sorts, filters, and elegant transitions.
+                    Our charts (and site) are all optimized for accessibility, performance, and convenience.
                 </p>
             </article>
         </section>
         <section class="section-odd" id="third">
             <article>
-                <h2>Every adjustable variable at your fingertips.</h2>
+                <h2>Adjustable variables, at your fingertips.</h2>
                 <br>
-                <p>Take your time back.  No longer are the days of wasting hours updating, saving, and reloading to determine each variables impact 
-                    on the overall graphic composition.  With Svend3r's built in sliders, toggles, input fields, etc - finding the perfect 
-                     styling has never been easier.  Adjust a property and watch the chart AND the code editor update immediately reflecting your changes.
+                <p>No need to go back and forth between your code editor and browser, reloading to see how every every 
+                    modification affects the final product. With Svend3r's built-in sliders, toggles, and input fields, building the perfect 
+                    chart has never been easier. Adjust a property and watch the chart and code editor update in real time.
                 </p>
             </article>
             <img alt="svend3r properties example" src="/getStarted/chart_properties.png" class="demopngLG"/>
@@ -45,25 +45,23 @@
             <article>
                 <h2>View. Adjust. Copy. Paste.</h2>
                 <br>
-                <p>Once you are done viewing and adjusting the properties to your desired style.  
-                    Just copy the code from the code editor code tab (with your updates variables already included!)
-                    and paste the entire code into an empty component.Svelte file. Do the same for the code editor 
-                    data tab and paste into a data.js file or load your own data following the schema defined in the 
-                    code editor schema tab.  Ensure the component file is property importing the data.js file.
+                <p>Once you're done adjusting properties, just copy the code from the Code tab (with your updated variables already included!)
+                    and paste it into your Svelte component file. Then import your data or pass it down as a prop, following the schema in the 
+                    Data Schema tab.
                 </p>
             </article>
         </section>
         <section class="section-odd" id="fifth">
             <article>
-                <h2>Enjoy beautiful data visualization with Svend3r.</h2>
+                <h2>Enjoy beautiful data visualizations with Svend3r.</h2>
                 <br>
-                <p>Give it a try and see how easy it really is.  Make a component.svelte and 
-                    data.js file on <a href="https://svelte.dev/repl/hello-world?version=3"><b>Svelte REPL</b></a>.  Copy, paste, and enjoy.
+                <p>Give it a try and see how easy it is! Make a component.svelte and 
+                    data.js file on the <a href="https://svelte.dev/repl/hello-world?version=3"><b>Svelte REPL</b></a>.  Copy, paste, and enjoy.
                 </p>
             </article>
             <img alt="svend3r REPL example" src="/getStarted/chart_REPL.png" class="demopngLG"/>
         </section>
-        <h3 class="team_title">If you like Svend3r give us a Star on <a href="https://github.com/oslabs-beta/svend3r"><b>Github</b></a></h3>
+        <h3 class="team_title">If you like Svend3r, give us a Star on <a href="https://github.com/oslabs-beta/svend3r"><b>Github</b></a></h3>
     </div>
 </div>
 
