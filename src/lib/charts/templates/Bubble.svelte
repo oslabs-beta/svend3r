@@ -1,5 +1,5 @@
 <script>
-  import * as d3 from 'd3';
+  import { InternSet, hierarchy, pack, range, scaleOrdinal, schemeTableau10 } from 'd3';
   import data from '../data/bubble-data' // or pass data to component as prop
   import { ChartDocs } from '../ChartStore';
 
@@ -25,12 +25,12 @@
   const dVals = data.map((el) => el);
   const vVals = data.map((el) => el.value);
   const gVals = data.map((el) => el.id.split('.')[1]);
-  const iVals = d3.range(vVals.length).filter(i => vVals[i] > 0);
+  const iVals = range(vVals.length).filter(i => vVals[i] > 0);
 
   let groups = iVals.map(i => gVals[i]);
-  groups = new d3.InternSet(groups);
+  groups = new InternSet(groups);
 
-  const colorScale = d3.scaleOrdinal(groups, d3.schemeTableau10);  
+  const colorScale = scaleOrdinal(groups, schemeTableau10);  
 
   // // Compute labels.
   const lVals = data.map((el) => [...el.id.split('.').pop().split(/(?=[A-Z][a-z])/g), el.value.toLocaleString('en')].join('\n'));
@@ -38,16 +38,16 @@
 
   const uid = `O-${Math.random().toString(16).slice(2)}`;
 
-  $: root = d3.pack()
+  $: root = pack()
   .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
   .padding(padding)
-  (d3.hierarchy({children: iVals})
+  (hierarchy({children: iVals})
       .sum(i => vVals[i]));
 </script>
   
 <svg {width} {height} viewBox="{-marginLeft} {-marginTop} {width} {height}" fill={textColor}>
     {#each root.leaves() as leaf, i}
-      <a href={link === null ? null : link(dVals[leaf.data], i, data)} target="_blank" rel="noopener noreferrer">
+      <a href={link === null ? null : link(dVals[leaf.data])} target="_blank" rel="noopener noreferrer">
         <g class='node' transform="translate({(leaf.x)},{(leaf.y)})">
           <circle id="node-{i}"
             stroke={strokeColor} stroke-width={strokeWidth} stroke-opacity={strokeOpacity}

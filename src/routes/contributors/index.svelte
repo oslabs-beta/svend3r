@@ -33,6 +33,16 @@
             linkedIn: "https://www.linkedin.com/in/isaac-l-saunders/",
             github: "https://github.com/IsaacLSaunders",
         },
+        {
+            first_name: "Michael",
+            last_name: "Lakeram",
+            title: "Software Engineer",
+            alt_text: "michael lakeram software engineer svend3r svender",
+            aboutMe: "An avid nature lover with a deep interest in improving the development life cycle.",
+            headshot: "/images/michaellakeram_headshot.jpg",
+            linkedIn: "https://www.linkedin.com/in/michaellakeram/",
+            github: "https://github.com/calamitymike",
+        }
     ]
 </script>
 
