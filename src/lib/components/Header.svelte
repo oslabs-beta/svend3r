@@ -2,11 +2,11 @@
 	import { goto } from '$app/navigation';
 
 	//fetch github stars
-	// const fetchStars = (async () => {
-	// 	console.log("fetching")
-	// 	const response = await fetch('https://api.github.com/repositories/466166070')
-    // return await response.json()
-	// })()
+	const fetchStars = (async () => {
+		console.log("fetching")
+		const response = await fetch('https://api.github.com/repositories/466166070')
+    return await response.json()
+	})()
 
 </script>
 
@@ -57,14 +57,14 @@
 					class="bg-white flex w-[60px] flex justify-center rounded-r-md border-l-2 border-bgGrey"
 					on:click={() => location.href = "https://github.com/oslabs-beta/svend3r/stargazers"}
 					target="_blank"
-				>1000
-					<!-- {#await fetchStars}
+				>
+					{#await fetchStars}
 						loading
 					{:then data}
 						{data.stargazers_count}
 					{:catch error}	
 						error
-					{/await} -->
+					{/await}
 				</button>
 			</section>
 		</div>
