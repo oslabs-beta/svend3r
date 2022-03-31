@@ -10,6 +10,9 @@
 	<meta name="description" content="Svender Charts - A Svelte Component Charting Library" />
 	<meta name="keywords" content="Interactive Plug and Play chart components for your Svelte app">
 	<meta name="author" content="Svend3r Charts">
+	<meta property="og:title" content="Svender Charts - A Svelte Component Charting Library" />
+	<meta property="og:description" content="Interactive Plug and Play chart components for your Svelte app" />
+	<meta property="og:image" content="/getStarted/chart_list.png" />
 </svelte:head>
 
 <div id="home-page-layout" class="tablet:flex grid justify-center m-auto">
