@@ -1,6 +1,6 @@
 <script>
-  import { area, curveLinear, Delaunay, range, scaleLinear, scaleUtc } from 'd3';
-  import data from '../data/area-data';
+  import { line, curveLinear, Delaunay, range, scaleLinear, scaleUtc } from 'd3';
+  import data from '../data/line-data';
   import { ChartDocs } from '../ChartStore';
 
   $: marginTop = $ChartDocs[0].value; // the top margin, in pixels
@@ -21,7 +21,7 @@
   $: dotsFilled = $ChartDocs[15].value; // whether dots should be filled or outlined
   $: r = $ChartDocs[16].value; // (fixed) radius of dots, in pixels
   $: strokeWidth = $ChartDocs[17].value; // stroke width of line, in pixels
-  $: fillOpacity = $ChartDocs[18].value; // fill opacity of area
+  $: strokeOpacity = $ChartDocs[18].value; // stroke opacity of line
   $: tooltipBackground = $ChartDocs[19].value; // background color of tooltip
   $: tooltipTextColor = $ChartDocs[20].value; // text color of tooltip
   $: strokeLinecap = 'round'; // stroke line cap of the line
@@ -38,7 +38,7 @@
   $: yType = scaleLinear; // type of y-scale
   $: yRange = [height - marginBottom - insetBottom, marginTop + insetTop]; // [bottom, top]
 
-  let x, y, dotInfo, areas, filteredI, xVals = [], yVals = [], points = [], subsets = [], colorVals = [];
+  let x, y, dotInfo, lines, xVals = [], yVals = [], points = [], subsets = [], colorVals = [];
   
   // For a single set of data
   if (!('data' in data[0])) {
@@ -76,24 +76,24 @@
   const I = range(xVals.length);
   const gaps = (d, i) => !isNaN(xVals[i]) && !isNaN(yVals[i]);
   const cleanData = points.map(gaps);
+
   const xDomain = [xVals[0], xVals[xVals.length - 1]];
   const yDomain = [0, Math.max(...yVals)];
   $: xScale = xType(xDomain, xRange);
   $: yScale = yType(yDomain, yRange);
   $: niceY = scaleLinear().domain([0, Math.max(...yVals)]).nice();
-  $: chartArea = area()
+
+  $: chartLine = line()
     .defined(i => cleanData[i])
     .curve(curve)
     .x(i => xScale(xVals[i]))
-    .y0(yScale(0))
-    .y1(i => yScale(yVals[i]));
+    .y(i => yScale(yVals[i]));
 
   $: {
-    areas = [];
+    lines = [];
     colors.forEach((color, j) => {
-      filteredI = [];
-      filteredI = I.filter((el, i) => colorVals[i] === j);
-      areas.push(chartArea(filteredI));
+      const filteredI = I.filter((el, i) => colorVals[i] === j);
+      lines.push(chartLine(filteredI));
     });
   }
 
@@ -105,6 +105,7 @@
   $:  xTicksFormatted = xTicks.map((el) => el.getFullYear());
   $:  yTicks = niceY.ticks(yScalefactor);
 </script>
+
 <div class="chart-container">
   <svg {width} {height} viewBox="0 0 {width} {height}"
     cursor='crosshair'
@@ -125,17 +126,17 @@
         </g>
       {/each}
     {/if}
-    <!-- Chart Areas -->
-    {#each areas as subsetArea, i}
-      <g class='chartlines' pointer-events='none'>
-        {#if dotInfo}
-          <path class="line" fill={colors[i]} fill-opacity={points[dotInfo[1]].color === i ? '0.5' : '0.1'} stroke={colors[i]} d={subsetArea} />
-          <circle cx={xScale(points[dotInfo[1]].x)} cy={yScale(points[dotInfo[1]].y)} r=3 stroke={colors[points[dotInfo[1]].color]} fill='none' />
-        {:else}
-          <path class="line" fill={colors[i]} stroke={colors[i]} d={subsetArea}
-            fill-opacity={fillOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
-        {/if}
-      </g>
+    <!-- Chart lines -->
+    {#each lines as subsetLine, i}
+    <g class='chartlines' pointer-events='none'>
+      {#if dotInfo}
+        <path class="line" fill='none' stroke-opacity={points[dotInfo[1]].color === i ? '1' : '0.1'} stroke={colors[i]} d={subsetLine} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin}/>
+        <circle cx={xScale(points[dotInfo[1]].x)} cy={yScale(points[dotInfo[1]].y)} r={r} stroke={colors[points[dotInfo[1]].color]} fill={dotsFilled} />
+      {:else}
+        <path class="line" fill='none' stroke={colors[i]} d={subsetLine}
+          stroke-opacity={strokeOpacity} stroke-width={strokeWidth} stroke-linecap={strokeLinecap} stroke-linejoin={strokeLinejoin} />
+      {/if}
+    </g>
     {/each}
     
     <!-- Y-axis and horizontal grid lines -->
@@ -147,7 +148,7 @@
           {#if horizontalGrid}
             <line class="tick-grid" x1={insetLeft} x2={width - marginLeft - marginRight}/>
           {/if}
-          <text text-align="right"x="-{marginLeft}" y="5">{tick + yFormat}</text>
+          <text  x="-{marginLeft}" y="5">{tick + yFormat}</text>
         </g>
       {/each}
       <text x="-{marginLeft}" y={marginTop - 10}>{yLabel}</text>
@@ -159,7 +160,7 @@
         <g class="tick" transform="translate({xScale(tick)}, 0)">
           <line class="tick-start" stroke='black' y2='6' />
           {#if verticalGrid}
-            <line class="tick-grid" y2={-height} />
+            <line class="tick-grid" y2={-height + 70} />
           {/if}
           <text font-size='8px' x={-marginLeft/4} y="20">{xTicksFormatted[i] + xFormat}</text>
         </g>
@@ -184,9 +185,9 @@
   <div class="tooltip" style='position:absolute; left:{dotInfo[2].clientX + 12}px; top:{dotInfo[2].clientY + 12}px; pointer-events:none; background-color:{tooltipBackground}; color:{tooltipTextColor}'>
     {subsets ? subsets[points[dotInfo[1]].color] : ''}:  
     {points[dotInfo[1]].x.getFullYear()}: {points[dotInfo[1]].y.toFixed(2)}{yFormat}
-    <!-- {points[dotInfo[1]].x.toLocaleDateString('en-US')} {points[dotInfo[1]].y.toFixed(2)}{yFormat} -->
   </div>
 {/if}
+
 <style>
   .chart-container {
     justify-content: center;
@@ -235,6 +236,6 @@
   .tooltip{
     border-radius: 5px;
     padding: 5px;
-    box-shadow: rgba(0, 0, 0, 0.09) 0px 2px 1px, rgba(0, 0, 0, 0.09) 0px 4px 2px, rgba(0, 0, 0, 0.09) 0px 8px 4px, rgba(0, 0, 0, 0.09) 0px 16px 8px, rgba(0, 0, 0, 0.09) 0px 32px 16px;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
   }
 </style>

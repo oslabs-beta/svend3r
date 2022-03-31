@@ -106,5 +106,41 @@ export default {
 			data: data,
 			json: json
 		};
+	},
+	line: () => {
+		const component = import('$lib/charts/templates/Line.svelte');
+		const code = import('$lib/charts/templates/Line.svelte?raw');
+		const data = import('$lib/charts/data/line-data?raw');
+		const json = import('$lib/charts/db/line.json');
+		return {
+			component: component,
+			code: code,
+			data: data,
+			json: json
+		};
+	},
+	bubble: () => {
+		const component = import('$lib/charts/templates/Bubble.svelte');
+		const code = import('$lib/charts/templates/Bubble.svelte?raw');
+		const data = import('$lib/charts/data/bubble-data?raw');
+		const json = import('$lib/charts/db/bubble.json');
+		return {
+			component: component,
+			code: code,
+			data: data,
+			json: json
+		};
+	},
+	ridgeline: () => {
+		const component = import('$lib/charts/templates/Ridgeline.svelte');
+		const code = import('$lib/charts/templates/Ridgeline.svelte?raw');
+		const data = import('$lib/charts/data/ridgeline-data?raw');
+		const json = import('$lib/charts/db/ridgeline.json');
+		return {
+			component: component,
+			code: code,
+			data: data,
+			json: json
+		};
 	}
 };

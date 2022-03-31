@@ -7,6 +7,7 @@ module.exports = {
 				'regal-blue': '#243c5a',
 				'code-gray': '#494949',
 				'white87': 'rgba(255, 255, 255, 0.87)',
+				'white12': 'rgba(255, 255, 255, 0.12)',
 				'grey119': '#888888',
 				'bgGrey': '#343434',
 			  },

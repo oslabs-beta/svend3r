@@ -87,14 +87,14 @@
 
 <!-- Group Tooltip -->
 {#if groupInfo}  
-  <div style="position:absolute; left:{groupInfo[1].clientX + 12}px; top:{groupInfo[1].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+  <div class="tooltip" style="position:absolute; left:{groupInfo[1].clientX + 12}px; top:{groupInfo[1].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
     {names[groupInfo[0]]}: {(groupInfo[2] * 100).toFixed(2)}{scaleFormat}
   </div>
 {/if}
 
 <!-- Ribbon Tooltip -->
 {#if ribbonInfo}  
-  <div style="position:absolute; left:{ribbonInfo[0].clientX + 12}px; top:{ribbonInfo[0].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
+  <div class="tooltip" style="position:absolute; left:{ribbonInfo[0].clientX + 12}px; top:{ribbonInfo[0].clientY + 12}px; background-color:{tooltipBackground}; color:{tooltipTextColor}">
     {formatValue(ribbonInfo[1].source.value)} {names[ribbonInfo[1].target.index]} → {names[ribbonInfo[1].source.index]}
     {ribbonInfo[1].source.index === ribbonInfo[1].target.index 
     ? ''
@@ -105,5 +105,11 @@
 <style>
   div {
     white-space: pre;
+  }
+
+  .tooltip{
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
   }
 </style>

@@ -48,27 +48,19 @@
   $: reactiveXScale = scaleBand(reactiveXDomain, xRange).padding(xPadding);
   $: reactiveYScale = scaleLinear(reactiveYDomain, yRange).nice();
 
-  // Create Y-Axis ticks based on yScalefactor spacing
-  // let yTicks;
-  // $: {
-  //   yTicks = [];
-  //   let unit = (Math.max(...reactiveYVals) - Math.min(...reactiveYVals)) / yScalefactor;
-  //   for (let i = 1; i < yScalefactor + 1; i++) {
-  //     yTicks = [...yTicks, Math.floor(i * unit * 100)];
-  //   }
-  // }
-
   $: reactiveYTicks = reactiveYScale.ticks(yScalefactor);
   $: reactiveYTicksFormatted = reactiveYTicks.map((el) => el.toLocaleString("en-US"));
 </script>
 
 <div class="chart-container" dir="auto">
-  <select on:change={reactiveShowSort(this.selectedIndex)}>
-    <option disabled selected value> ---Sorting Method--- </option>
-    <option value="1">Default</option>
-    <option value="2">{y}, Ascending</option>
-    <option value="3">{y}, Descending</option>
-  </select>
+  <div>
+    <select class="dropdown" on:change={reactiveShowSort(this.selectedIndex)}>
+      <option disabled selected value> ---Sorting Method--- </option>
+      <option value="1">Default</option>
+      <option value="2">{y}, Ascending</option>
+      <option value="3">{y}, Descending</option>
+    </select>
+  </div>
 
   <svg {width} {height} viewBox="0 0 {width} {height}">
     <g class="x-axis" transform="translate(0,{height - marginBottom})">
@@ -91,7 +83,7 @@
         <g class="tick" opacity="1" transform="translate(0, {reactiveYScale(tick)})">
           <line class="tick-start" stroke="black" stroke-opacity="1" x2="-6" />
           <line class="tick-grid" x2={width - marginLeft - marginRight} />
-          <text x={-marginLeft} y="10">{reactiveYTicksFormatted[i] + yFormat}</text>
+          <text x={-marginLeft} y="10">{yFormat === "%" ? reactiveYTicksFormatted[i] * 100 + yFormat : reactiveYTicksFormatted[i] + yFormat}</text>
         </g>
       {/each}
       <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>
@@ -116,6 +108,7 @@
   .chart-container {
     justify-content: center;
     align-items: center;
+    text-align: center;
     margin-top: 50px;
     margin-left: 8
     0px;
@@ -124,6 +117,7 @@
   select{
     color: black;
     padding: 5px;
+    width: 190px;
   }
 
   svg {

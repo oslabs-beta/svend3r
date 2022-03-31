@@ -1,19 +1,41 @@
-# SVEND3R
+# Svend3r  v0.1.0-beta
 
-Introducting Svend3r, a plug and play charting library for Svelte!
+## Introducing Svend3r, a plug and play D3 charting library for Svelte!
 
-## Why Svelte for Charts?
+There are great resources for building your own charts with Svelte, including [Pancake](https://pancake-charts.surge.sh/) (from Rich Harris) and [Layer Cake](https://layercake.graphics/) (from Michael Keller), but the Svend3r team wants to make it even easier. Wouldn't you rather spend your time using charts than building them?
 
-By integrating D3 with Svelte, we get the best of both worlds: D3's incredible tools for translating information from the data space to the pixel space and Svelte's optimized DOM interaction. Everything you need to develop great visualizations - markup, styling, and JavaScript - can be done in a single file. Instead of using D3 to manipulate the DOM, Svelte uses {#each} blocks to render chart elements and {#if} blocks to handle conditional logic. This approach also helps lighten the load of D3 by only using a few libraries for each chart.
+# How do I use Svend3r?
+## - Head to the [Svend3r.dev](https://www.svend3r.dev/) homepage
 
-## Why Svend3r?
+<img src="./readmeImages/Svend3rNewHome.png" width= 50% height= 50% alt="Svend3r Home Page"/>
 
-Even though there are great resources for building your own charts with Svelte, including [Pancake](https://pancake-charts.surge.sh/) (from Rich Harris) and [Layer Cake](https://layercake.graphics/) (from Michael Keller), the Svend3r team wants to make it even easier. There can be a steep learning curve when integrating technologies like Svelte and D3. Wouldn't you rather spend your time using charts than building them?
+## - Decide which chart works best for your application
 
-Svend3r is here to lighten the load. We've provided a set of plug and play charts that will integrate seamlessly into your next Svelte project. Just copy and paste our code directly into a new component file, import your data (or pass it down as a prop), and voila…you've got a chart!
+<img src="./readmeImages/Svend3rBarChart.png" width= 50% height= 50% alt="Svend3r Bar Chart"/>
 
-## How do I use Svend3r?
+## - Ensure your data is formatted correctly by checking the Data Schema Tab
 
+<img src="./readmeImages/DataSchema.png" width= 50% height= 50% alt="Svend3r Bar Chart Data Schema"/>
 
-## Want to Contribute?
-The incredibly active, supportive community is one of the best parts of building in Svelte. Do you have a chart component you'd like to share? Notice anything missing, not working, or not available yet that you'd like to see? Submit a pull request to the contributor branch on our GitHub repository!
+## - Manipulate the properties to customize the look and feel of your chart
+
+<img src="./readmeImages/Svend3rProperties.png" width= 50% height= 50% alt="Svend3r Bar Chart Properties"/>
+
+## - Copy the code and the data from the Code and Data tabs
+
+<img src="./readmeImages/Svend3rCode.png" width= 50% height= 50% alt="Svend3r Bar Chart Code"/>
+<img src="./readmeImages/Svend3rData.png" width= 50% height= 50% alt="Svend3r Bar Chart Data"/>
+
+## - Paste the code and data into a [Svelte repl](https://svelte.dev/repl/hello-world?version=3.46.5) or directly into your component
+
+<img src="./readmeImages/Svend3rAreaReplDark.png" width= 50% height= 50% alt="Svend3r Area Repl"/>
+
+## Thats it!
+
+# Want to Contribute?
+The incredibly active, supportive community is one of the best parts of building in Svelte. Do you have a chart component you'd like to share? Notice anything missing, not working, or not available yet that you'd like to see? Submit a pull request to the contributor branch!
+
+## Contributors 
+- James Laff | [Linkedin](https://www.linkedin.com/in/jameslaff/) | [GitHub](https://github.com/jameslaff)
+- Tao Chen | [Linkedin](https://www.linkedin.com/in/xtc2008/) | [GitHub](https://github.com/xtc2008)
+- Isaac Saunders | [Linkedin](https://www.linkedin.com/in/isaac-l-saunders/) | [GitHub](https://github.com/IsaacLSaunders)

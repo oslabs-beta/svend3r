@@ -1,6 +1,6 @@
 export default [
   {
-    'id': 'group A',
+    'id': 'Group A',
     'data': [
       {
         'x': 35,
@@ -205,7 +205,7 @@ export default [
     ]
   },
   {
-    'id': 'group B',
+    'id': 'Group B',
     'data': [
       {
         'x': 69,
@@ -410,7 +410,7 @@ export default [
     ]
   },
   {
-    'id': 'group C',
+    'id': 'Group C',
     'data': [
       {
         'x': 6,
@@ -615,7 +615,7 @@ export default [
     ]
   },
   {
-    'id': 'group D',
+    'id': 'Group D',
     'data': [
       {
         'x': 79,
@@ -820,7 +820,7 @@ export default [
     ]
   },
   {
-    'id': 'group E',
+    'id': 'Group E',
     'data': [
       {
         'x': 17,
