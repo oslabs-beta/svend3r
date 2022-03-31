@@ -7,17 +7,13 @@
 <svelte:head>
 	<title>Svend3r</title>
 	<html lang="en-US" />
+	<meta name="description" content="Svender Charts - A Svelte Component Charting Library" />
+	<meta name="keywords" content="Interactive Plug and Play chart components for your Svelte app">
+	<meta name="author" content="Svend3r Charts">
 </svelte:head>
 
-<!-- <Github /> -->
-<!-- <Icon name='bar' size={80} /> -->
-<!-- <img src='/icons/bar.svg'  width='100px'> -->
-<!-- <img src='/images/github-dark.png' alt='github'> -->
-<!-- <img src={github} alt='github'> -->
-<!-- <img src='$img/github-dark.png' alt='github'> -->
 <div id="home-page-layout" class="tablet:flex grid justify-center m-auto">
 	<div id="card-container" class="w-fit tablet:w-[66vw] grid tablet:flex flex-wrap gap-x-10 tablet:justify-center h-full tablet:h-[82vh] my-8 overflow-auto mx-auto tablet:ml-4 tablet:mr-8">
-		<!-- <img src="/bar.svg" alt="site logo"> -->
 		{#each ChartList as chartCard}
 		<div class="mb-8 ">
 			<Card chartCard={chartCard} />

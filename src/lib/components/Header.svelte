@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
-	// fetch github stars
+	//fetch github stars
 	const fetchStars = (async () => {
 		console.log("fetching")
 		const response = await fetch('https://api.github.com/repositories/466166070')
@@ -30,7 +30,7 @@
 			href="#">Contributors</a
 		>
 		<div id="widget" class="tablet:flex justify-center">
-			<a href="https://github.com/oslabs-beta/svend3r" alt="Svend3r Github Home"><img class="tablet:mr-2 tablet:my-0 my-2 mx-auto" alt="svend3 chart library" src="/images/github2.png" /></a>
+			<a href="https://github.com/oslabs-beta/svend3r" alt="Svend3r Github Home"><img class="tablet:mr-2 tablet:my-0 my-2 mx-auto" alt="svend3 chart library" src="/images/github-header.png" /></a>
 			<section class="flex justify-center">
 				<button 
 					id="star-button" 
