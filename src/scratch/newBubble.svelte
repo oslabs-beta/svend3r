@@ -1,16 +1,16 @@
 <script>
-  import * as d3 from 'd3'
-  import { sampleData } from './bubbleData'
+  import * as d3 from 'd3';
+  import { sampleData } from './bubbleData-old';
 
-  let height = 640;
-  let width = height;
-  let padding = 3;
-  let margin = 3;
-  let marginLeft = margin;
-  let marginRight = margin;
-  let marginTop = margin; 
-  let marginBottom = margin;
-  let colors = sampleData.nodes.map(el=>el.color);
+  const height = 640;
+  const width = height;
+  const padding = 3;
+  const margin = 3;
+  const marginLeft = margin;
+  const marginRight = margin;
+  const marginTop = margin; 
+  const marginBottom = margin;
+  const colors = sampleData.nodes.map(el=>el.color);
 
   // Compute the values.
   const D = sampleData.nodes.map(d=>d);
@@ -23,17 +23,17 @@
 
   // Compute layout: create a 1-deep hierarchy, and pack it.
   const pack = data => d3.pack()
-      .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
-      .padding(padding)
+    .size([width - marginLeft - marginRight, height - marginTop - marginBottom])
+    .padding(padding)
     (d3.hierarchy({children: I})
       .sum(i => V[i])
-      );
+    );
 
-      let nodes = pack(D);
+  const nodes = pack(D);
 
-      console.log(d3.pack(sampleData).size([width - marginLeft - marginRight, height - marginTop - marginBottom]).padding(padding))
+  console.log(d3.pack(sampleData).size([width - marginLeft - marginRight, height - marginTop - marginBottom]).padding(padding));
 
-      console.log(nodes.children)
+  console.log(nodes.children);
   
 </script>
 
