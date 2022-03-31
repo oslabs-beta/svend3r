@@ -13,7 +13,7 @@ import NewBubble from './Bubble/newBubble.svelte';
 // import areaData from './data/line-data-multi';
 // import PieChart from './Pie/Pie_Chart.svelte';
 // import pieData from './data/pie-data-census';
-import Choropleth from './Choropleth/Choropleth_Chart.svelte';
+// import Choropleth from './Choropleth/Choropleth_Chart.svelte';
 // import choroplethData from './data/bivariate-choropleth-data-d3';
 // import BarVert_Container from './BarVert/BarVert_Container.svelte';
 // import Area_Container from './Area/Area_Container.svelte';
@@ -22,13 +22,15 @@ import Choropleth from './Choropleth/Choropleth_Chart.svelte';
 // import Radial_Stacked_Bar_Chart from './Radial-Stacked-Bar/Radial_Stacked_Bar_Chart.svelte';
 // import Zoomable_Circle_Packing from './CirclePacking/Zoomable_Circle_Packing.svelte';
 // import Card from '../Tao-Charts-To-Be-Moved/card-template/card.svelte';
-import Ridgeline from './Ridgeline/Ridgeline.svelte';
+// import Ridgeline from './Ridgeline/Ridgeline.svelte';
+import Histogram from './Histogram/Histogram.svelte';
 
 </script>
 
 <body>
   <div>
-    <Ridgeline />
+    <Histogram />
+    <!-- <Ridgeline /> -->
     <!-- <Zoomable_Circle_Packing /> -->
     <!-- <Radial_Stacked_Bar_Chart/> -->
     <!-- <BarVert_Container/> -->
