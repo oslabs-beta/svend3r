@@ -14,7 +14,7 @@
 
   $: updateCode = () => {
     let userCode = code.replace("import { ChartDocs } from '../ChartStore';\n", '');
-    userCode = userCode.replace('./data', '');
+    userCode = userCode.replaceAll('./data', '');
     
     for (let i = 0; i < $ChartDocs.length; i++) {
       const doc = $ChartDocs[i].value;

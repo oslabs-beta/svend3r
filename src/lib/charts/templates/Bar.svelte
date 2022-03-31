@@ -53,12 +53,14 @@
 </script>
 
 <div class="chart-container" dir="auto">
-  <select class="dropdown" on:change={reactiveShowSort(this.selectedIndex)}>
-    <option disabled selected value> ---Sorting Method--- </option>
-    <option value="1">Default</option>
-    <option value="2">{y}, Ascending</option>
-    <option value="3">{y}, Descending</option>
-  </select>
+  <div>
+    <select class="dropdown" on:change={reactiveShowSort(this.selectedIndex)}>
+      <option disabled selected value> ---Sorting Method--- </option>
+      <option value="1">Default</option>
+      <option value="2">{y}, Ascending</option>
+      <option value="3">{y}, Descending</option>
+    </select>
+  </div>
 
   <svg {width} {height} viewBox="0 0 {width} {height}">
     <g class="x-axis" transform="translate(0,{height - marginBottom})">
@@ -106,6 +108,7 @@
   .chart-container {
     justify-content: center;
     align-items: center;
+    text-align: center;
     margin-top: 50px;
     margin-left: 8
     0px;

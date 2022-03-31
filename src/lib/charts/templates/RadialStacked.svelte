@@ -18,7 +18,6 @@
   $: outerRadius = width * chartScale;
   $: keys = Object.keys(data[0]).slice(0, -1);
   $: groupId = keys[0];
-  $: console.log('key0', groupId);
   $: reactiveData = sorted === true
     ? [...data].sort((a, b) => b.total - a.total)
     : [...data];
@@ -111,5 +110,4 @@
 </svg>
 
 <style>
-  
 </style>
