@@ -182,6 +182,11 @@
       height: 60vh;
       width: 100%;
     }
+
+    .buttons-container{
+      width: 100%;
+      height: 30px;
+  }
 }
 
 </style>

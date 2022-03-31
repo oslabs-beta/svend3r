@@ -1,6 +1,6 @@
 <script>
     import { quantize, interpolatePlasma, pie, arc } from 'd3';
-    import data from '../data/pie-data' // or pass data to component as prop
+    import data from '../data/donut-data' // or pass data to component as prop
     import { ChartDocs } from '../ChartStore';
   
     $: width = $ChartDocs[0].value // the outer width of the chart, in pixels
@@ -59,5 +59,6 @@
   </svg>
     
   <style>
+    
   </style>
   
