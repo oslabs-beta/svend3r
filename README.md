@@ -2,7 +2,7 @@
 
 ## Introducing Svend3r, a plug and play D3 charting library for Svelte!
 
-There are great resources for building your own charts with Svelte, including [Pancake](https://pancake-charts.surge.sh/) (from Rich Harris) and [Layer Cake](https://layercake.graphics/) (from Michael Keller), but the Svend3r team wants to make it even easier. Wouldn't you rather spend your time using charts than building them?
+There are great resources for building your own charts with Svelte, including [Pancake](https://pancake-charts.surge.sh/) (from Rich Harris) and [Layer Cake](https://layercake.graphics/) (from Michael Keller), but the Svend3r team wants to make it even easier.
 
 # How do I use Svend3r?
 ## - Head to the [Svend3r.dev](https://www.svend3r.dev/) homepage
@@ -39,3 +39,4 @@ The incredibly active, supportive community is one of the best parts of building
 - James Laff | [Linkedin](https://www.linkedin.com/in/jameslaff/) | [GitHub](https://github.com/jameslaff)
 - Tao Chen | [Linkedin](https://www.linkedin.com/in/xtc2008/) | [GitHub](https://github.com/xtc2008)
 - Isaac Saunders | [Linkedin](https://www.linkedin.com/in/isaac-l-saunders/) | [GitHub](https://github.com/IsaacLSaunders)
+- Michael Lakeram | [Linkedin](https://www.linkedin.com/in/michaellakeram/) | [GitHub](https://github.com/calamitymike)
