@@ -46,16 +46,16 @@
             linkedIn: "https://www.linkedin.com/in/isaac-l-saunders/",
             github: "https://github.com/IsaacLSaunders",
         },
-        {
-            first_name: "Michael",
-            last_name: "Lakeram",
-            title: "Software Engineer",
-            alt_text: "michael lakeram software engineer svend3r svender",
-            aboutMe: "Hello my name is Michael.",
-            headshot: "/images/taochen_headshot.jpg",
-            linkedIn: "https://www.linkedin.com/in/michaellakeram/",
-            github: "https://github.com/calamitymike",
-        }
+        // {
+        //     first_name: "Michael",
+        //     last_name: "Lakeram",
+        //     title: "Software Engineer",
+        //     alt_text: "michael lakeram software engineer svend3r svender",
+        //     aboutMe: "Hello my name is Michael.",
+        //     headshot: "/images/taochen_headshot.jpg",
+        //     linkedIn: "https://www.linkedin.com/in/michaellakeram/",
+        //     github: "https://github.com/calamitymike",
+        // }
     ]
 </script>
 
@@ -72,8 +72,8 @@
                     <h3>{member.title}</h3>
                 </section>
                 <section class="link_section">
-                    <a href={member.linkedIn}><img alt="linkedIn" class="headshot" src="/images/linkedin-icon.png"/></a>
-                    <a href={member.github}><img alt="Github" class="headshot" src="/images/github-light.png"/></a>
+                    <a href={member.linkedIn}><img alt="linkedIn" class="link-icon" src="/images/linkedin-icon.png"/></a>
+                    <a href={member.github}><img alt="Github" class="link-icon" src="/images/github-light.png"/></a>
                 </section>
             </div>
             <hr

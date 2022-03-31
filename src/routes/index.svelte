@@ -29,32 +29,21 @@
 		<section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-2xl text-white87">How to get Started</h1>
 			<p class="text-sm text-white87 text-justify">
-				<b>Svend3r (or svend3r.js)</b> is your go-to Svelte data visuaization charting library with easy
+				<b>Svend3r (or svend3r.js)</b> is your go-to Open Source Svelte data visuaization charting library with easy
 				to use pre-built modular components. Svend3r components provides beautiful graphics from the
 				D3 powerhouse, but without the imperative style code. Instead Svend3r provide your project with
 				clean, easily adjustable, and declarative code complimented with D3 methods to help bring your
 				data to life.
+				<br>
+				<br>
+				New to Svelte and D3? If you use npm,
+				<br>
+				<code class="text-white87 bg-white12">npm install svelte</code> and
+				<code class="text-white87 bg-white12">npm install d3</code>.
 			</p>
+
 		</section>
-		<!-- <section id="info-sect" class="mx-4 mt-4">
-			<h1 class="text-2xl text-white87">Installation</h1>
-			<p class="text-sm text-white87 text-justify ">
-				If you have previously installed Svend3r, please run the following command below before preceeding:
-				<br>
-				<code class="text-white87 bg-white87">npm rm -global svend3r</code>
-				<br>
-				<br>
-				First be sure you have <a class="text-white87" href="https://svelte.dev/">Svelte</a>
-				installed. 
-				<br>
-				<br>
-				If you use npm,
-				<br>
-				<code class="text-white87 bg-white87">npm install svend3r</code> and
-				<code class="text-white87 bg-white87">npm install d3</code>.
-			</p>
-		</section> -->
-		<section id="info-sect" class="mx-4 my-4">
+		<section id="info-sect" class="mx-4 mt-4">
 			<h1 class="text-2xl text-white87">Exporting a Chart Component</h1>
 			<p class="text-sm text-white87 text-justify whitespace-pre-line">
 				When we say Svend3r is 'plug and play' we truly mean it.
@@ -67,6 +56,15 @@
 				<li>Paste in code from the Code tab into your newly created svelte component file</li>
 				<li>Paste in code from the Data tab into your newly created js file</li>
 				<li>Validate or update import statement in the component file to the data file location</li>
+			</p>
+		</section>
+		<section id="info-sect" class="mx-4 my-4">
+			<h1 class="text-2xl text-white87">Want to Contribute?</h1>
+			<p class="text-sm text-white87 ">
+				Want to be a open source contributor? Have a Svelte component chart you would 
+				like to share with the Svelte community? or recommended improvements? 
+				Create and submit a pull request to the <code class="text-white87 bg-white12">playground branch</code> 
+				on the Svend3r github repository. 
 			</p>
 		</section>
 	</div>

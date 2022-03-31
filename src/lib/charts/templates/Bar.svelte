@@ -48,16 +48,6 @@
   $: reactiveXScale = scaleBand(reactiveXDomain, xRange).padding(xPadding);
   $: reactiveYScale = scaleLinear(reactiveYDomain, yRange).nice();
 
-  // Create Y-Axis ticks based on yScalefactor spacing
-  // let yTicks;
-  // $: {
-  //   yTicks = [];
-  //   let unit = (Math.max(...reactiveYVals) - Math.min(...reactiveYVals)) / yScalefactor;
-  //   for (let i = 1; i < yScalefactor + 1; i++) {
-  //     yTicks = [...yTicks, Math.floor(i * unit * 100)];
-  //   }
-  // }
-
   $: reactiveYTicks = reactiveYScale.ticks(yScalefactor);
   $: reactiveYTicksFormatted = reactiveYTicks.map((el) => el.toLocaleString("en-US"));
 </script>
@@ -91,7 +81,7 @@
         <g class="tick" opacity="1" transform="translate(0, {reactiveYScale(tick)})">
           <line class="tick-start" stroke="black" stroke-opacity="1" x2="-6" />
           <line class="tick-grid" x2={width - marginLeft - marginRight} />
-          <text x={-marginLeft} y="10">{reactiveYTicksFormatted[i] + yFormat}</text>
+          <text x={-marginLeft} y="10">{yFormat === "%" ? reactiveYTicksFormatted[i] * 100 + yFormat : reactiveYTicksFormatted[i] + yFormat}</text>
         </g>
       {/each}
       <text x="-{marginLeft}" y={marginTop}>{yLabel}</text>

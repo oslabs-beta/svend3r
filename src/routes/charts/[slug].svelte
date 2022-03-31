@@ -2,6 +2,8 @@
   export const prerender = true;
   import imports from '$lib/charts/imports';
 
+  //scrolls to top of the screen
+  
 	/** @type {import('@sveltejs/kit').Load} */
 	export async function load({ fetch, params }) {   
     const component = await imports[params.slug]().component;
@@ -18,6 +20,7 @@
 			}
 		};
 	}
+
 </script>
 
 <script>
@@ -25,6 +28,11 @@
   import Properties from '$lib/charts/Properties.svelte';
   import { ChartDocs } from '$lib/charts/ChartStore';
   import { beforeUpdate } from 'svelte';
+  import { onMount } from "svelte";
+
+  onMount(() => {
+    window.scrollTo(0, 0);
+  });
 
   export let component, 
     code,
@@ -86,7 +94,7 @@
 
   .page-title{
     color: rgba(255, 255, 255, 0.87);
-    height: 5vh;
+    height: fit-content;
     font-family: 'Roboto', sans-serif;
     font-size: 38px;
     text-align: center;
@@ -110,7 +118,7 @@
     align-items: center;
     text-align: center;
     width:40vw;
-    height: 78vh;
+    height: 77vh;
     overflow: auto;
     box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
   }
