@@ -7,6 +7,9 @@
 <svelte:head>
 	<title>Svend3r</title>
 	<html lang="en-US" />
+	<meta name="description" content="Svender Charts - A Svelte Component Charting Library" />
+	<meta name="keywords" content="Interactive Plug and Play chart components for your Svelte app">
+	<meta name="author" content="Svend3r Charts">
 </svelte:head>
 
 <div id="home-page-layout" class="tablet:flex grid justify-center m-auto">
