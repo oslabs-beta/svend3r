@@ -36,8 +36,10 @@
     return userCode;
   };
 
+  let page = 'page1';
   function showCode(id) {
     let idArr = ['page1', 'page2', 'page3'];
+    page = id;
     for(let i = 0; i < idArr.length; i++) {
       if(id === idArr[i]) {
         document.getElementById(`${idArr[i]}_desc`).style.display = 'block';
@@ -48,6 +50,15 @@
       }
     }
 	}
+
+  let copied = false;
+  function copyCode() {
+    copied = true;
+    setTimeout(()=>copied = false, 1000)
+    if(page === 'page1') navigator.clipboard.writeText(updateCode());
+    if(page === 'page2') navigator.clipboard.writeText(data);
+    if(page === 'page3') navigator.clipboard.writeText(schema);
+  }
 </script>
 
 <div class="data-schema-container">
@@ -71,6 +82,17 @@
   </button>
 </div>
 <div class="code-mirror">
+  <div class="copy-icon">
+    <button class="" on:click={copyCode}>
+      <img alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
+    </button>
+    <span
+			class={`absolute w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
+			text-white bg-gray-900 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
+		>
+		Copied to clipboard!
+		</span>
+  </div>
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
@@ -119,6 +141,7 @@
   }
 
   .code-mirror {
+    position: relative;
     background-color: #2D2D2D;
     border-radius: 0 0 10px 10px;
     width: 36vw;
@@ -163,6 +186,31 @@
     margin-right: 3%;
     margin-top: auto;
     margin-bottom: auto;
+  }
+
+  .copy-icon {
+    position: absolute;
+    right: 0px;
+    top: 0px
+  }
+
+  .copy-icon button {
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .copy-icon img {
+    filter: invert(100%) sepia(0%) saturate(1046%) hue-rotate(178deg) brightness(109%) contrast(70%);
+    transition: .1s filter;
+  }
+
+  .copy-icon img:hover {
+    filter: invert(91%) sepia(98%) saturate(4754%) hue-rotate(180deg) brightness(118%) contrast(100%);
+  }
+
+  .copy-icon img::after {
+    content: 'blah';
   }
 
   .button-text_icon{
