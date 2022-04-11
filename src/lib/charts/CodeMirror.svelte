@@ -82,12 +82,12 @@
   </button>
 </div>
 <div class="code-mirror">
-  <div class="copy-icon">
-    <button class="" on:click={copyCode}>
-      <img alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
+  <div class="sticky float-right top-0 right-0">
+    <button class="p-2 h-10 w-10" on:click={copyCode}>
+      <img class="copy-icon" alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
     </button>
     <span
-			class={`absolute w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
+			class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
 			text-white bg-gray-900 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
 		>
 		Copied to clipboard!
@@ -189,28 +189,12 @@
   }
 
   .copy-icon {
-    position: absolute;
-    right: 0px;
-    top: 0px
-  }
-
-  .copy-icon button {
-    padding: 10px;
-    width: 40px;
-    height: 40px;
-  }
-
-  .copy-icon img {
     filter: invert(100%) sepia(0%) saturate(1046%) hue-rotate(178deg) brightness(109%) contrast(70%);
     transition: .1s filter;
   }
 
-  .copy-icon img:hover {
+  .copy-icon:hover {
     filter: invert(91%) sepia(98%) saturate(4754%) hue-rotate(180deg) brightness(118%) contrast(100%);
-  }
-
-  .copy-icon img::after {
-    content: 'blah';
   }
 
   .button-text_icon{
