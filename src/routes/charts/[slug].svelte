@@ -71,7 +71,7 @@
       </div>
     </div>
     <div class="right-container">
-      <div class="code-mirror">
+      <div class="code-mirror relative">
         <CodeMirror {code} {data} {schema} />
       </div>
       <div class="chart-properties">

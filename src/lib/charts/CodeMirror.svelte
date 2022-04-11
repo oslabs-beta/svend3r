@@ -81,18 +81,18 @@
       Data Schema</section>
   </button>
 </div>
+<div class="absolute float-right top-21 right-0 z-10">
+  <button class="p-2 h-10 w-10" on:click={copyCode}>
+    <img class="copy-icon" alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
+  </button>
+  <span
+    class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
+    text-white bg-gray-900 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
+  >
+  Copied to clipboard!
+  </span>
+</div>
 <div class="code-mirror">
-  <div class="sticky float-right top-0 right-0">
-    <button class="p-2 h-10 w-10" on:click={copyCode}>
-      <img class="copy-icon" alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
-    </button>
-    <span
-			class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
-			text-white bg-gray-900 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
-		>
-		Copied to clipboard!
-		</span>
-  </div>
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
 --><code spellcheck="false" class="language-javascript"
 		><!--
@@ -141,7 +141,6 @@
   }
 
   .code-mirror {
-    position: relative;
     background-color: #2D2D2D;
     border-radius: 0 0 10px 10px;
     width: 36vw;
