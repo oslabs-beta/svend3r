@@ -36,8 +36,10 @@
     return userCode;
   };
 
+  let page = 'page1';
   function showCode(id) {
     let idArr = ['page1', 'page2', 'page3'];
+    page = id;
     for(let i = 0; i < idArr.length; i++) {
       if(id === idArr[i]) {
         document.getElementById(`${idArr[i]}_desc`).style.display = 'block';
@@ -48,6 +50,15 @@
       }
     }
 	}
+
+  let copied = false;
+  function copyCode() {
+    copied = true;
+    setTimeout(()=>copied = false, 1000)
+    if(page === 'page1') navigator.clipboard.writeText(updateCode());
+    if(page === 'page2') navigator.clipboard.writeText(data);
+    if(page === 'page3') navigator.clipboard.writeText(schema);
+  }
 </script>
 
 <div class="data-schema-container">
@@ -69,6 +80,17 @@
       <img class="codeMirror-icon" alt="svend3r d3 chart code" src='/codeMirror/schema.png'>
       Data Schema</section>
   </button>
+</div>
+<div class="absolute float-right top-21 right-0 z-10">
+  <button class="p-2 h-10 w-10" on:click={copyCode}>
+    <img class="copy-icon" alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
+  </button>
+  <span
+    class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md text-black 
+    bg-white87 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
+  >
+  Copied to clipboard!
+  </span>
 </div>
 <div class="code-mirror">
 <pre id="page1_desc" class="codeMirror" contenteditable><!--
@@ -163,6 +185,16 @@
     margin-right: 3%;
     margin-top: auto;
     margin-bottom: auto;
+  }
+
+  .copy-icon {
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(288deg) brightness(102%) contrast(102%);
+    opacity: 20%;
+    transition: .1s opacity;
+  }
+
+  .copy-icon:hover {
+    opacity: 80%;
   }
 
   .button-text_icon{
