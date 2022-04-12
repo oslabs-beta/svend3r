@@ -86,8 +86,8 @@
     <img class="copy-icon" alt="Copy Code" src='/codeMirror/CopyIcon.svg'>
   </button>
   <span
-    class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md dark:bg-white dark:text-black
-    text-white bg-gray-900 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
+    class={`absolute top-0 w-auto p-2 m-2 min-w-max right-8 rounded-md shadow-md text-black 
+    bg-white87 text-xs font-bold transition-all duration-100  origin-right ${copied ? "scale-100" : "scale-0"}`}
   >
   Copied to clipboard!
   </span>
@@ -188,12 +188,13 @@
   }
 
   .copy-icon {
-    filter: invert(100%) sepia(0%) saturate(1046%) hue-rotate(178deg) brightness(109%) contrast(70%);
-    transition: .1s filter;
+    filter: invert(100%) sepia(100%) saturate(0%) hue-rotate(288deg) brightness(102%) contrast(102%);
+    opacity: 20%;
+    transition: .1s opacity;
   }
 
   .copy-icon:hover {
-    filter: invert(91%) sepia(98%) saturate(4754%) hue-rotate(180deg) brightness(118%) contrast(100%);
+    opacity: 80%;
   }
 
   .button-text_icon{

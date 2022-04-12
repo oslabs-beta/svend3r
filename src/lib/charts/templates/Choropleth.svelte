@@ -37,7 +37,7 @@
   const format = (value) => {
     if (!value) return 'N/A';
     const [a, b] = value;
-    console.log('format', value, a, b);
+    // console.log('format', value, a, b);
     return `${a}% ${names[0]}${labels[xFunc(a)] && ` (${labels[xFunc(a)]})`}
     ${b}% ${names[1]}${labels[yFunc(b)] && ` (${labels[yFunc(b)]})`}`;
   };
